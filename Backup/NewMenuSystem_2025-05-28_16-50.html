@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskBlaster 9000</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.js"></script>
+    <style>
+        body {
+            font-family: 'VT323', monospace; 
+            background-color: #2E2E2E; 
+            background-image: repeating-linear-gradient(45deg,rgba(255,255,255,0.03) 0,rgba(255,255,255,0.03) 1px,transparent 1px,transparent 10px);
+            color: #00FF00; 
+            padding-top: 10px;
+            overflow-x: hidden;
+        }
+        .container-90s {
+            background-color: #4A4A4A; 
+            border-top: 3px solid #707070;
+            border-left: 3px solid #707070;
+            border-right: 3px solid #1A1A1A;
+            border-bottom: 3px solid #1A1A1A;
+            box-shadow: 5px 5px 0px #111; 
+            padding: 20px;
+            width: 95%;
+            max-width: 650px;
+            margin: 20px auto;
+            position: relative;
+            z-index: 10;
+        }
+        h1, h2 {
+            font-family: 'Press Start 2P', cursive; 
+            font-size: 26px; 
+            text-align: center;
+            color: #FFD700; 
+            text-shadow: 2px 2px #FF0000, -2px -2px #0000FF; 
+            margin-bottom: 10px;
+        }
+        h2 { font-size: 20px; margin-top: 30px; margin-bottom: 15px; color: #00FFFF; text-shadow: 2px 2px #8A2BE2; }
+        .header-subtitle {
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+            text-align: center;
+            color: #00C0C0;
+            margin-bottom: 20px;
+        }
+        .input-90s {
+            border: 2px inset #1A1A1A;
+            background-color: #333333; 
+            color: #00FF00; 
+            padding: 10px;
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+            width: 100%;
+        }
+        .textarea-90s {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .button-90s {
+            background-color: #3A3A3A; 
+            border-top: 3px solid #6A6A6A; 
+            border-left: 3px solid #6A6A6A; 
+            border-right: 3px solid #1E1E1E; 
+            border-bottom: 3px solid #1E1E1E; 
+            padding: 12px 15px; 
+            font-family: 'Press Start 2P', cursive; 
+            color: #FFFFFF; 
+            cursor: pointer;
+            min-width: 130px; 
+            font-size: 14px; 
+            text-shadow: 2px 2px #000000; 
+            transition: all 0.1s ease-in-out; 
+            display: inline-flex; 
+            align-items: center;
+            justify-content: center;
+            text-align: center; 
+        }
+        .button-90s:hover {
+            background-color: #484848; 
+            color: #00FFFF; 
+            text-shadow: 2px 2px #00008B; 
+        }
+        .button-90s:active {
+            border-top: 3px solid #1E1E1E; 
+            border-left: 3px solid #1E1E1E; 
+            border-right: 3px solid #6A6A6A; 
+            border-bottom: 3px solid #6A6A6A; 
+            transform: translate(2px, 2px); 
+        }
+        .task-item-90s {
+            background-color: #383838; 
+            border: 1px solid #1A1A1A; 
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-item-90s.completed span {
+            text-decoration: line-through;
+            color: #009000; 
+        }
+        .task-item-90s span {
+            margin-right: 10px;
+            font-size: 18px; 
+            word-break: break-word;
+        }
+        .task-controls-90s input[type="checkbox"] {
+            width: 18px; height: 18px; margin-right: 10px;
+            appearance: none; -webkit-appearance: none;
+            background-color: #222; border: 2px solid #00FF00;
+            position: relative;
+        }
+        .task-controls-90s input[type="checkbox"]:checked { background-color: #00FF00; }
+        .task-controls-90s input[type="checkbox"]:checked::after {
+            content: 'X'; font-family: 'Press Start 2P'; font-size: 12px;
+            color: #222; position: absolute; left: 50%; top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .task-controls-90s .delete-btn-90s {
+            background-color: #D32F2F; border: 1px outset #FF5252;
+            color: #FFFFFF; font-weight: bold; padding: 4px 8px;
+            font-size: 14px; cursor: pointer;
+        }
+        @media (max-width: 640px) {
+            .task-controls-90s .delete-btn-90s { padding: 8px 12px; }
+        }
+        #taskList, #journalList {
+            max-height: 350px; overflow-y: auto;
+            border: 2px inset #1A1A1A; padding: 10px;
+            background-color: #222222; margin-bottom: 20px; 
+        }
+        .journal-entry {
+            background-color: #383838;
+            border: 1px solid #1A1A1A;
+            margin-bottom: 10px;
+        }
+        .journal-header {
+            padding: 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            color: #FFD700;
+        }
+         .journal-header:hover { background-color: #404040; }
+        .journal-content {
+            padding: 0 12px 12px 12px;
+            font-size: 16px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        ::-webkit-scrollbar { width: 16px; }
+        ::-webkit-scrollbar-track { background-color: #222; border: 1px solid #111; }
+        ::-webkit-scrollbar-thumb { background-color: #00FF00; border: 2px solid #008000; }
+        .footer-90s { text-align: center; margin-top: 30px; font-size: 14px; color: #00A0A0; }
+        .footer-90s a { text-decoration: underline; cursor: pointer; }
+        .footer-90s a:hover { color: #FFFFFF; }
+        .input-area-90s { display: flex; gap: 10px; margin-bottom: 20px; }
+        .message-box {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background-color: #FFFF00; color: #000000; padding: 15px 25px;
+            border: 3px solid #000000; box-shadow: 5px 5px 0px #FF0000; 
+            z-index: 10000; font-family: 'Press Start 2P'; font-size: 14px;
+            display: none; 
+        }
+        #pixelArtCanvas {
+            border: 2px solid #707070; border-right-color: #1A1A1A; border-bottom-color: #1A1A1A; 
+            background-color: #222222; 
+            margin-top: 25px; 
+            display: block; 
+            width: 100%; 
+            max-width: 320px; 
+            height: 160px; 
+            image-rendering: pixelated; 
+        }
+        .fullscreen-particle { position: fixed; width: 10px; height: 10px; pointer-events: none; z-index: 9999; opacity: 0; }
+        @keyframes screen-firework-burst {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(2.5) translate(var(--tx), var(--ty)); opacity: 0; }
+        }
+        .particle-bright-yellow  { background-color: #FFFF00; }
+        .particle-electric-cyan  { background-color: #00FFFF; }
+        .particle-hot-pink     { background-color: #FF69B4; }
+        #kaleidoscopeModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            align-items: center; justify-content: center; z-index: 2000;
+            display: none; 
+        }
+        #kaleidoscopeModal.visible { display: flex; }
+        #kaleidoscopeCanvasParent {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border: 2px inset #1A1A1A;
+            margin-bottom: 15px;
+        }
+        #kaleidoscopeControls {
+            display: grid;
+            gap: 12px;
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="messageBox" class="message-box"></div>
+
+    <div id="loginContainer" class="container-90s mx-auto text-center">
+        <h1>TaskBlaster 9000</h1>
+        <p class="header-subtitle">A Personal Task & Journal System</p>
+        <button id="signInBtn" class="button-90s mx-auto">Sign In With Google</button>
+        <canvas id="pixelArtCanvas" class="mx-auto"></canvas>
+    </div>
+
+    <div id="appContainer" class="container-90s hidden">
+        <header class="header-90s mb-4">
+            <h1>TaskBlaster 9000</h1>
+            <div class="flex justify-between items-center mt-3">
+                <p class="header-subtitle" style="margin: 0; text-align: left;">USER: <span id="userIdDisplay">...</span></p>
+                <button id="launchKaleidoscopeBtn" class="button-90s" style="font-size: 10px; min-width: auto; padding: 6px 9px; color: #00FFFF; margin-left: 10px;">K-MODE</button>
+            </div>
+        </header>
+
+        <h2>Mission Log</h2>
+        <div class="input-area-90s">
+            <input type="text" id="taskInput" placeholder="New mission..." class="input-90s">
+            <button id="addTaskBtn" class="button-90s">ENGAGE!</button>
+        </div>
+        <div id="taskList"></div>
+
+        <hr class="border-gray-600 my-8">
+        
+        <h2>Captain's Journal</h2>
+        <div class="input-area-90s flex-col">
+            <textarea id="journalInput" placeholder="New journal entry..." class="input-90s textarea-90s"></textarea>
+            <button id="addJournalBtn" class="button-90s w-full mt-2">Save Entry</button>
+        </div>
+        <button id="summarizeJournalBtn" class="button-90s w-full mb-4" style="font-size:12px; color: #FFFF00;">Summarize Journal for Gemini</button>
+        <div id="journalList"></div>
+    </div>
+    
+    <div id="kaleidoscopeModal">
+        <div class="container-90s w-11/12 max-w-lg">
+            <h2 class="font-bold text-lg text-center mb-4" style="font-family: 'Press Start 2P'; color: #00FFFF;">Kaleidoscope</h2>
+            <div id="kaleidoscopeCanvasParent"></div>
+            <div id="kaleidoscopeControls">
+                <input type="range" id="kSymmetrySlider" min="2" max="20" value="6" step="1" class="w-full">
+                <button id="kClearBtn" class="button-90s w-full" style="font-size: 12px;">Clear</button>
+            </div>
+            <button id="closeKaleidoscopeBtn" class="button-90s w-full mt-4" style="font-size: 12px; color: #FF69B4;">Close</button>
+        </div>
+    </div>
+
+    <footer class="footer-90s">
+        <p>&copy; <span id="currentYear"></span> Cyberdyne Task Systems | <a href="#" id="signOutBtn" class="hover:text-white">Sign Out</a></p>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, addDoc, setDoc, deleteDoc, onSnapshot, collection, query, serverTimestamp, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // --- Configuration ---
+        const firebaseConfig = { apiKey: "AIzaSyCht_2CFCVolrKp-dyZf3_2o7_KQI_7HoQ", authDomain: "my-retro-task-tracker.firebaseapp.com", projectId: "my-retro-task-tracker", storageBucket: "my-retro-task-tracker.appspot.com", messagingSenderId: "183935251636", appId: "1:183935251636:web:27581f344a56bab66153e1" };
+        
+        // --- Firebase Initialization ---
+        let db, auth, userId, tasksCollectionRef, journalCollectionRef;
+        let unsubscribeTasks = null, unsubscribeJournal = null;
+        try { const app = initializeApp(firebaseConfig); auth = getAuth(app); db = getFirestore(app); } catch (error) { console.error("Firebase initialization failed:", error); showMessage("FATAL SYSTEM ERROR", 10000); }
+
+        // --- UI Element References ---
+        const loginContainer = document.getElementById('loginContainer'), appContainer = document.getElementById('appContainer');
+        const signInBtn = document.getElementById('signInBtn'), signOutBtn = document.getElementById('signOutBtn');
+        const userIdDisplay = document.getElementById('userIdDisplay'), messageBox = document.getElementById('messageBox');
+        const taskInput = document.getElementById('taskInput'), addTaskBtn = document.getElementById('addTaskBtn'), taskList = document.getElementById('taskList');
+        const journalInput = document.getElementById('journalInput'), addJournalBtn = document.getElementById('addJournalBtn'), journalList = document.getElementById('journalList'), summarizeJournalBtn = document.getElementById('summarizeJournalBtn');
+        const pixelArtCanvas = document.getElementById('pixelArtCanvas');
+        const launchKaleidoscopeBtn = document.getElementById('launchKaleidoscopeBtn'), closeKaleidoscopeBtn = document.getElementById('closeKaleidoscopeBtn'), kaleidoscopeModal = document.getElementById('kaleidoscopeModal');
+        const kSymmetrySlider = document.getElementById('kSymmetrySlider'), kClearBtn = document.getElementById('kClearBtn');
+        let kaleidoscopeSketch = null;
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // --- Authentication ---
+        const provider = new GoogleAuthProvider();
+        signInBtn.onclick = () => signInWithPopup(auth, provider).catch(handleAuthError);
+        signOutBtn.onclick = (e) => { e.preventDefault(); signOut(auth).catch(handleAuthError); };
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                loginContainer.classList.add('hidden');
+                appContainer.classList.remove('hidden');
+                userId = user.uid;
+                userIdDisplay.textContent = user.displayName?.split(' ')[0].toUpperCase() || 'AGENT'; 
+                tasksCollectionRef = collection(db, `users/${userId}/tasks`);
+                journalCollectionRef = collection(db, `users/${userId}/journalEntries`);
+                loadTasks();
+                loadJournal();
+            } else {
+                appContainer.classList.add('hidden');
+                loginContainer.classList.remove('hidden');
+                if (unsubscribeTasks) unsubscribeTasks();
+                if (unsubscribeJournal) unsubscribeJournal();
+                generatePixelArt();
+            }
+        });
+        function handleAuthError(error) { console.error("Auth error:", error); showMessage(`AUTH FAILED: ${error.code}`); }
+
+        // --- Task Management ---
+        async function addTask() {
+            if (!userId) return showMessage("AUTH ERROR");
+            const taskText = taskInput.value.trim();
+            if (taskText === "") return;
+            try {
+                await addDoc(tasksCollectionRef, { text: taskText, completed: false, createdAt: serverTimestamp() });
+                playCompletionAnimation(addTaskBtn);
+                taskInput.value = ""; 
+            } catch (error) { console.error("Error adding task:", error); showMessage("LOGGING FAILED"); }
+        }
+        function loadTasks() {
+            if (!tasksCollectionRef) return;
+            const q = query(tasksCollectionRef, orderBy("createdAt", "desc"));
+            unsubscribeTasks = onSnapshot(q, querySnapshot => {
+                taskList.innerHTML = ""; 
+                if (querySnapshot.empty) { taskList.innerHTML = '<p class="text-center p-2 text-cyan-400">MISSION LOG EMPTY</p>'; return; }
+                querySnapshot.forEach(doc => renderTask({ id: doc.id, ...doc.data() }));
+            }, error => { console.error("Error fetching tasks:", error); taskList.innerHTML = '<p class="text-red-500 text-center p-2">MISSION RETRIEVAL FAILED</p>'; });
+        }
+        function renderTask(task) {
+            const item = document.createElement('div');
+            item.className = `task-item-90s ${task.completed ? 'completed' : ''}`;
+            item.dataset.id = task.id;
+            item.innerHTML = `<span>${escapeHTML(task.text)}</span> <div class="task-controls-90s flex items-center"><input type="checkbox" ${task.completed ? 'checked' : ''}> <button class="delete-btn-90s ml-2">DEL</button></div>`;
+            item.querySelector('input').addEventListener('change', (e) => toggleComplete(task.id, e.target.checked));
+            item.querySelector('button').addEventListener('click', () => deleteTask(task.id, task.completed));
+            taskList.appendChild(item);
+        }
+        async function toggleComplete(id, completed) { await setDoc(doc(db, `users/${userId}/tasks`, id), { completed }, { merge: true }); }
+        async function deleteTask(id, completed) {
+            if (completed) {
+                const taskElement = document.querySelector(`.task-item-90s[data-id="${id}"]`);
+                if (taskElement) playCompletionAnimation(taskElement);
+            }
+            await deleteDoc(doc(db, `users/${userId}/tasks`, id));
+        }
+
+        // --- Journal Management ---
+        async function addJournalEntry() {
+            if (!userId) return showMessage("AUTH ERROR");
+            const entryText = journalInput.value.trim();
+            if (entryText === "") return;
+            try {
+                await addDoc(journalCollectionRef, { text: entryText, createdAt: serverTimestamp() });
+                playCompletionAnimation(addJournalBtn);
+                journalInput.value = "";
+            } catch (error) { console.error("Error adding journal entry:", error); showMessage("SAVE FAILED"); }
+        }
+        function loadJournal() {
+            if (!journalCollectionRef) return;
+            const q = query(journalCollectionRef, orderBy("createdAt", "desc"));
+            unsubscribeJournal = onSnapshot(q, querySnapshot => {
+                journalList.innerHTML = "";
+                if (querySnapshot.empty) { journalList.innerHTML = '<p class="text-center p-2 text-cyan-400">JOURNAL IS EMPTY</p>'; return; }
+                querySnapshot.forEach(doc => renderJournalEntry({ id: doc.id, ...doc.data() }));
+            }, error => { console.error("Error fetching journal:", error); journalList.innerHTML = '<p class="text-red-500 text-center p-2">JOURNAL RETRIEVAL FAILED</p>'; });
+        }
+        function renderJournalEntry(entry) {
+            const item = document.createElement('div');
+            item.className = 'journal-entry';
+            const entryDate = entry.createdAt?.toDate ? entry.createdAt.toDate().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Unknown Date';
+            item.innerHTML = `
+                <div class="journal-header">
+                    <span>${entryDate}</span>
+                    <span>[ + ]</span>
+                </div>
+                <div class="journal-content hidden">
+                    ${escapeHTML(entry.text)}
+                </div>
+            `;
+            item.querySelector('.journal-header').addEventListener('click', (e) => {
+                const content = e.currentTarget.nextElementSibling;
+                const indicator = e.currentTarget.querySelector('span:last-child');
+                content.classList.toggle('hidden');
+                indicator.textContent = content.classList.contains('hidden') ? '[ + ]' : '[ - ]';
+            });
+            journalList.appendChild(item);
+        }
+        async function summarizeJournal() {
+            if (!journalCollectionRef) return showMessage("JOURNAL NOT FOUND");
+            showMessage("Generating summary...", 1500);
+            const q = query(journalCollectionRef, orderBy("createdAt", "desc"));
+            const querySnapshot = await getDocs(q);
+            if (querySnapshot.empty) {
+                showMessage("Journal is empty. Nothing to summarize.");
+                return;
+            }
+            const userName = auth.currentUser?.displayName || 'User';
+            let summary = `Journal Summary for ${userName}\n\n`;
+            querySnapshot.forEach(doc => {
+                const entry = doc.data();
+                const date = entry.createdAt?.toDate().toLocaleDateString() || 'Unknown Date';
+                summary += `---\nDate: ${date}\n${entry.text}\n\n`;
+            });
+            try {
+                await navigator.clipboard.writeText(summary);
+                showMessage("Journal summary copied to clipboard!", 4000);
+            } catch(err) {
+                console.error('Failed to copy: ', err);
+                showMessage("COPY FAILED. SEE CONSOLE.", 4000);
+            }
+        }
+        
+        // --- Kaleidoscope ---
+        const sketch = (p) => {
+            p.setup = () => {
+                const parent = document.getElementById('kaleidoscopeCanvasParent');
+                let size = parent.clientWidth;
+                const canvas = p.createCanvas(size, size);
+                canvas.parent(parent);
+                p.angleMode(p.DEGREES); p.colorMode(p.HSB); p.background(12);
+                 // Handle resize
+                new ResizeObserver(() => {
+                    size = parent.clientWidth;
+                    p.resizeCanvas(size, size);
+                    p.background(12);
+                }).observe(parent);
+            };
+            p.draw = () => {
+                p.translate(p.width / 2, p.height / 2);
+                if (p.mouseIsPressed && p.mouseX > 0 && p.mouseX < p.width && p.mouseY > 0 && p.mouseY < p.height) {
+                    const symmetry = kSymmetrySlider.value;
+                    const angle = 360 / symmetry;
+                    const mx = p.mouseX - p.width / 2, my = p.mouseY - p.height / 2;
+                    const pmx = p.pmouseX - p.width / 2, pmy = p.pmouseY - p.height / 2;
+                    p.stroke((p.frameCount) % 360, 100, 100); p.strokeWeight(3);
+                    for (let i = 0; i < symmetry; i++) {
+                        p.rotate(angle); p.line(mx, my, pmx, pmy);
+                        p.push(); p.scale(1, -1); p.line(mx, my, pmx, pmy); p.pop();
+                    }
+                }
+            };
+            p.clearCanvas = () => p.background(12);
+        };
+        function startKaleidoscope() {
+            kaleidoscopeModal.classList.add('visible');
+            if (!kaleidoscopeSketch) { kaleidoscopeSketch = new p5(sketch, 'kaleidoscopeCanvasParent'); }
+            kaleidoscopeSketch.loop(); 
+        }
+        function stopKaleidoscope() {
+            if (kaleidoscopeSketch) { kaleidoscopeSketch.noLoop(); }
+            kaleidoscopeModal.classList.remove('visible');
+        }
+
+        // --- Pixel Art & Helpers ---
+        function generatePixelArt() {
+            if (!pixelArtCanvas) return;
+            const ctx = pixelArtCanvas.getContext('2d');
+            if (!ctx) return;
+            pixelArtCanvas.width = 320; pixelArtCanvas.height = 160;
+            const pixelSize = 5;
+            const numCols = Math.floor(pixelArtCanvas.width / pixelSize);
+            const numRows = Math.floor(pixelArtCanvas.height / pixelSize);
+            const themeColors = ['#00FF00', '#FFD700', '#00C0C0', '#3A3A3A', '#4A4A4A', '#222222', '#FF0000', '#0000FF'];
+            ctx.fillStyle = '#222222';
+            ctx.fillRect(0, 0, pixelArtCanvas.width, pixelArtCanvas.height);
+            for (let r = 0; r < numRows; r++) {
+                for (let c = 0; c < Math.ceil(numCols / 2); c++) { 
+                    const color = themeColors[Math.floor(Math.random() * themeColors.length)];
+                    ctx.fillStyle = color;
+                    ctx.fillRect(c * pixelSize, r * pixelSize, pixelSize, pixelSize);
+                    const mirroredC = numCols - 1 - c;
+                    if (c !== mirroredC) ctx.fillRect(mirroredC * pixelSize, r * pixelSize, pixelSize, pixelSize);
+                }
+            }
+        }
+        function showMessage(text, duration = 3000) { messageBox.textContent = text; messageBox.style.display = 'block'; setTimeout(() => { messageBox.style.display = 'none'; }, duration); }
+        function escapeHTML(str) { const p = document.createElement("p"); p.textContent = str; return p.innerHTML.replace(/\n/g, '<br>'); }
+        function playCompletionAnimation(originElement) {
+            if (!originElement) return;
+            const numParticles = 60, colors = ['particle-bright-yellow', 'particle-electric-cyan', 'particle-hot-pink'];
+            const rect = originElement.getBoundingClientRect();
+            const originX = rect.left + rect.width / 2, originY = rect.top + rect.height / 2;
+            for (let i = 0; i < numParticles; i++) {
+                const p = document.createElement('div');
+                p.className = `fullscreen-particle ${colors[i % colors.length]}`;
+                p.style.left = `${originX}px`; p.style.top = `${originY}px`;
+                const angle = Math.random() * 360, travel = Math.random() * (window.innerWidth / 4);
+                p.style.setProperty('--tx', `${Math.cos(angle * Math.PI / 180) * travel}px`);
+                p.style.setProperty('--ty', `${Math.sin(angle * Math.PI / 180) * travel}px`);
+                p.style.animation = `screen-firework-burst 0.8s ease-out forwards`;
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 800);
+            }
+        }
+        
+        // --- Initial & Global Event Listeners ---
+        addTaskBtn.addEventListener('click', addTask);
+        taskInput.addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
+        addJournalBtn.addEventListener('click', addJournalEntry);
+        summarizeJournalBtn.addEventListener('click', summarizeJournal);
+
+        launchKaleidoscopeBtn.addEventListener('click', startKaleidoscope);
+        closeKaleidoscopeBtn.addEventListener('click', stopKaleidoscope);
+        kClearBtn.addEventListener('click', () => kaleidoscopeSketch?.clearCanvas());
+        
+        generatePixelArt();
+
+    </script>
+</body>
+</html>

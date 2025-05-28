@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskBlaster 9000</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.js"></script>
+    <style>
+        /* --- MOODY ANIME V3 - FINAL AESTHETIC --- */
+        :root {
+            /* New moody color palette */
+            --background-main: #22252c; /* Deep desaturated blue-grey */
+            --container-bg: rgba(45, 48, 59, 0.7);
+            --input-bg: #3c404c;
+            --input-bg-focus: #4a4e59; /* Softer focus color */
+            --text-primary: #d4d2d1;  /* Soft off-white */
+            --text-dim: #7a7f8a;
+            --accent-primary: #a94343; /* Muted deep red */
+            --border-color: #555a69;
+            --font-main: 'VT323', monospace;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* ADDED: Noise animation for the textured background */
+        @keyframes noise {
+            0% { transform: translate(0,0); }
+            10% { transform: translate(-5%,-5%); }
+            20% { transform: translate(-10%,5%); }
+            30% { transform: translate(5%,-10%); }
+            40% { transform: translate(-5%,15%); }
+            50% { transform: translate(-10%,5%); }
+            60% { transform: translate(15%,0); }
+            70% { transform: translate(0,10%); }
+            80% { transform: translate(-15%,0); }
+            90% { transform: translate(10%,5%); }
+            100% { transform: translate(5%,0); }
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--background-main);
+            color: var(--text-primary);
+            padding-top: 10px;
+            overflow-x: hidden;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        /* ADDED: Textured background overlay */
+        body::before {
+            content: "";
+            position: fixed;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            z-index: -1;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiGAAAANlBMVEX8/vz5+fr09vj29vj4+Pj+/v36+vr39/ru7/Ds7vHy8/H9/f37+/v09fXw8fH7+/z19vfu7u4j7KxRAAAAB3RSTlMAEREiI5mZ7G2d/AAAAIZJREFUeF7t0kEKwCAMRFG+m7v/29kFFCqECi4U+fMv5i1ZzKy1AUY9NDvFmDEGBQY4y7hQyREO72MTALaYTwDYI9gC2EMwAbBJ8AFwS/AEYEtgA+CWwAfgmIAVsK/bA0gI9gS0BPYA3gn2BLYE9gS2BHYE9gTuBHsCewL/A0Y9NDvFmDEGBQY4y1g+dcg3Jb2cAAAAAElFTkSuQmCC');
+            opacity: 0.05;
+            animation: noise 0.2s infinite;
+        }
+
+        .container-90s {
+            background-color: var(--container-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(5px);
+            box-shadow: none;
+            padding: 20px;
+            width: 95%;
+            max-width: 650px;
+            margin: 20px auto;
+        }
+        
+        h1, h2 {
+            font-family: var(--font-main);
+            font-size: 28px;
+            text-align: center;
+            color: var(--text-primary);
+            text-shadow: 0 0 5px var(--accent-primary);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            font-size: 22px;
+            text-align: left;
+            border-bottom: 1px solid var(--accent-primary);
+            padding-bottom: 5px;
+            min-height: 30px; /* For typewriter */
+        }
+
+        .input-90s {
+            background-color: var(--input-bg);
+            color: var(--text-primary);
+            padding: 10px;
+            font-family: var(--font-main);
+            font-size: 18px;
+            width: 100%;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s;
+        }
+        .input-90s:focus {
+            outline: none;
+            /* MODIFIED: Softer focus background */
+            background-color: var(--input-bg-focus);
+            border-color: var(--accent-primary);
+        }
+        .input-90s::placeholder { color: var(--text-dim); }
+
+        .button-90s {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            padding: 10px 15px;
+            font-family: var(--font-main);
+            font-size: 18px;
+            color: var(--text-dim);
+            cursor: pointer;
+            text-shadow: none;
+            transition: all 0.2s ease-in-out;
+            text-transform: uppercase;
+        }
+        .button-90s:hover {
+            background-color: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+        }
+
+        .nav-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        .nav-tab {
+            flex-grow: 1; padding: 10px; font-size: 16px;
+            border: none;
+            margin-bottom: -1px;
+            background-color: transparent;
+            color: var(--text-dim);
+        }
+        .nav-tab.active {
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--accent-primary);
+        }
+
+        .task-item-90s {
+            padding: 12px; margin-bottom: 8px;
+            display: flex; align-items: center;
+            border-bottom: 1px dashed var(--border-color);
+        }
+        .task-text { flex-grow: 1; margin: 0 15px; font-size: 18px; }
+
+        .task-status {
+            cursor: pointer; user-select: none; width: 16px; height: 16px;
+            background-color: transparent;
+            border: 1px solid var(--text-dim);
+            flex-shrink: 0;
+            position: relative;
+        }
+        .task-item-90s.completed .task-status {
+            background-color: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+        .task-item-90s.completed .task-text {
+            text-decoration: line-through;
+            color: var(--text-dim);
+        }
+
+        .priority-toggle {
+            cursor: pointer; font-size: 24px; color: var(--text-dim);
+            user-select: none; transition: color 0.2s; margin-left: 15px;
+        }
+        .priority-toggle.active { color: var(--accent-primary); }
+
+        .delete-btn-90s {
+            background-color: transparent; border: none;
+            color: var(--text-dim);
+            padding: 4px 8px; font-size: 16px; cursor: pointer; margin-left: auto;
+        }
+        .delete-btn-90s:hover { color: var(--accent-primary); }
+
+        #taskList, #journalList {
+            min-height: 200px; max-height: 400px; overflow-y: auto;
+            border: 1px solid var(--border-color);
+            padding: 10px; background-color: rgba(34,37,44,0.5); margin-bottom: 20px;
+        }
+
+        #journalHeatmapContainer {
+            display: grid; grid-template-columns: repeat(15, 1fr); gap: 4px; 
+            padding: 10px; border: 1px solid var(--border-color);
+        }
+        .heatmap-day {
+            aspect-ratio: 1 / 1; background-color: var(--input-bg);
+        }
+        .heatmap-day.active { background-color: var(--accent-primary); }
+        
+        #kaleidoscopeModal { background-color: rgba(0,0,0,0.8); }
+        #kaleidoscopeModal .container-90s { background-color: var(--background-main); }
+        #kaleidoscopeModal h2 { color: var(--text-primary); text-shadow: none; }
+        #kaleidoscopeCanvasParent { border: 1px solid var(--border-color); }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <audio id="clickSound" src="data:audio/mpeg;base64,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ａGqgaYBqoGsAbHBsoG2AbZgfoKAgoHCA8IBwgfCAkKJQo0CkQKagqYCtQK0grXCuMLAwswC1QLaAtwCXwLvAvUDRAMLAxYDHQMnA0ADSwNgA2YDfgOLg5oDpAPHA+wD+QQGBBMEIAQtBDsESQRVBGMEcQR+BIwEmgSoBLYExATTBOEE8AT+BQ0FHAUrBToFSwVhBWcFdAWNBbkFwwXVBeUF9gYGBhYGJwY3BkgGWQZqBnsGjAadBq8GwAbRBuMG9QcHBxkHKwc9B08HYQd0B4YHmQesB78H0gflB/gICwgfCDIIRghaCG4IggimCL4I0gjnCPsJEAklCToJTwlkCXkJjwmkCboJzwnlCfsKEQonCj0KVApqCoEKmAquCsUK3ArzCwsLIgsoC1MLaQucC6wLwAvYC/cMEgwqDEMMXAx1DI4MpwzADNkM8w0NDSYNQA1aDXQNjg2pDcMN3g34DhMOLg5JDmQOfw6bDrYO0g7uDwsPJQ9BD14Peg+WD7MPzw/sEAkQJhBDEGEQfhCbELkQ1xD1EfkR8RNJE0oTaRSwRNwE9QVBBUcFSwV5BYoFtAWFBfgF5wYMBicGPAZJBkkGawZLBvoGcQZyRnEGdkZ7BnQGgQａGqgaYBqoGsAbHBsoG2AbZgfoKAgoHCA8IBwgfCAkKJQo0CkQKagqYCtQK0grXCuMLAwswC10LaQtsC3wLvAvUDRAMLAxYDHQMnA0ADSwNgA2YDfgOLg5oDpAPHA+wD+QQGBBMEIAQtBDsESQRVBGMEcQR+BIwEmgSoBLYExATTBOEE8AT+BQ0FHAUrBToFSQVYBWcFdAWNBbkFwwXVBeUF9gYGBhYGJwY3BkgGWQZqBnsGjAadBq8GwAbRBuMG9QcHBxkHKwc9B08HYQd0B4YHmQesB78H0gflB/gICwgfCDIIRghaCG4IggimCL4I0gjnCPsJEAklCToJTwlkCXkJjwmkCboJzwnlCfsKEQonCj0KVApqCoEKmAquCsUK3ArzCwsLIgsoC1MLaQucC6wLwAvYC/cMEgwqDEMMXAx1DI4MpwzADNkM8w0NDSYNQA1aDXQNjg2pDcMN3g34DhMOLg5JDmQOfw6bDrYO0g7uDwsPJQ9BD14Peg+WD7MPzw/sEAkQJhBDEGEQfhCbELkQ1xD1EfkR8RNJE0oTaRSwRNwE9QVBBUcFSwV5BYoFtAWFBfgF5wYMBicGPAZJBkkGawZLBvoGcQZyRnEGdkZ7BnQGgQａGqgaYBqoGsAbHBsoG2AbZgfoKAgoHCA8IBwgfCAkKJQo0CkQKagqYCtQK0grXCuMLAwswC10LaQtsC3wLvAvUDRAMLAxYDHQMnA0ADSwNgA2YDfgOLg5oDpAPHA+wD+QQGBBMEIAQtBDsESQRVBGMEcQR+BIwEmgSoBLYExATTBOEE8AT+BQ0FHAUrBToFSQVYBWcFdAWNBbkFwwXVBeUF9gYGBhYGJwY3BkgGWQZqBnsGjAadBq8GwAbRBuMG9QcHBxkHKwc9B08HYQd0B4YHmQesB78H0gflB/gICwgfCDIIRghaCG4IggimCL4I0gjnCPsJEAklCToJTwlkCXkJjwmkCboJzwnlCfsKEQonCj0KVApqCoEKmAquCsUK3ArzCwsLIgsoC1MLaQucC6wLwAvYC/cMEgwqDEMMXAx1DI4MpwzADNkM8w0NDSYNQA1aDXQNjg2pDcMN3g34DhMOLg5JDmQOfw6bDrYO0g7uDwsPJQ9BD14Peg+WD7MPzw/sEAkQJhBDEGEQfhCbELkQ1xD1EfkR8RNJE0oTaRSwRNwE9QVBBUcFSwV5BYoFtAWFBfgF5wYMBicGPAZJBkkGawZLBvoGcQZyRnEGdkZ7BnQGgQａGqgaYBqoGsAbHBsoG2AbZgfoKAgoHCA8IBwgfCAkKJQo0CkQKagqYCtQK0grXCuMLAwswC10LaQtsC3wLvAvUDRAMLAxYDHQMnA0ADSwNgA2YDfgOLg5oDpAPHA+wD+QQGBBMEIAQtBDsESQRVBGMEcQR+BIwEmgSoBLYExATTBOEE8AT+BQ0FHAUrBToFSQVYBWcFdAWNBbkFwwXVBeUF9gYGBhYGJwY3BkgGWQZqBnsGjAadBq8GwAbRBuMG9QcHBxkHKwc9B08HYQd0B4YHmQesB78H0gflB/gICwgfCDIIRghaCG4IggimCL4I0gjnCPsJEAklCToJTwlkCXkJjwmkCboJzwnlCfsKEQonCj0KVApqCoEKmAquCsUK3ArzCwsLIgsoC1MLaQucC6wLwAvYC/cMEgwqDEMMXAx1DI4MpwzADNkM8w0NDSYNQA1aDXQNjg2pDcMN3g34DhMOLg5JDmQOfw6bDrYO0g7uDwsPJQ9BD14Peg+WD7MPzw/sEAkQJhBDEGEQfhCbELkQ1xD1EfkR8RNJE0oTaRSwRNwE9QVBBUcFSwV5BYoFtAWFBfgF5wYMBicGPAZJBkkGawZLBvoGcQZyRnEGdkZ7BnQGgQａGqgaYBqoGsAbHBsoG2AbZgfoKAg//uAA5BZG9iZQBkwAAAAAH/2wCEAAwICAgJCAwJCQwRCwoLERUPDAwPFRgTExUTExgRDAwMDAwMEQwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwBDQsLDQ4NEA4OEBQODg4UFA4ODg4UEQwMDAwMEREMDAwMDAwRDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDP/AABEIAAEAAQMBEQACEQEDEQH/xABgAAEBAQEAAAAAAAAAAAAAAAABAAIGAQEAAAAAAAAAAAAAAAAAAAAAEAEAAAAAAAAAAAAAAAAAAAAAEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwDbkAD//aAAgBAQABPyAE/9oACAECAAE/ACH/2gAIAQMAAT8AIf/aAAgBAQABPPwB/9oACAECAAE/ACH/2gAIAQMAAT8AIf/ZAAAAAAAAAAAAAAA=="/></audio>
+
+    <div id="loginContainer">
+        <div class="container-90s mx-auto text-center" style="margin-top: 10vh;">
+            <h1>TaskBlaster 9000</h1>
+            <button id="signInBtn" class="button-90s mx-auto mt-6">System Login</button>
+        </div>
+    </div>
+
+    <div id="appContainer" class="hidden">
+        <div class="container-90s">
+            <header class="mb-4 flex justify-between items-center">
+                <p class="text-sm">USER: <span id="userIdDisplay">...</span></p>
+                <button id="signOutBtn" class="button-90s text-sm" style="padding: 5px 10px;">LOGOUT</button>
+            </header>
+
+            <nav class="nav-tabs">
+                <button id="tasksTabBtn" class="nav-tab button-90s active">Tasks</button>
+                <button id="journalTabBtn" class="nav-tab button-90s">Journal</button>
+                <button id="systemTabBtn" class="nav-tab button-90s">System</button>
+            </nav>
+
+            <main>
+                <div id="tasksView">
+                    <h2 id="tasksViewTitle"></h2>
+                    <div class="flex gap-2 mb-4">
+                        <input type="text" id="taskInput" placeholder="New task..." class="input-90s w-full">
+                        <button id="addTaskBtn" class="button-90s">ADD</button>
+                    </div>
+                    <div id="taskList"></div>
+                </div>
+
+                <div id="journalView" class="hidden">
+                    <h2 id="journalViewTitle"></h2>
+                    <div class="flex-col">
+                        <textarea id="journalInput" placeholder="Log entry for today..." class="input-90s journal-textarea"></textarea>
+                        <button id="addJournalBtn" class="button-90s w-full mt-2">Commit Log</button>
+                    </div>
+                    <h3 class="text-lg mt-4 mb-2">Log Archives</h3>
+                    <input type="search" id="journalSearch" placeholder="Search..." class="input-90s mb-4">
+                    <div id="journalList"></div>
+                </div>
+
+                <div id="systemView" class="hidden">
+                    <h2 id="systemViewTitle"></h2>
+                    <div class="mb-4">
+                        <h3 class="text-lg mb-2">Log Consistency Matrix</h3>
+                        <div id="journalHeatmapContainer"></div>
+                    </div>
+                    <button id="launchKaleidoscopeBtn" class="button-90s w-full">Launch K-Mode</button>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <div id="kaleidoscopeModal" class="hidden fixed inset-0 flex items-center justify-center z-50">
+        <div class="container-90s w-11/12 max-w-lg">
+            <h2>Kaleidoscope</h2>
+            <div id="kaleidoscopeCanvasParent" class="my-4"></div>
+            <div class="grid gap-4">
+                <input type="range" id="kSymmetrySlider" min="2" max="20" value="6" step="1" class="w-full">
+                <button id="kClearBtn" class="button-90s w-full">Clear</button>
+                <button id="closeKaleidoscopeBtn" class="button-90s w-full">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center mt-6 pb-6">
+        <p id="copyright-text" class="text-sm opacity-50">&copy; 2025 MiraiTech Systems</p>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, addDoc, deleteDoc, onSnapshot, collection, query, orderBy, serverTimestamp, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyCht_2CFCVolrKp-dyZf3_2o7_KQI_7HoQ", authDomain: "my-retro-task-tracker.firebaseapp.com", projectId: "my-retro-task-tracker", storageBucket: "my-retro-task-tracker.appspot.com", messagingSenderId: "183935251636", appId: "1:183935251636:web:27581f344a56bab66153e1" };
+        
+        let db, auth, userId, tasksCollectionRef, journalCollectionRef, todayDocId, kaleidoscopeSketch = null;
+        let unsubscribeTasks = null, unsubscribeJournal = null;
+
+        const ui = { /* All UI elements are mapped here */
+            loginContainer: document.getElementById('loginContainer'),
+            appContainer: document.getElementById('appContainer'),
+            signInBtn: document.getElementById('signInBtn'),
+            signOutBtn: document.getElementById('signOutBtn'),
+            userIdDisplay: document.getElementById('userIdDisplay'),
+            tasksView: document.getElementById('tasksView'),
+            journalView: document.getElementById('journalView'),
+            systemView: document.getElementById('systemView'),
+            tasksTabBtn: document.getElementById('tasksTabBtn'),
+            journalTabBtn: document.getElementById('journalTabBtn'),
+            systemTabBtn: document.getElementById('systemTabBtn'),
+            taskInput: document.getElementById('taskInput'),
+            addTaskBtn: document.getElementById('addTaskBtn'),
+            taskList: document.getElementById('taskList'),
+            journalInput: document.getElementById('journalInput'),
+            addJournalBtn: document.getElementById('addJournalBtn'),
+            journalList: document.getElementById('journalList'),
+            launchKaleidoscopeBtn: document.getElementById('launchKaleidoscopeBtn'),
+            copyrightText: document.getElementById('copyright-text'),
+            journalSearch: document.getElementById('journalSearch'),
+            journalHeatmapContainer: document.getElementById('journalHeatmapContainer'),
+            kaleidoscopeModal: document.getElementById('kaleidoscopeModal'),
+            kSymmetrySlider: document.getElementById('kSymmetrySlider'),
+            kClearBtn: document.getElementById('kClearBtn'),
+            closeKaleidoscopeBtn: document.getElementById('closeKaleidoscopeBtn'),
+            clickSound: document.getElementById('clickSound'),
+            tasksViewTitle: document.getElementById('tasksViewTitle'),
+            journalViewTitle: document.getElementById('journalViewTitle'),
+            systemViewTitle: document.getElementById('systemViewTitle'),
+        };
+        
+        // ADDED: Typewriter effect function restored
+        let currentTypewriter;
+        const typewriterEffect = (element, text, speed = 40) => {
+            if (!element) return;
+            if (currentTypewriter) clearInterval(currentTypewriter);
+            element.textContent = '';
+            let i = 0;
+            const timer = setInterval(() => {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(timer);
+                }
+            }, speed);
+            currentTypewriter = timer;
+        };
+
+        const escapeHTML = str => str.replace(/[&<>"']/g, match => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[match]).replace(/\n/g, '<br>');
+        const getTodayDocId = () => new Date().toISOString().slice(0, 10);
+        const formatDisplayDate = (dateStr) => new Date(dateStr + 'T00:00:00Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const generateLogId = () => Math.random().toString(36).substr(2, 9);
+        
+        // MODIFIED: Kaleidoscope sketch restored with rainbow color mode
+        const k_sketch = (p) => {
+            p.setup = () => {
+                const parent = document.getElementById('kaleidoscopeCanvasParent');
+                const size = Math.min(parent.clientWidth, 400);
+                const canvas = p.createCanvas(size, size);
+                canvas.parent(parent);
+                p.colorMode(p.HSB); // Rainbow mode
+                p.background(20);
+            };
+            p.draw = () => {
+                if (p.mouseIsPressed && p.mouseX > 0 && p.mouseX < p.width && p.mouseY > 0 && p.mouseY < p.height) {
+                    const symmetry = ui.kSymmetrySlider.value;
+                    const angle = 360 / symmetry;
+                    const mx = p.mouseX - p.width / 2, my = p.mouseY - p.height / 2;
+                    const pmx = p.pmouseX - p.width / 2, pmy = p.pmouseY - p.height / 2;
+                    p.translate(p.width / 2, p.height / 2);
+                    p.stroke((p.frameCount * 2) % 360, 80, 100); // Cycling hue for rainbow
+                    p.strokeWeight(3);
+                    for (let i = 0; i < symmetry; i++) {
+                        p.rotate(angle); 
+                        p.line(mx, my, pmx, pmy);
+                        p.push(); p.scale(1, -1); p.line(mx, my, pmx, pmy); p.pop();
+                    }
+                }
+            };
+            p.clearCanvas = () => p.background(20);
+        };
+        
+        function startKaleidoscope() {
+            ui.kaleidoscopeModal.classList.remove('hidden');
+            if (!kaleidoscopeSketch) kaleidoscopeSketch = new p5(k_sketch);
+        }
+        function stopKaleidoscope() {
+            ui.kaleidoscopeModal.classList.add('hidden');
+        }
+
+        // --- All other functions (Firebase, etc.) are the full working versions ---
+
+        function initialize() {
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            setupEventListeners();
+            onAuthStateChanged(auth, handleAuthStateChange);
+        }
+
+        function handleAuthStateChange(user) {
+            if (user) {
+                ui.appContainer.classList.remove('hidden');
+                ui.loginContainer.classList.add('hidden');
+                userId = user.uid;
+                ui.userIdDisplay.textContent = user.displayName?.split(' ')[0].toUpperCase() || 'AGENT';
+                tasksCollectionRef = collection(db, `users/${userId}/tasks`);
+                journalCollectionRef = collection(db, `users/${userId}/journalEntries`);
+                todayDocId = getTodayDocId();
+                loadTasks();
+                loadJournal();
+                const savedTab = localStorage.getItem('taskblaster-activeTab') || 'tasks';
+                switchToView(savedTab);
+            } else {
+                ui.appContainer.classList.add('hidden');
+                ui.loginContainer.classList.remove('hidden');
+                if (unsubscribeTasks) unsubscribeTasks();
+                if (unsubscribeJournal) unsubscribeJournal();
+            }
+        }
+
+        function switchToView(viewName) {
+            const views = { tasks: ui.tasksView, journal: ui.journalView, system: ui.systemView };
+            const tabs = { tasks: ui.tasksTabBtn, journal: ui.journalTabBtn, system: ui.systemTabBtn };
+            Object.values(views).forEach(v => v.classList.add('hidden'));
+            Object.values(tabs).forEach(t => t.classList.remove('active'));
+            if(views[viewName]) {
+                views[viewName].classList.remove('hidden');
+                tabs[viewName].classList.add('active');
+                localStorage.setItem('taskblaster-activeTab', viewName);
+                // ADDED: Applying typewriter effect on tab switch
+                const titles = { tasks: "Task Log", journal: "Daily Entry", system: "System Panel" };
+                typewriterEffect(ui[`${viewName}ViewTitle`], titles[viewName]);
+            }
+        }
+
+        async function addTask() {
+            const taskText = ui.taskInput.value.trim();
+            if (taskText === "") return;
+            try {
+                await addDoc(tasksCollectionRef, { text: taskText, completed: false, isPriority: false, createdAt: serverTimestamp() });
+                ui.taskInput.value = "";
+            } catch (error) { console.error("Error adding task: ", error); }
+        }
+
+        function loadTasks() {
+            ui.taskList.innerHTML = `<p class="text-center p-2 opacity-70">Querying tasks...</p>`;
+            const q = query(tasksCollectionRef, orderBy("createdAt", "desc"));
+            unsubscribeTasks = onSnapshot(q, (snapshot) => {
+                ui.taskList.innerHTML = "";
+                if (snapshot.empty) ui.taskList.innerHTML = `<p class="text-center p-2 opacity-70">No active tasks.</p>`;
+                snapshot.forEach(doc => renderTask({ id: doc.id, ...doc.data() }));
+            });
+        }
+        
+        function renderTask(task) {
+            const item = document.createElement('div');
+            item.className = `task-item-90s ${task.completed ? 'completed' : ''}`;
+            item.innerHTML = `<div class="task-status"></div><p class="task-text">${escapeHTML(task.text)}</p><span class="priority-toggle ${task.isPriority ? 'active' : ''}">&#9733;</span><button class="delete-btn-90s">[DEL]</button>`;
+            item.querySelector('.task-status').addEventListener('click', () => updateDoc(doc(db, `users/${userId}/tasks`, task.id), { completed: !task.completed }));
+            item.querySelector('.priority-toggle').addEventListener('click', () => updateDoc(doc(db, `users/${userId}/tasks`, task.id), { isPriority: !task.isPriority }));
+            item.querySelector('.delete-btn-90s').addEventListener('click', () => deleteDoc(doc(db, `users/${userId}/tasks`, task.id)));
+            ui.taskList.appendChild(item);
+        }
+
+        async function addJournalLog() {
+            const logContent = ui.journalInput.value.trim();
+            if (logContent === "" || !userId) return;
+            const journalDocRef = doc(db, `users/${userId}/journalEntries`, todayDocId);
+            const newLog = { id: generateLogId(), time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }), content: logContent };
+            try {
+                const docSnap = await getDoc(journalDocRef);
+                if (docSnap.exists()) {
+                    await updateDoc(journalDocRef, { logs: arrayUnion(newLog), lastUpdated: serverTimestamp() });
+                } else {
+                    await setDoc(journalDocRef, { logs: [newLog], displayDate: formatDisplayDate(todayDocId), lastUpdated: serverTimestamp() });
+                }
+                ui.journalInput.value = "";
+            } catch (error) { console.error(error); }
+        }
+
+        function loadJournal() {
+            ui.journalList.innerHTML = `<p class="text-center p-2 opacity-70">Accessing archives...</p>`;
+            const q = query(journalCollectionRef, orderBy("lastUpdated", "desc"));
+            unsubscribeJournal = onSnapshot(q, (snapshot) => {
+                ui.journalList.innerHTML = "";
+                if (snapshot.empty) ui.journalList.innerHTML = `<p class="text-center p-2 opacity-70">No logs found.</p>`;
+                snapshot.forEach(doc => renderJournalDayEntry({ id: doc.id, ...doc.data() }));
+                renderJournalHeatmap(snapshot.docs);
+            });
+        }
+        
+        function renderJournalHeatmap(docs) {
+            ui.journalHeatmapContainer.innerHTML = '';
+            const logDates = new Set(docs.map(doc => doc.id));
+            const today = new Date();
+            for (let i = 89; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(today.getDate() - i);
+                const dateString = date.toISOString().slice(0, 10);
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'heatmap-day';
+                dayDiv.title = date.toLocaleDateString();
+                if (logDates.has(dateString)) dayDiv.classList.add('active');
+                ui.journalHeatmapContainer.appendChild(dayDiv);
+            }
+        }
+
+        function renderJournalDayEntry(dayEntry) {
+            const item = document.createElement('div');
+            item.className = 'border-b border-dashed border-border-color pb-4 mb-4';
+            item.innerHTML = `<div class="flex justify-between items-center mb-2"><p class="font-bold">${dayEntry.displayDate}</p><button class="delete-day-btn button-90s text-sm" style="padding: 2px 6px;">Delete Day</button></div>`;
+            const contentDiv = document.createElement('div');
+            dayEntry.logs?.slice().reverse().forEach(log => {
+                const logEl = document.createElement('div');
+                logEl.className = 'flex justify-between items-start py-1';
+                logEl.innerHTML = `<div><span class="opacity-70">[${log.time}]</span> ${escapeHTML(log.content)}</div><button class="delete-log-btn text-sm opacity-70 hover:opacity-100">[del]</button>`;
+                logEl.querySelector('.delete-log-btn').addEventListener('click', () => deleteIndividualLog(dayEntry.id, log));
+                contentDiv.appendChild(logEl);
+            });
+            item.appendChild(contentDiv);
+            item.querySelector('.delete-day-btn').addEventListener('click', () => deleteJournalDay(dayEntry.id, dayEntry.displayDate));
+            ui.journalList.appendChild(item);
+        }
+
+        async function deleteIndividualLog(dayDocId, logToRemove) {
+            if (!confirm(`Delete log entry?`)) return;
+            await updateDoc(doc(db, `users/${userId}/journalEntries`, dayDocId), { logs: arrayRemove(logToRemove) });
+        }
+        async function deleteJournalDay(dayDocId, dayDate) {
+            if (!confirm(`Delete all logs for ${dayDate}?`)) return;
+            await deleteDoc(doc(db, `users/${userId}/journalEntries`, dayDocId));
+        }
+
+        function handleJournalSearch() {
+            const searchTerm = ui.journalSearch.value.toLowerCase();
+            document.querySelectorAll('#journalList > div').forEach(entry => {
+                entry.style.display = entry.textContent.toLowerCase().includes(searchTerm) ? '' : 'none';
+            });
+        }
+        
+        function playClickSound() {
+            if (ui.clickSound) { ui.clickSound.currentTime = 0; ui.clickSound.play().catch(()=>{}); }
+        }
+
+        function setupEventListeners() {
+            ui.signInBtn.addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()));
+            ui.signOutBtn.addEventListener('click', () => signOut(auth));
+            ['tasks', 'journal', 'system'].forEach(view => ui[`${view}TabBtn`].addEventListener('click', () => { playClickSound(); switchToView(view); }));
+            ui.addTaskBtn.addEventListener('click', () => { playClickSound(); addTask(); });
+            ui.taskInput.addEventListener('keypress', e => { if (e.key === 'Enter') { playClickSound(); addTask(); } });
+            ui.addJournalBtn.addEventListener('click', () => { playClickSound(); addJournalLog(); });
+            ui.journalSearch.addEventListener('input', handleJournalSearch);
+            ui.launchKaleidoscopeBtn.addEventListener('click', startKaleidoscope);
+            ui.closeKaleidoscopeBtn.addEventListener('click', stopKaleidoscope);
+            ui.kClearBtn.addEventListener('click', () => kaleidoscopeSketch?.clearCanvas());
+        }
+
+        initialize();
+    </script>
+</body>
+</html>

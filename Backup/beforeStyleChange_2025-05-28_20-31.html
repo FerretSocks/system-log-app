@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskBlaster 9000</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.js"></script>
+    <style>
+        :root {
+            --primary-green: #00FF00;
+            --primary-yellow: #FFD700;
+            --primary-cyan: #00FFFF;
+            --highlight-magenta: #FF69B4;
+            --error-red: #D32F2F;
+            --bright-red: #FF5252;
+            --text-light: #FFFFFF;
+            --text-dark: #000000;
+            --text-dim: #888;
+            --text-accent: #00C0C0;
+            --background-dark: #2E2E2E;
+            --background-darker: #222222;
+            --container-grey: #4A4A4A;
+            --container-dark-grey: #3A3A3A;
+            --border-light: #707070;
+            --border-dark: #1A1A1A;
+            --border-medium: #1E1E1E;
+            --shadow-color: #111;
+            --shadow-red: #FF0000;
+            --shadow-blue: #0000FF;
+            --shadow-purple: #8A2BE2;
+            /* ADDED: Font variable for theming */
+            --font-body: 'VT323', monospace;
+        }
+
+        @keyframes crt-hum { 0% { opacity: 0.2; } 50% { opacity: 0.35; } 100% { opacity: 0.2; } }
+        /* ADDED: Blinking cursor animation for loader */
+        @keyframes blink { 50% { opacity: 0; } }
+
+        body {
+            /* MODIFIED: Using CSS variable for font */
+            font-family: var(--font-body); 
+            background-color: var(--background-dark);
+            background-image: repeating-linear-gradient(45deg,rgba(255,255,255,0.03) 0,rgba(255,255,255,0.03) 1px,transparent 1px,transparent 10px);
+            color: var(--primary-green); 
+            padding-top: 10px;
+            overflow-x: hidden;
+        }
+
+        body::after {
+            content: " "; display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 6px 100%; z-index: 100; pointer-events: none; animation: crt-hum 15s infinite linear;
+        }
+        .container-90s {
+            background-color: var(--container-grey); 
+            border-top: 3px solid var(--border-light); border-left: 3px solid var(--border-light);
+            border-right: 3px solid var(--border-dark); border-bottom: 3px solid var(--border-dark);
+            box-shadow: 5px 5px 0px var(--shadow-color); padding: 20px; width: 95%; max-width: 650px;
+            margin: 20px auto; position: relative; z-index: 10;
+        }
+        h1, h2 {
+            font-family: 'Press Start 2P', cursive; font-size: 26px; text-align: center;
+            color: var(--primary-yellow); text-shadow: 2px 2px var(--shadow-red), -2px -2px var(--shadow-blue); 
+            margin-bottom: 10px;
+        }
+        h2 { font-size: 20px; margin-top: 10px; margin-bottom: 15px; color: var(--primary-cyan); text-shadow: 2px 2px var(--shadow-purple); min-height: 24px; }
+        .input-90s {
+            border: 2px inset var(--border-dark); background-color: #333333; color: var(--primary-green); 
+            padding: 10px; font-family: var(--font-body); font-size: 18px; width: 100%;
+        }
+        .journal-textarea { min-height: 150px; resize: vertical; }
+        .button-90s {
+            background-color: var(--container-dark-grey); border-top: 3px solid #6A6A6A; border-left: 3px solid #6A6A6A;
+            border-right: 3px solid var(--border-medium); border-bottom: 3px solid var(--border-medium); padding: 12px 15px; 
+            font-family: 'Press Start 2P', cursive; color: var(--text-light); cursor: pointer; min-width: 130px; 
+            font-size: 14px; text-shadow: 2px 2px var(--text-dark); transition: all 0.1s ease-in-out; 
+            display: inline-flex; align-items: center; justify-content: center; text-align: center; 
+        }
+        .button-90s.active, .button-90s:hover { background-color: #484848; color: var(--primary-cyan); text-shadow: 2px 2px #00008B; }
+        .nav-tabs { display: flex; border-bottom: 3px solid var(--border-dark); margin-bottom: 20px; }
+        .nav-tab {
+            flex-grow: 1; padding: 10px; font-size: 14px; border-right: 3px solid var(--border-dark);
+            border-left: 3px solid var(--border-light); border-top: 3px solid var(--border-light);
+            margin-bottom: -3px; background-color: var(--container-dark-grey);
+        }
+        .nav-tab.active { background-color: var(--container-grey); border-bottom: 3px solid var(--container-grey); color: var(--primary-yellow); }
+        .task-item-90s {
+            background-color: #383838; border: 1px solid var(--border-dark); padding: 12px; margin-bottom: 10px;
+            display: flex; justify-content: flex-start; align-items: center; transition: all 0.2s ease-in-out;
+        }
+        .task-text { flex-grow: 1; margin: 0 15px; font-size: 18px; word-break: break-word; transition: color 0.3s ease; }
+        .task-status {
+            cursor: pointer; user-select: none; width: 18px; height: 18px; background-color: #333;
+            border: 2px inset var(--border-dark); display: inline-block; vertical-align: -4px;
+            flex-shrink: 0; position: relative; transition: all 0.2s;
+        }
+        .task-item-90s.completed .task-status { background-color: var(--primary-green); border-color: #009000; box-shadow: 0 0 10px rgba(0, 255, 0, 0.6); }
+        .task-item-90s.completed .task-text { text-decoration: line-through; text-decoration-color: var(--bright-red); text-decoration-thickness: 2px; color: var(--text-dim); }
+        .priority-toggle { cursor: pointer; font-size: 24px; color: var(--text-dim); user-select: none; transition: all 0.2s; margin-left: 15px; }
+        .priority-toggle:hover { color: var(--primary-yellow); }
+        .priority-toggle.active { color: var(--primary-yellow); text-shadow: 0 0 8px var(--primary-yellow); }
+        .task-item-90s.priority { background-color: #4a4a2a; border-left: 3px solid var(--primary-yellow); }
+        .delete-btn-90s {
+            background-color: var(--error-red); border: 1px outset var(--bright-red);
+            color: var(--text-light); font-weight: bold; padding: 4px 8px;
+            font-size: 14px; cursor: pointer; margin-left: auto;
+        }
+        #taskList, #journalList {
+            min-height: 200px; max-height: 400px; overflow-y: auto; border: 2px inset var(--border-dark);
+            padding: 10px; background-color: var(--background-darker); margin-bottom: 20px; 
+        }
+        /* ADDED: Loader styling */
+        .loader {
+            color: var(--primary-green); text-align: center; padding: 20px; font-size: 18px;
+            text-shadow: 0 0 5px var(--primary-green);
+        }
+        .loader::after {
+            content: '_';
+            animation: blink 1s step-end infinite;
+        }
+        .journal-entry { background-color: #383838; border: 1px solid #1A1A1A; margin-bottom: 10px; }
+        .journal-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 16px; color: var(--primary-yellow); }
+        .journal-header:hover { background-color: #404040; }
+        .journal-content { padding: 0 12px 12px; font-size: 16px; line-height: 1.7; word-break: break-word; border-top: 1px solid #2a2a2a; }
+        .individual-log-entry { display: flex; justify-content: space-between; align-items: flex-start; padding: 8px 0; border-bottom: 1px dashed #4a4a4a;}
+        .log-delete-btn { font-size: 12px; color: #ff6347; cursor: pointer; background: none; border: none; padding: 0 5px; }
+        .journal-control-btn { background-color: #4a4a4a; color: white; border: 1px outset #6a6a6a; font-size: 12px; padding: 3px 8px; font-family: 'VT323'; cursor: pointer; }
+        .journal-control-btn.delete-day { background-color: #8b0000; border-color: #a52a2a; }
+        .journal-control-btn.chat { background-color: #4B0082; border-color: #8A2BE2; }
+        #journalSearch { margin-bottom: 15px; }
+        #pixelArtCanvas, #loginCanvas {
+            border: 2px solid var(--border-light); border-right-color: var(--border-dark); border-bottom-color: var(--border-dark); 
+            background-color: var(--background-darker); margin-top: 25px; display: block; width: 100%; 
+            max-width: 320px; height: auto; aspect-ratio: 2 / 1; image-rendering: pixelated; 
+        }
+        #kaleidoscopeModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            align-items: center; justify-content: center; z-index: 2000;
+        }
+        #kaleidoscopeCanvasParent { width: 100%; aspect-ratio: 1 / 1; border: 2px inset var(--border-dark); margin-bottom: 15px; }
+        #kaleidoscopeControls { display: grid; gap: 12px; }
+        .theme-switcher { margin-top: 20px; padding-top: 20px; border-top: 2px dashed var(--border-light); }
+        .theme-button {
+            font-family: 'VT323'; font-size: 14px; border: 2px outset var(--border-light); padding: 5px 10px;
+            margin: 0 5px; cursor: pointer; background-color: var(--container-dark-grey); color: var(--text-light);
+        }
+        .theme-button.active { border-style: inset; background-color: var(--primary-cyan); color: var(--text-dark); }
+        .hidden { display: none; }
+        /* ADDED: Journal heatmap styling */
+        #journalHeatmapContainer {
+            display: grid; grid-template-columns: repeat(15, 1fr); gap: 4px; 
+            background-color: var(--background-darker); padding: 10px; border: 2px inset var(--border-dark);
+        }
+        .heatmap-day {
+            aspect-ratio: 1 / 1; background-color: var(--container-dark-grey);
+            border: 1px solid var(--border-dark);
+        }
+        .heatmap-day.active {
+            background-color: var(--primary-green);
+            box-shadow: 0 0 8px var(--primary-green);
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="clickSound" src="data:audio/mpeg;base64,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ａGqgaYBqoGsAbHBsoG2AbZgfoKAgoHCA8IBwgfCAkKJQo0CkQKagqYCtQK0grXCuMLAwswC1QLaAtwCXwLvAvUDRAMLAxYDHQMnA0ADSwNgA2YDfgOLg5oDpAPHA+wD+QQGBBMEIAQtBDsESQRVBGMEcQR+BIwEmgSoBLYExATTBOEE8AT+BQ0FHAUrBToFSwVhBWcFdAWNBbkFwwXVBeUF9gYGBhYGJwY3BkgGWQZqBnsGjAadBq8GwAbRBuMG9QcHBxkHKwc9B08HYQd0B4YHmQesB78H0gflB/gICwgfCDIIRghaCG4IggimCL4I0gjnCPsJEAklCToJTwlkCXkJjwmkCboJzwnlCfsKEQonCj0KVApqCoEKmAquCsUK3ArzCwsLIgsoC1MLaQucC6wLwAvYC/cMEgwqDEMMXAx1DI4MpwzADNkM8w0NDSYNQA1aDXQNjg2pDcMN3g34DhMOLg5JDmQOfw6bDrYO0g7uDwsPJQ9BD14Peg+WD7MPzw/sEAkQJhBDEGEQfhCbELkQ1xD1EfkR8RNJE0oTaRSwRNwE9QVBBUcFSwV5BYoFtAWFBfgF5wYMBicGPAZJBkkGawZLBvoGcQZyRnEGdkZ7BnQGgQａGqgaYBqoGsAbHBsoG2AbZgfoKAgoHCA8IBwgfCAkKJQo0CkQKagqYCtQK0grXCuMLAwswC10LaQtsC3wLvAvUDRAMLAxYDHQMnA0ADSwNgA2YDfgOLg5oDpAPHA+wD+QQGBBMEIAQtBDsESQRVBGMEcQR+BIwEmgSoBLYExATTBOEE8AT+BQ0FHAUrBToFSQVYBWcFdAWNBbkFwwXVBeUF9gYGBhYGJwY3BkgGWQZqBnsGjAadBq8GwAbRBuMG9QcHBxkHKwc9B08HYQd0B4YHmQesB78H0gflB/gICwgfCDIIRghaCG4IggimCL4I0gjnCPsJEAklCToJTwlkCXkJjwmkCboJzwnlCfsKEQonCj0KVApqCoEKmAquCsUK3ArzCwsLIgsoC1MLaQucC6wLwAvYC/cMEgwqDEMMXAx1DI4MpwzADNkM8w0NDSYNQA1aDXQNjg2pDcMN3g34DhMOLg5JDmQOfw6bDrYO0g7uDwsPJQ9BD14Peg+WD7MPzw/sEAkQJhBDEGEQfhCbELkQ1xD1EfkR8RNJE0oTaRSwRNwE9QVBBUcFSwV5BYoFtAWFBfgF5wYMBicGPAZJBkkGawZLBvoGcQZyRnEGdkZ7BnQGgQａGqgaYBqoGsAbHBsoG2AbZgfoKAgoHCA8IBwgfCAkKJQo0CkQKagqYCtQK0grXCuMLAwswC10LaQtsC3wLvAvUDRAMLAxYDHQMnA0ADSwNgA2YDfgOLg5oDpAPHA+wD+QQGBBMEIAQtBDsESQRVBGMEcQR+BIwEmgSoBLYExATTBOEE8AT+BQ0FHAUrBToFSQVYBWcFdAWNBbkFwwXVBeUF9gYGBhYGJwY3BkgGWQZqBnsGjAadBq8GwAbRBuMG9QcHBxkHKwc9B08HYQd0B4YHmQesB78H0gflB/gICwgfCDIIRghaCG4IggimCL4I0gjnCPsJEAklCToJTwlkCXkJjwmkCboJzwnlCfsKEQonCj0KVApqCoEKmAquCsUK3ArzCwsLIgsoC1MLaQucC6wLwAvYC/cMEgwqDEMMXAx1DI4MpwzADNkM8w0NDSYNQA1aDXQNjg2pDcMN3g34DhMOLg5JDmQOfw6bDrYO0g7uDwsPJQ9BD14Peg+WD7MPzw/sEAkQJhBDEGEQfhCbELkQ1xD1EfkR8RNJE0oTaRSwRNwE9QVBBUcFSwV5BYoFtAWFBfgF5wYMBicGPAZJBkkGawZLBvoGcQZyRnEGdkZ7BnQGgQａGqgaYBqoGsAbHBsoG2AbZgfoKAgoHCA8IBwgfCAkKJQo0CkQKagqYCtQK0grXCuMLAwswC10LaQtsC3wLvAvUDRAMLAxYDHQMnA0ADSwNgA2YDfgOLg5oDpAPHA+wD+QQGBBMEIAQtBDsESQRVBGMEcQR+BIwEmgSoBLYExATTBOEE8AT+BQ0FHAUrBToFSQVYBWcFdAWNBbkFwwXVBeUF9gYGBhYGJwY3BkgGWQZqBnsGjAadBq8GwAbRBuMG9QcHBxkHKwc9B08HYQd0B4YHmQesB78H0gflB/gICwgfCDIIRghaCG4IggimCL4I0gjnCPsJEAklCToJTwlkCXkJjwmkCboJzwnlCfsKEQonCj0KVApqCoEKmAquCsUK3ArzCwsLIgsoC1MLaQucC6wLwAvYC/cMEgwqDEMMXAx1DI4MpwzADNkM8w0NDSYNQA1aDXQNjg2pDcMN3g34DhMOLg5JDmQOfw6bDrYO0g7uDwsPJQ9BD14Peg+WD7MPzw/sEAkQJhBDEGEQfhCbELkQ1xD1EfkR8RNJE0oTaRSwRNwE9QVBBUcFSwV5BYoFtAWFBfgF5wYMBicGPAZJBkkGawZLBvoGcQZyRnEGdkZ7BnQGgQａGqgaYBqoGsAbHBsoG2AbZgfoKAg//uAA5BZG9iZQBkwAAAAAH/2wCEAAwICAgJCAwJCQwRCwoLERUPDAwPFRgTExUTExgRDAwMDAwMEQwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwBDQsLDQ4NEA4OEBQODg4UFA4ODg4UEQwMDAwMEREMDAwMDAwRDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDP/AABEIAAEAAQMBEQACEQEDEQH/xABgAAEBAQEAAAAAAAAAAAAAAAABAAIGAQEAAAAAAAAAAAAAAAAAAAAAEAEAAAAAAAAAAAAAAAAAAAAAEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwDbkAD//aAAgBAQABPyAE/9oACAECAAE/ACH/2gAIAQMAAT8AIf/aAAgBAQABPPwB/9oACAECAAE/ACH/2gAIAQMAAT8AIf/ZAAAAAAAAAAAAAAA=="/></audio>
+
+    <div id="messageBox" class="message-box hidden"></div>
+
+    <div id="loginContainer" class="container-90s mx-auto text-center">
+        <h1>TaskBlaster 9000</h1>
+        <p class="header-subtitle">A Personal Task & Journal System</p>
+        <button id="signInBtn" class="button-90s mx-auto">Sign In With Google</button>
+        <canvas id="loginCanvas" class="mx-auto"></canvas>
+    </div>
+
+    <div id="appContainer" class="container-90s hidden">
+        <header class="header-90s mb-4">
+            <h1>TaskBlaster 9000</h1>
+            <div class="flex justify-between items-center mt-3">
+                <p class="header-subtitle" style="margin: 0; text-align: left;">USER: <span id="userIdDisplay">...</span></p>
+                <button id="launchKaleidoscopeBtn" class="button-90s" style="font-size: 10px; min-width: auto; padding: 6px 9px; color: var(--primary-cyan); margin-left: 10px;">K-MODE</button>
+            </div>
+        </header>
+
+        <nav class="nav-tabs">
+            <button id="tasksTabBtn" class="nav-tab button-90s active">Tasks</button>
+            <button id="journalTabBtn" class="nav-tab button-90s">Journal</button>
+            <button id="systemTabBtn" class="nav-tab button-90s">System</button>
+        </nav>
+
+        <main>
+            <div id="tasksView">
+                <h2 id="tasksViewTitle"></h2>
+                <div class="input-area-90s flex gap-2">
+                    <input type="text" id="taskInput" placeholder="New mission..." class="input-90s w-full">
+                    <button id="addTaskBtn" class="button-90s">ENGAGE!</button>
+                </div>
+                <div id="taskList"></div>
+            </div>
+
+            <div id="journalView" class="hidden">
+                <h2 id="journalViewTitle"></h2>
+                <div class="input-area-90s flex-col">
+                    <textarea id="journalInput" placeholder="Log your thoughts for today..." class="input-90s journal-textarea"></textarea>
+                    <button id="addJournalBtn" class="button-90s w-full mt-2">Add to Today's Log</button>
+                </div>
+                <h3 class="text-base mt-4" style="text-shadow: none; color: var(--text-accent);">Previous Logs</h3>
+                <input type="search" id="journalSearch" placeholder="Search logs..." class="input-90s">
+                <div id="journalList"></div>
+            </div>
+
+            <div id="systemView" class="hidden">
+                <h2 id="systemViewTitle"></h2>
+                <canvas id="pixelArtCanvas" class="mx-auto"></canvas>
+                <div class="flex justify-center mt-4"> <button id="regenerateArtBtn" class="button-90s">Regenerate Art</button> </div>
+                
+                <div class="mt-6 pt-4 border-t-2 border-dashed border-[var(--border-light)]">
+                    <h3 class="text-center font-bold mb-3" style="font-family: 'Press Start 2P'; color: var(--primary-cyan); font-size: 14px;">LOG CONSISTENCY MATRIX</h3>
+                    <div id="journalHeatmapContainer"></div>
+                </div>
+
+                <div class="theme-switcher">
+                    <h3 class="text-center font-bold mb-3" style="font-family: 'Press Start 2P'; color: var(--primary-cyan); font-size: 14px;">DISPLAY THEME</h3>
+                    <div id="themeContainer" class="flex justify-center"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <div id="kaleidoscopeModal" class="hidden">
+        <div class="container-90s w-11/12 max-w-lg">
+            <h2 class="font-bold text-lg text-center mb-4" style="font-family: 'Press Start 2P'; color: var(--primary-cyan);">Kaleidoscope</h2>
+            <div id="kaleidoscopeCanvasParent"></div>
+            <div id="kaleidoscopeControls">
+                <input type="range" id="kSymmetrySlider" min="2" max="20" value="6" step="1" class="w-full">
+                <button id="kClearBtn" class="button-90s w-full" style="font-size: 12px;">Clear</button>
+            </div>
+            <button id="closeKaleidoscopeBtn" class="button-90s w-full mt-4" style="font-size: 12px; color: var(--highlight-magenta);">Close</button>
+        </div>
+    </div>
+
+    <footer class="footer-90s text-center mt-8">
+        <p id="copyright-text" class="text-sm"></p>
+        <button id="signOutBtn" class="button-90s hidden" style="font-size: 12px; background-color: #5a2d2d; border-color: #884444 #331a1a #331a1a #884444; min-width: auto; padding: 8px 20px; margin-top: 10px;">SIGN OUT</button>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, addDoc, deleteDoc, onSnapshot, collection, query, orderBy, serverTimestamp, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyCht_2CFCVolrKp-dyZf3_2o7_KQI_7HoQ", authDomain: "my-retro-task-tracker.firebaseapp.com", projectId: "my-retro-task-tracker", storageBucket: "my-retro-task-tracker.appspot.com", messagingSenderId: "183935251636", appId: "1:183935251636:web:27581f344a56bab66153e1" };
+        
+        let db, auth, userId, tasksCollectionRef, journalCollectionRef, todayDocId, kaleidoscopeSketch = null;
+        let unsubscribeTasks = null, unsubscribeJournal = null;
+
+        const ui = {
+            loginContainer: document.getElementById('loginContainer'),
+            appContainer: document.getElementById('appContainer'),
+            signInBtn: document.getElementById('signInBtn'),
+            signOutBtn: document.getElementById('signOutBtn'),
+            userIdDisplay: document.getElementById('userIdDisplay'),
+            messageBox: document.getElementById('messageBox'),
+            tasksView: document.getElementById('tasksView'),
+            journalView: document.getElementById('journalView'),
+            systemView: document.getElementById('systemView'),
+            tasksTabBtn: document.getElementById('tasksTabBtn'),
+            journalTabBtn: document.getElementById('journalTabBtn'),
+            systemTabBtn: document.getElementById('systemTabBtn'),
+            taskInput: document.getElementById('taskInput'),
+            addTaskBtn: document.getElementById('addTaskBtn'),
+            taskList: document.getElementById('taskList'),
+            journalInput: document.getElementById('journalInput'),
+            addJournalBtn: document.getElementById('addJournalBtn'),
+            journalList: document.getElementById('journalList'),
+            loginCanvas: document.getElementById('loginCanvas'),
+            pixelArtCanvas: document.getElementById('pixelArtCanvas'),
+            regenerateArtBtn: document.getElementById('regenerateArtBtn'),
+            launchKaleidoscopeBtn: document.getElementById('launchKaleidoscopeBtn'),
+            copyrightText: document.getElementById('copyright-text'),
+            tasksViewTitle: document.getElementById('tasksViewTitle'),
+            journalViewTitle: document.getElementById('journalViewTitle'),
+            systemViewTitle: document.getElementById('systemViewTitle'),
+            journalSearch: document.getElementById('journalSearch'),
+            themeContainer: document.getElementById('themeContainer'),
+            journalHeatmapContainer: document.getElementById('journalHeatmapContainer'), // NEW
+            kaleidoscopeModal: document.getElementById('kaleidoscopeModal'),
+            kSymmetrySlider: document.getElementById('kSymmetrySlider'),
+            kClearBtn: document.getElementById('kClearBtn'),
+            closeKaleidoscopeBtn: document.getElementById('closeKaleidoscopeBtn'),
+            clickSound: document.getElementById('clickSound'), // NEW
+        };
+
+        // MODIFIED: Themes now include font settings
+        const themes = {
+            "Classic Green": { "--primary-green": "#00FF00", "--primary-cyan": "#00FFFF", "--text-accent": "#00C0C0", "--font-body": "'VT323', monospace" },
+            "Amber Matrix":  { "--primary-green": "#FFB000", "--primary-cyan": "#FFD700", "--text-accent": "#FFC040", "--font-body": "'Share Tech Mono', monospace" },
+            "Ice Blue":      { "--primary-green": "#00BFFF", "--primary-cyan": "#87CEEB", "--text-accent": "#ADD8E6", "--font-body": "'Share Tech Mono', monospace" }
+        };
+
+        function applyTheme(themeName) {
+            const theme = themes[themeName];
+            if (!theme) return;
+            for (const [key, value] of Object.entries(theme)) {
+                document.documentElement.style.setProperty(key, value);
+            }
+            localStorage.setItem('taskblaster-theme', themeName);
+            document.querySelectorAll('.theme-button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === themeName);
+            });
+        }
+        
+        let currentTypewriter;
+        const typewriterEffect = (element, text, speed = 50) => {
+            if (!element) return;
+            if (currentTypewriter) clearInterval(currentTypewriter);
+            element.textContent = '';
+            let i = 0;
+            const timer = setInterval(() => {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(timer);
+                }
+            }, speed);
+            currentTypewriter = timer;
+        };
+        
+        const escapeHTML = str => str.replace(/[&<>"']/g, match => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[match]).replace(/\n/g, '<br>');
+        const showMessage = (text, duration = 3000) => { ui.messageBox.textContent = text; ui.messageBox.classList.remove('hidden'); setTimeout(() => { ui.messageBox.classList.add('hidden'); }, duration); };
+        const getTodayDocId = () => new Date().toISOString().slice(0, 10);
+        const formatDisplayDate = (dateStr) => new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const generateLogId = () => Math.random().toString(36).substr(2, 9);
+        
+        // --- Pixel Art Generation ---
+        function generatePixelArt(canvas) {
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            canvas.width = 320; canvas.height = 160;
+            const pixelSize = 5;
+            const numCols = Math.floor(canvas.width / pixelSize);
+            const numRows = Math.floor(canvas.height / pixelSize);
+            const themeColors = ['#00FF00', '#FFD700', '#00C0C0', '#3A3A3A', '#4A4A4A', '#222222', '#FF0000', '#0000FF'];
+            ctx.fillStyle = '#222222';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            for (let r = 0; r < numRows; r++) {
+                for (let c = 0; c < Math.ceil(numCols / 2); c++) { 
+                    const color = themeColors[Math.floor(Math.random() * themeColors.length)];
+                    ctx.fillStyle = color;
+                    ctx.fillRect(c * pixelSize, r * pixelSize, pixelSize, pixelSize);
+                    const mirroredC = numCols - 1 - c;
+                    if (c !== mirroredC) ctx.fillRect(mirroredC * pixelSize, r * pixelSize, pixelSize, pixelSize);
+                }
+            }
+        }
+        
+        // --- Kaleidoscope Sketch ---
+        const k_sketch = (p) => {
+            p.setup = () => {
+                const parent = document.getElementById('kaleidoscopeCanvasParent');
+                const size = parent.clientWidth;
+                const canvas = p.createCanvas(size, size);
+                canvas.parent(parent);
+                p.angleMode(p.DEGREES); 
+                p.colorMode(p.HSB); 
+                p.background(12);
+            };
+            p.draw = () => {
+                p.translate(p.width / 2, p.height / 2);
+                if (p.mouseIsPressed && p.mouseX > 0 && p.mouseX < p.width && p.mouseY > 0 && p.mouseY < p.height) {
+                    const symmetry = ui.kSymmetrySlider.value;
+                    const angle = 360 / symmetry;
+                    const mx = p.mouseX - p.width / 2, my = p.mouseY - p.height / 2;
+                    const pmx = p.pmouseX - p.width / 2, pmy = p.pmouseY - p.height / 2;
+                    p.stroke((p.frameCount) % 360, 100, 100); 
+                    p.strokeWeight(3);
+                    for (let i = 0; i < symmetry; i++) {
+                        p.rotate(angle); 
+                        p.line(mx, my, pmx, pmy);
+                        p.push(); 
+                        p.scale(1, -1); 
+                        p.line(mx, my, pmx, pmy); 
+                        p.pop();
+                    }
+                }
+            };
+            p.clearCanvas = () => p.background(12);
+        };
+        
+        function startKaleidoscope() {
+            if (!kaleidoscopeSketch) {
+                ui.kaleidoscopeModal.classList.remove('hidden');
+                kaleidoscopeSketch = new p5(k_sketch);
+            }
+        }
+        function stopKaleidoscope() {
+            if (kaleidoscopeSketch) {
+                kaleidoscopeSketch.remove();
+                kaleidoscopeSketch = null;
+                ui.kaleidoscopeModal.classList.add('hidden');
+            }
+        }
+
+        function initialize() {
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            setupEventListeners();
+            
+            Object.keys(themes).forEach(themeName => {
+                const button = document.createElement('button');
+                button.className = 'theme-button';
+                button.textContent = themeName;
+                button.dataset.theme = themeName;
+                button.addEventListener('click', () => applyTheme(themeName));
+                ui.themeContainer.appendChild(button);
+            });
+            const savedTheme = localStorage.getItem('taskblaster-theme') || "Classic Green";
+            applyTheme(savedTheme);
+
+            onAuthStateChanged(auth, handleAuthStateChange);
+        }
+
+        function handleAuthStateChange(user) {
+            if (user) {
+                ui.appContainer.classList.remove('hidden');
+                ui.loginContainer.classList.add('hidden');
+                ui.signOutBtn.classList.remove('hidden');
+                userId = user.uid;
+                ui.userIdDisplay.textContent = user.displayName?.split(' ')[0].toUpperCase() || 'AGENT';
+                tasksCollectionRef = collection(db, `users/${userId}/tasks`);
+                journalCollectionRef = collection(db, `users/${userId}/journalEntries`);
+                todayDocId = getTodayDocId();
+                loadTasks();
+                loadJournal();
+                generatePixelArt(ui.pixelArtCanvas);
+                // MODIFIED: Load last active tab or default to 'tasks'
+                const savedTab = localStorage.getItem('taskblaster-activeTab');
+                switchToView(savedTab || 'tasks');
+            } else {
+                ui.appContainer.classList.add('hidden');
+                ui.loginContainer.classList.remove('hidden');
+                ui.signOutBtn.classList.add('hidden');
+                if (unsubscribeTasks) unsubscribeTasks();
+                if (unsubscribeJournal) unsubscribeJournal();
+                generatePixelArt(ui.loginCanvas);
+            }
+        }
+
+        // MODIFIED: Now saves active tab to localStorage
+        function switchToView(viewName) {
+            const views = { tasks: ui.tasksView, journal: ui.journalView, system: ui.systemView };
+            const tabs = { tasks: ui.tasksTabBtn, journal: ui.journalTabBtn, system: ui.systemTabBtn };
+            Object.values(views).forEach(view => view.classList.add('hidden'));
+            Object.values(tabs).forEach(tab => tab.classList.remove('active'));
+            
+            if (views[viewName]) {
+                views[viewName].classList.remove('hidden');
+                tabs[viewName].classList.add('active');
+                localStorage.setItem('taskblaster-activeTab', viewName); // Save current view
+                if (viewName === 'tasks') typewriterEffect(ui.tasksViewTitle, 'Mission Log');
+                else if (viewName === 'journal') typewriterEffect(ui.journalViewTitle, "Captain's Log");
+                else if (viewName === 'system') typewriterEffect(ui.systemViewTitle, 'System Panel');
+            }
+        }
+
+        async function addTask() {
+            const taskText = ui.taskInput.value.trim();
+            if (taskText === "") return;
+            try {
+                await addDoc(tasksCollectionRef, { text: taskText, completed: false, isPriority: false, createdAt: serverTimestamp() });
+                ui.taskInput.value = "";
+            } catch (error) { showMessage("Error: Could not add task."); console.error(error); }
+        }
+
+        function loadTasks() {
+            // NEW: Added loader before data fetch
+            ui.taskList.innerHTML = '<div class="loader">LOADING MISSIONS...</div>';
+            const q = query(tasksCollectionRef, orderBy("createdAt", "desc"));
+            unsubscribeTasks = onSnapshot(q, (snapshot) => {
+                ui.taskList.innerHTML = ""; // Clear loader
+                if (snapshot.empty) { ui.taskList.innerHTML = '<p class="text-center p-2 text-gray-400">NO MISSIONS ASSIGNED</p>'; }
+                snapshot.forEach(doc => renderTask({ id: doc.id, ...doc.data() }));
+            });
+        }
+        
+        function renderTask(task) {
+            const item = document.createElement('div');
+            item.className = `task-item-90s ${task.completed ? 'completed' : ''} ${task.isPriority ? 'priority' : ''}`;
+            const priorityToggle = `<span class="priority-toggle ${task.isPriority ? 'active' : ''}" title="Toggle priority" aria-label="Toggle priority">&#9733;</span>`;
+            
+            item.innerHTML = `
+                <div class="task-status" role="button" aria-label="Toggle task completion"></div>
+                ${priorityToggle}
+                <span class="task-text">${escapeHTML(task.text)}</span> 
+                <button class="delete-btn-90s" aria-label="Delete task">DEL</button>`;
+            
+            item.querySelector('.task-status').addEventListener('click', () => updateDoc(doc(db, `users/${userId}/tasks`, task.id), { completed: !task.completed }));
+            item.querySelector('.priority-toggle').addEventListener('click', () => updateDoc(doc(db, `users/${userId}/tasks`, task.id), { isPriority: !task.isPriority }));
+            item.querySelector('.delete-btn-90s').addEventListener('click', () => deleteDoc(doc(db, `users/${userId}/tasks`, task.id)));
+            ui.taskList.appendChild(item);
+        }
+
+        async function addJournalLog() {
+            const logContent = ui.journalInput.value.trim();
+            if (logContent === "" || !userId) return;
+            const journalDocRef = doc(db, `users/${userId}/journalEntries`, todayDocId);
+            const newLog = { id: generateLogId(), time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }), content: logContent };
+            try {
+                const docSnap = await getDoc(journalDocRef);
+                const updateData = { logs: arrayUnion(newLog), lastUpdated: serverTimestamp() };
+                if (docSnap.exists()) {
+                    await updateDoc(journalDocRef, updateData);
+                } else {
+                    await setDoc(journalDocRef, { ...updateData, displayDate: formatDisplayDate(todayDocId) });
+                }
+                ui.journalInput.value = "";
+            } catch (error) { showMessage("SAVE FAILED"); console.error(error); }
+        }
+
+        function loadJournal() {
+            if (!journalCollectionRef) return;
+            // NEW: Added loader before data fetch
+            ui.journalList.innerHTML = '<div class="loader">LOADING LOGS...</div>';
+            const q = query(journalCollectionRef, orderBy("lastUpdated", "desc"));
+            unsubscribeJournal = onSnapshot(q, (snapshot) => {
+                ui.journalList.innerHTML = ""; // Clear loader
+                if (snapshot.empty) { 
+                    ui.journalList.innerHTML = '<p class="text-center p-2 text-gray-400">NO PREVIOUS LOGS</p>';
+                }
+                snapshot.forEach(doc => renderJournalDayEntry({ id: doc.id, ...doc.data() }));
+                // NEW: Render the heatmap after journal data is loaded/updated
+                renderJournalHeatmap(snapshot.docs);
+            });
+        }
+        
+        // NEW: Function to render the journaling heatmap
+        function renderJournalHeatmap(docs) {
+            ui.journalHeatmapContainer.innerHTML = '';
+            const logDates = new Set(docs.map(doc => doc.id));
+            const today = new Date();
+            const daysToShow = 90;
+
+            for (let i = daysToShow - 1; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(today.getDate() - i);
+                const dateString = date.toISOString().slice(0, 10);
+                
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'heatmap-day';
+                dayDiv.title = date.toLocaleDateString();
+                if (logDates.has(dateString)) {
+                    dayDiv.classList.add('active');
+                }
+                ui.journalHeatmapContainer.appendChild(dayDiv);
+            }
+        }
+
+
+        function renderJournalDayEntry(dayEntry) {
+            const item = document.createElement('div');
+            item.className = 'journal-entry';
+            const fullDayText = dayEntry.logs.map(log => `[${log.time}] ${log.content}`).join('\n\n');
+            item.innerHTML = `
+                <div class="journal-header">
+                    <span class="journal-header-text">${dayEntry.displayDate}</span>
+                    <div class="journal-header-controls flex items-center gap-2">
+                        <button class="journal-control-btn chat">Chat</button>
+                        <button class="journal-control-btn delete-day">DEL</button>
+                        <span class="accordion-indicator">[ + ]</span>
+                    </div>
+                </div>
+                <div class="journal-content hidden"></div>`;
+            
+            const contentDiv = item.querySelector('.journal-content');
+            if (dayEntry.logs && dayEntry.logs.length > 0) {
+                dayEntry.logs.slice().reverse().forEach(log => {
+                    const logEl = document.createElement('div');
+                    logEl.className = 'individual-log-entry';
+                    logEl.innerHTML = `<span class="log-time">[${log.time}]</span> <div class="log-text">${escapeHTML(log.content)}</div> <button class="log-delete-btn" aria-label="Delete this log entry">del</button>`;
+                    logEl.querySelector('.log-delete-btn').addEventListener('click', () => deleteIndividualLog(dayEntry.id, log));
+                    contentDiv.appendChild(logEl);
+                });
+            }
+            item.querySelector('.journal-header').addEventListener('click', (e) => {
+                if (e.target.classList.contains('journal-control-btn') || e.target.parentElement.classList.contains('journal-control-btn')) return;
+                contentDiv.classList.toggle('hidden');
+                item.querySelector('.accordion-indicator').textContent = contentDiv.classList.contains('hidden') ? '[ + ]' : '[ - ]';
+            });
+            item.querySelector('.chat').addEventListener('click', () => generateAndCopyPrompt(fullDayText, dayEntry.displayDate));
+            item.querySelector('.delete-day').addEventListener('click', () => deleteJournalDay(dayEntry.id, dayEntry.displayDate));
+            ui.journalList.appendChild(item);
+        }
+
+        async function deleteIndividualLog(dayDocId, logToRemove) {
+            if (!confirm(`Delete the log entry: "${logToRemove.content.substring(0, 30)}..."?`)) return;
+            await updateDoc(doc(db, `users/${userId}/journalEntries`, dayDocId), { logs: arrayRemove(logToRemove) });
+        }
+        async function deleteJournalDay(dayDocId, dayDate) {
+            if (!confirm(`Are you sure you want to delete all logs for ${dayDate}? This cannot be undone.`)) return;
+            await deleteDoc(doc(db, `users/${userId}/journalEntries`, dayDocId));
+        }
+        async function generateAndCopyPrompt(fullText, date) {
+            const prompt = `You are a friendly, insightful journal companion. Your purpose is to help me reflect on my day. Do not give advice unless asked.\n\nHere is my journal entry for ${date}:\n\n---\n${fullText}\n---\n\nBased on what I've written, ask me 3-4 open-ended, reflective questions to help me explore my thoughts and feelings further.`;
+            await navigator.clipboard.writeText(prompt);
+            showMessage("Gemini chat prompt copied!", 4000);
+        }
+
+        function handleJournalSearch() {
+            const searchTerm = ui.journalSearch.value.toLowerCase();
+            const entries = document.querySelectorAll('#journalList .journal-entry');
+            entries.forEach(entry => {
+                const entryText = entry.textContent.toLowerCase();
+                entry.classList.toggle('hidden', !entryText.includes(searchTerm));
+            });
+        }
+        
+        // NEW: Function to play UI click sounds
+        function playClickSound() {
+            if (ui.clickSound) {
+                ui.clickSound.currentTime = 0;
+                ui.clickSound.play().catch(e => console.error("Sound play failed:", e));
+            }
+        }
+
+        function setupEventListeners() {
+            ui.signInBtn.addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()));
+            ui.signOutBtn.addEventListener('click', () => signOut(auth));
+            
+            // MODIFIED: Added click sound to tab switching
+            ui.tasksTabBtn.addEventListener('click', () => { playClickSound(); switchToView('tasks'); });
+            ui.journalTabBtn.addEventListener('click', () => { playClickSound(); switchToView('journal'); });
+            ui.systemTabBtn.addEventListener('click', () => { playClickSound(); switchToView('system'); });
+            
+            // MODIFIED: Added click sound to buttons
+            ui.addTaskBtn.addEventListener('click', () => { playClickSound(); addTask(); });
+            ui.addJournalBtn.addEventListener('click', () => { playClickSound(); addJournalLog(); });
+
+            ui.taskInput.addEventListener('keypress', e => { if (e.key === 'Enter') { playClickSound(); addTask(); } });
+            
+            ui.regenerateArtBtn.addEventListener('click', () => generatePixelArt(ui.pixelArtCanvas));
+            ui.journalSearch.addEventListener('input', handleJournalSearch);
+            ui.copyrightText.innerHTML = `&copy; ${new Date().getFullYear()} Cyberdyne Task Systems`;
+            ui.launchKaleidoscopeBtn.addEventListener('click', startKaleidoscope);
+            ui.closeKaleidoscopeBtn.addEventListener('click', stopKaleidoscope);
+            ui.kClearBtn.addEventListener('click', () => kaleidoscopeSketch?.clearCanvas());
+        }
+
+        initialize();
+    </script>
+</body>
+</html>
