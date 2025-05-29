@@ -18,6 +18,9 @@
             <h1>System Log</h1>
             <p class="app-subtitle">システム記録</p>
             <button id="signInBtn" class="button-90s mx-auto mt-6">Authenticate</button>
+            <div class="mt-4">
+                <button id="guestSignInBtn" class="subtle-link-90s">Guest Login</button>
+            </div>
         </div>
     </div>
 
@@ -83,7 +86,7 @@
                         <button id="launchKaleidoscopeBtn" class="button-90s w-full">Launch K-Mode</button>
                         <h3 class="mt-6">AI Configuration</h3>
                         <p class="jp-subtitle">AI設定</p>
-                        <div class="flex gap-2 items-center">
+                        <div id="apiKeySection" class="flex gap-2 items-center">
                             <input type="password" id="apiKeyInput" placeholder="Enter your Google AI API Key..." class="input-90s w-full">
                             <button id="saveApiKeyBtn" class="button-90s">SAVE</button>
                         </div>
@@ -106,7 +109,7 @@
     </div>
 
     <div id="categoryManagerModal" class="hidden fixed inset-0 flex items-center justify-center z-50">
-        <div class="container-90s w-11/12 max-w-lg">
+        <div class="container-90s w-11/11 max-w-lg">
             <h2>Manage Lists</h2>
             <div id="categoryList" class="my-4 max-h-60 overflow-y-auto"></div>
             <div class="flex gap-2 my-4">
@@ -118,7 +121,7 @@
     </div>
 
     <div id="aiChatModal" class="hidden fixed inset-0 flex items-center justify-center z-50">
-        <div class="container-90s w-11/12 max-w-2xl flex flex-col" style="height: 80vh;">
+        <div class="container-90s w-11/11 max-w-2xl flex flex-col" style="height: 80vh;">
             <h2>AI Log Analysis</h2>
             <div id="aiChatHistory" class="my-4 flex-grow overflow-y-auto border border-border-color p-2 bg-input-bg"></div>
             <div class="flex gap-2">
