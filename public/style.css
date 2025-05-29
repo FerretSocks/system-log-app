@@ -103,6 +103,8 @@ h3 { font-size: 18px; text-align: left; margin-top: 1.5rem; margin-bottom: 0.5re
 
 .button-90s { background-color: transparent; border: 1px solid var(--border-color); padding: 10px 15px; font-family: var(--font-main); font-size: 18px; color: var(--text-dim); cursor: pointer; text-shadow: none; transition: all 0.2s ease-in-out; text-transform: uppercase; }
 .button-90s:hover { background-color: var(--accent-primary); border-color: var(--accent-primary); color: var(--background-main); text-shadow: none; animation: text-glitch 0.3s linear; }
+.button-90s:disabled { cursor: not-allowed; opacity: 0.5; }
+
 
 .nav-tabs { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
 .nav-tab { flex-grow: 1; padding: 10px; font-size: 16px; border: none; margin-bottom: -1px; background-color: transparent; color: var(--text-dim); }
@@ -156,6 +158,15 @@ h3 { font-size: 18px; text-align: left; margin-top: 1.5rem; margin-bottom: 0.5re
 .category-item-name { flex-grow: 1; }
 .category-delete-btn { font-size: 14px; text-transform: uppercase; color: var(--text-dim); cursor: pointer; margin-left: 1rem; }
 .category-delete-btn:hover { color: var(--accent-danger); }
+
+/* --- AI Chat Modal --- */
+#aiChatModal { background-color: rgba(0,0,0,0.8); }
+#aiChatModal .container-90s { background-color: var(--background-main); max-width: 800px; }
+.ai-chat-message { margin-bottom: 12px; padding: 8px 12px; }
+.ai-chat-message.user { background-color: rgba(0, 255, 195, 0.05); text-align: right; border-right: 2px solid var(--text-primary); }
+.ai-chat-message.gemini { background-color: rgba(195, 0, 255, 0.05); border-left: 2px solid var(--accent-primary); }
+.ai-chat-message p { margin: 0; font-size: 18px; }
+.ai-chat-message .sender { text-transform: uppercase; opacity: 0.7; font-size: 14px; margin-bottom: 4px; }
 
 /* --- Footer Scroller --- */
 .status-scroller-container { background-color: var(--input-bg); border: 1px solid var(--border-color); width: 95%; max-width: 650px; margin: 20px auto; overflow: hidden; padding: 5px; }

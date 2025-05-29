@@ -65,6 +65,7 @@
                     <p class="jp-subtitle">過去ログ</p>
                     <input type="search" id="journalSearch" placeholder="Search..." class="input-90s mb-4">
                     <div id="journalList"></div>
+                    <div id="journalLoadMoreContainer" class="text-center mt-4"></div>
                 </div>
 
                 <div id="systemView" class="hidden">
@@ -79,13 +80,19 @@
                         <p class="jp-subtitle">外観設定</p>
                         <div id="themeSwitcher" class="theme-switcher-container"></div>
                         <h3 class="mt-6">System Tools</h3>
+                        <button id="launchKaleidoscopeBtn" class="button-90s w-full">Launch K-Mode</button>
+                        <h3 class="mt-6">AI Configuration</h3>
+                        <p class="jp-subtitle">AI設定</p>
+                        <div class="flex gap-2 items-center">
+                            <input type="password" id="apiKeyInput" placeholder="Enter your Google AI API Key..." class="input-90s w-full">
+                            <button id="saveApiKeyBtn" class="button-90s">SAVE</button>
+                        </div>
                     </div>
-                    <button id="launchKaleidoscopeBtn" class="button-90s w-full">Launch K-Mode</button>
                 </div>
             </main>
         </div>
     </div>
-
+    
     <div id="kaleidoscopeModal" class="hidden fixed inset-0 flex items-center justify-center z-50">
         <div class="container-90s w-11/12 max-w-lg">
             <h2>Kaleidoscope</h2>
@@ -110,12 +117,24 @@
         </div>
     </div>
 
+    <div id="aiChatModal" class="hidden fixed inset-0 flex items-center justify-center z-50">
+        <div class="container-90s w-11/12 max-w-2xl flex flex-col" style="height: 80vh;">
+            <h2>AI Log Analysis</h2>
+            <div id="aiChatHistory" class="my-4 flex-grow overflow-y-auto border border-border-color p-2 bg-input-bg"></div>
+            <div class="flex gap-2">
+                <input type="text" id="aiChatInput" placeholder="Ask about this entry..." class="input-90s w-full">
+                <button id="aiChatSendBtn" class="button-90s">SEND</button>
+            </div>
+            <button id="closeAiChatBtn" class="button-90s w-full mt-4">Close</button>
+        </div>
+    </div>
+
     <div id="feedbackBox" class="hidden"></div>
 
     <footer class="text-center mt-6 pb-6">
 		<div class="status-scroller-container">
             <p class="status-scroller-text">
-                SYSTEM <span class="scroller-accent">ONLINE</span>... AUTH STATUS: <span class="scroller-accent">VALIDATED</span>... QUERYING DATABASE... LOGS <span class="scroller-accent">SECURE</span>... STANDBY FOR INPUT... // SYSTEM.LOG v2.5... //&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SYSTEM <span class="scroller-accent">ONLINE</span>... AUTH STATUS: <span class="scroller-accent">VALIDATED</span>... QUERYING DATABASE... LOGS <span class="scroller-accent">SECURE</span>... STANDBY FOR INPUT... // SYSTEM.LOG v2.5... //&nbsp;
+                SYSTEM <span class="scroller-accent">ONLINE</span>... AUTH STATUS: <span class="scroller-accent">VALIDATED</span>... QUERYING DATABASE... LOGS <span class="scroller-accent">SECURE</span>... STANDBY FOR INPUT... // SYSTEM.LOG v2.7... //&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SYSTEM <span class="scroller-accent">ONLINE</span>... AUTH STATUS: <span class="scroller-accent">VALIDATED</span>... QUERYING DATABASE... LOGS <span class="scroller-accent">SECURE</span>... STANDBY FOR INPUT... // SYSTEM.LOG v2.7... //&nbsp;
             </p>
 		</div>
 		<p class="text-sm opacity-50">&copy; 2025 System Log Engineering</p>
