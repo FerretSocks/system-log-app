@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Date Logic & Utilities ---
     const getTodayDocId = () => { const now = new Date(); const timezoneOffset = now.getTimezoneOffset() * 60000; const localDate = new Date(now.getTime() - timezoneOffset); return localDate.toISOString().slice(0, 10); };
     const toYMDString = (date) => { const timezoneOffset = date.getTimezoneOffset() * 60000; const localDate = new Date(date.getTime() - timezoneOffset); return localDate.toISOString().slice(0, 10); };
-    const escapeHTML = str => str.replace(/[&<>"']/g, match => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[match]).replace(/\n/g, '<br>');
+    const escapeHTML = str => str.replace(/[&<>"']/g, match => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&#39;',"'":'&#39;'})[match]).replace(/\n/g, '<br>');
     const formatDisplayDate = (dateStr) => new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { timeZone: "UTC", year: 'numeric', month: 'long', day: 'numeric' }); // Added 'T00:00:00' for consistent date parsing
     const generateLogId = () => Math.random().toString(36).substring(2, 9); // Corrected to substring
 
@@ -656,7 +656,37 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Restored Features & Init Block ---
     function initializeThemes() { Object.keys(THEMES).forEach(themeName => { const button = document.createElement('button'); button.textContent = themeName; button.className = 'button-90s theme-button'; button.dataset.theme = themeName; button.addEventListener('click', () => { playSound('clickSound'); applyTheme(themeName); }); ui.themeSwitcher.appendChild(button); }); const savedTheme = localStorage.getItem('systemlog-theme') || 'Default'; applyTheme(savedTheme); }
     function applyTheme(themeName) { document.body.className = THEMES[themeName] || ''; localStorage.setItem('systemlog-theme', themeName); document.querySelectorAll('.theme-button').forEach(btn => btn.classList.toggle('active', btn.dataset.theme === themeName)); }
-    function typewriterScrambleEffect(element, text) { if (!element) return; activeScrambleTimers.forEach(timer => clearInterval(timer)); activeScrambleTimers = []; element.textContent = ''; let i = 0; function typeCharacter() { if (i < text.length) { const originalChar = text.charAt(i); let scrambleCount = 0; const scrambleInterval = setInterval(() => { if (scrambleCount >= SCRAMBLE_CYCLES) { clearInterval(scrambleInterval); element.textContent = element.textContent.slice(0, i) + originalChar; i++; typeCharacter(); } else { const randomChar = CHAR_POOL.charAt(Math.floor(Math.random() * CHAR_POOL.length)); element.textContent = element.textContent.slice(0, i) + randomChar; scrambleCount++; } }, TYPEWRITER_SPEED / 2); activeScrambleTimers.push(scrambleInterval); element.textContent += ' '; } }; typeCharacter(); };
+    // Refined typewriterScrambleEffect for a cleaner reveal
+    function typewriterScrambleEffect(element, text) { 
+        if (!element) return; 
+        activeScrambleTimers.forEach(timer => clearInterval(timer)); 
+        activeScrambleTimers = []; 
+        element.textContent = ''; 
+        let revealedText = ''; 
+        let i = 0; 
+
+        const typeCharacter = () => { 
+            if (i < text.length) { 
+                const originalChar = text.charAt(i); 
+                let scrambleCount = 0; 
+                const scrambleInterval = setInterval(() => { 
+                    if (scrambleCount >= SCRAMBLE_CYCLES) { 
+                        clearInterval(scrambleInterval); 
+                        revealedText += originalChar; 
+                        element.textContent = revealedText; 
+                        i++; 
+                        typeCharacter(); 
+                    } else { 
+                        const randomChar = CHAR_POOL.charAt(Math.floor(Math.random() * CHAR_POOL.length)); 
+                        element.textContent = revealedText + randomChar; 
+                        scrambleCount++; 
+                    } 
+                }, TYPEWRITER_SPEED / 2); 
+                activeScrambleTimers.push(scrambleInterval); 
+            } 
+        }; 
+        typeCharacter(); 
+    };
     function playSound(soundId) { const sound = document.getElementById(soundId); if (!sound) return; const volume = parseFloat(sound.getAttribute('data-volume')) || 1.0; sound.volume = volume; sound.currentTime = 0; sound.play().catch(error => { if (error.name !== "NotAllowedError") console.error("Audio playback error:", error); }); }
     function startKaleidoscope() { ui.kaleidoscopeModal.classList.remove('hidden'); if (!kaleidoscopeSketch) kaleidoscopeSketch = new p5(k_sketch); }
     function stopKaleidoscope() { ui.kaleidoscopeModal.classList.add('hidden'); }
@@ -671,7 +701,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("Guest Sign In Button Clicked!"); // Debugging: Confirm click handler fires
             if (auth) {
                 ui.loadingOverlay.classList.remove('hidden'); // Show loading overlay
-                ui.loadingMessage.textContent = 'LOADING...'; // Set loading message
+                // Set loading message with typewriter effect
+                typewriterScrambleEffect(ui.loadingMessage, 'ACCESSING CORE...'); 
                 try {
                     await signInAnonymously(auth);
                     console.log('Anonymous user signed in.');

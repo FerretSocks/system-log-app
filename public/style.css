@@ -62,9 +62,21 @@ body.theme-kaido {
     50% { opacity: 0; }
 }
 @keyframes glow-pulse {
-    0%, 100% { text-shadow: 0 0 5px var(--text-primary), 0 0 10px var(--accent-primary); }
-    50% { text-shadow: 0 0 10px var(--text-primary), 0 0 20px var(--accent-primary), 0 0 30px var(--text-primary); }
+    0%, 100% { text-shadow: 0 0 8px var(--text-primary), 0 0 16px var(--accent-primary); }
+    50% { text-shadow: 0 0 12px var(--text-primary), 0 0 24px var(--accent-primary), 0 0 36px var(--text-primary); }
 }
+@keyframes scanline-effect {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 100% 100%; }
+}
+@keyframes crt-flicker {
+    0%, 100% { opacity: 0.9; }
+    5%, 15%, 25% { opacity: 0.95; }
+    10%, 20% { opacity: 0.85; }
+    30% { opacity: 0.9; }
+    80% { opacity: 0.92; }
+}
+
 
 /* --- Core Body & Layout --- */
 body {
@@ -199,13 +211,27 @@ h3 { font-size: 18px; text-align: left; margin-top: 1.5rem; margin-bottom: 0.5re
 .ai-chat-message p { margin: 0; font-size: 18px; }
 .ai-chat-message .sender { text-transform: uppercase; opacity: 0.7; font-size: 14px; margin-bottom: 4px; }
 
-/* NEW: Loading message styling */
+/* NEW: Loading overlay and message styling */
+#loadingOverlay {
+    background-color: var(--background-main); /* Base background */
+    opacity: 0.95; /* Almost opaque to cover content */
+    background-image: 
+        linear-gradient(rgba(0,0,0,0.2) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.2) 1px, transparent 1px); /* Subtle grid for scanlines */
+    background-size: 20px 20px;
+    animation: scanline-effect 10s linear infinite; /* Animated scanlines */
+}
+
 .loading-message-text {
-    font-size: 32px; /* Large and prominent */
-    color: var(--text-primary); /* Cyberpunk Teal or current theme primary */
-    font-family: var(--font-main);
-    text-shadow: 0 0 5px var(--text-primary), 0 0 10px var(--accent-primary); /* Initial glow */
-    animation: glow-pulse 1.5s infinite alternate; /* Pulsing glow effect */
+    font-size: 3rem; /* Larger font size for impact */
+    font-size: 8vw; /* Scales well on different screen sizes */
+    color: var(--text-primary);
+    text-shadow: 
+        0 0 10px var(--text-primary),
+        0 0 20px var(--accent-primary),
+        0 0 30px var(--text-primary),
+        0 0 40px var(--accent-primary); /* Intense glow */
+    animation: glow-pulse 1.5s infinite alternate, crt-flicker 2s infinite alternate; /* Pulsing glow and subtle flicker */
     position: relative;
     padding-right: 1.5em; /* Space for dots */
 }
@@ -215,6 +241,14 @@ h3 { font-size: 18px; text-align: left; margin-top: 1.5rem; margin-bottom: 0.5re
     position: absolute;
     right: 0;
     animation: dot-blink 1s steps(1, end) infinite;
+}
+
+/* Mobile specific font size for loading message */
+@media (max-width: 768px) {
+    .loading-message-text {
+        font-size: 10vw; /* Even larger on small screens for maximum impact */
+        text-shadow: 0 0 5px var(--text-primary), 0 0 10px var(--accent-primary); /* Slightly less intense glow for potentially better performance */
+    }
 }
 
 
@@ -226,31 +260,4 @@ h3 { font-size: 18px; text-align: left; margin-top: 1.5rem; margin-bottom: 0.5re
 /* --- Mobile Optimizations --- */
 @media (max-width: 768px) {
     body, h1, .app-title, h2, h3, .scroller-accent { text-shadow: none !important; }
-}
-/* NEW: Loading animation keyframes */
-@keyframes dot-blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
-}
-@keyframes glow-pulse {
-    0%, 100% { text-shadow: 0 0 5px var(--text-primary), 0 0 10px var(--accent-primary); }
-    50% { text-shadow: 0 0 10px var(--text-primary), 0 0 20px var(--accent-primary), 0 0 30px var(--text-primary); }
-}
-
-/* NEW: Loading message styling */
-.loading-message-text {
-    font-size: 32px; /* Large and prominent */
-    color: var(--text-primary); /* Cyberpunk Teal or current theme primary */
-    font-family: var(--font-main);
-    text-shadow: 0 0 5px var(--text-primary), 0 0 10px var(--accent-primary); /* Initial glow */
-    animation: glow-pulse 1.5s infinite alternate; /* Pulsing glow effect */
-    position: relative;
-    padding-right: 1.5em; /* Space for dots */
-}
-
-.loading-message-text::after {
-    content: '...';
-    position: absolute;
-    right: 0;
-    animation: dot-blink 1s steps(1, end) infinite;
 }
