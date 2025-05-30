@@ -1,6 +1,7 @@
+// app.js
 // --- Firebase Imports ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"; // Added signInAnonymously
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, getDocs, addDoc, deleteDoc, onSnapshot, collection, query, orderBy, serverTimestamp, updateDoc, arrayUnion, arrayRemove, where, limit, startAfter } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // --- App Constants ---
@@ -10,7 +11,31 @@ const JOURNAL_PAGE_SIZE = 15;
 const TYPEWRITER_SPEED = 35;
 const SCRAMBLE_CYCLES = 5;
 const CHAR_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()[]{}<>';
-const THEMES = { 'Default': 'theme-default', 'Wired': 'theme-lain', 'Bebop': 'theme-bebop', 'Ghost': 'theme-ghost', 'Kaido-64': 'theme-kaido' };
+
+const DESIGNS = {
+    'Wired': 'design-wired', 
+    'Mecha Manual': 'design-mecha-manual'
+};
+
+const PALETTES = {
+    'Cyber Default': 'palette-cyber-default',
+    'Lain': 'palette-lain',
+    'Bebop': 'palette-bebop',
+    'Ghost': 'palette-ghost',
+    'Kaido-64': 'palette-kaido',
+    'Mecha Amber': 'palette-mecha-amber', 
+};
+
+// Define which palettes are primarily intended or default for which design
+const DESIGN_DEFAULT_PALETTES = {
+    'design-wired': 'palette-cyber-default',
+    'design-mecha-manual': 'palette-mecha-amber'
+};
+
+// Optional: Define palettes that are explicitly compatible if not all are global
+// For now, we'll assume all palettes can technically be applied to all designs,
+// but the default will guide the initial sensible choice. User can override.
+
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent";
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -26,12 +51,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let hasSystemDataLoaded = false;
     let lastVisibleJournalDoc = null;
     let currentAiChatContext = null;
-    let guestData = { tasks: [], journalEntries: [] }; // New: To store local guest data
+    let guestData = { tasks: [], journalEntries: [] };
+
+    let currentDesign = DESIGNS['Wired']; // Default design
+    let currentPalette = PALETTES['Cyber Default']; // Default palette
 
     // --- UI Element Cache ---
     const ui = {
         loginContainer: document.getElementById('loginContainer'), appContainer: document.getElementById('appContainer'),
-        signInBtn: document.getElementById('signInBtn'), guestSignInBtn: document.getElementById('guestSignInBtn'), // New: Guest sign-in button
+        signInBtn: document.getElementById('signInBtn'), guestSignInBtn: document.getElementById('guestSignInBtn'), 
         signOutBtn: document.getElementById('signOutBtn'),
         userIdDisplay: document.getElementById('userIdDisplay'), tasksView: document.getElementById('tasksView'),
         journalView: document.getElementById('journalView'), systemView: document.getElementById('systemView'),
@@ -47,13 +75,14 @@ document.addEventListener('DOMContentLoaded', () => {
         kClearBtn: document.getElementById('kClearBtn'), closeKaleidoscopeBtn: document.getElementById('closeKaleidoscopeBtn'),
         tasksViewTitle: document.getElementById('tasksViewTitle'), journalViewTitle: document.getElementById('journalViewTitle'),
         systemViewTitle: document.getElementById('systemViewTitle'), feedbackBox: document.getElementById('feedbackBox'),
-        themeSwitcher: document.getElementById('themeSwitcher'), journalStreakDisplay: document.getElementById('journalStreakDisplay'),
+        themeSwitcher: document.getElementById('themeSwitcher'), 
+        journalStreakDisplay: document.getElementById('journalStreakDisplay'),
         categorySelect: document.getElementById('categorySelect'), manageCategoriesBtn: document.getElementById('manageCategoriesBtn'),
         categoryManagerModal: document.getElementById('categoryManagerModal'), categoryList: document.getElementById('categoryList'),
         newCategoryInput: document.getElementById('newCategoryInput'), addCategoryBtn: document.getElementById('addCategoryBtn'),
         closeCategoryManagerBtn: document.getElementById('closeCategoryManagerBtn'),
         apiKeyInput: document.getElementById('apiKeyInput'), saveApiKeyBtn: document.getElementById('saveApiKeyBtn'),
-        apiKeySection: document.getElementById('apiKeySection'), // New: Reference to the div containing API key input/save button
+        apiKeySection: document.getElementById('apiKeySection'), 
         aiChatModal: document.getElementById('aiChatModal'), aiChatHistory: document.getElementById('aiChatHistory'),
         aiChatInput: document.getElementById('aiChatInput'), aiChatSendBtn: document.getElementById('aiChatSendBtn'),
         closeAiChatBtn: document.getElementById('closeAiChatBtn'),
@@ -61,13 +90,12 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingMessage: document.getElementById('loadingMessage'), 
     };
     
-
     // --- Date Logic & Utilities ---
     const getTodayDocId = () => { const now = new Date(); const timezoneOffset = now.getTimezoneOffset() * 60000; const localDate = new Date(now.getTime() - timezoneOffset); return localDate.toISOString().slice(0, 10); };
     const toYMDString = (date) => { const timezoneOffset = date.getTimezoneOffset() * 60000; const localDate = new Date(date.getTime() - timezoneOffset); return localDate.toISOString().slice(0, 10); };
     const escapeHTML = str => str.replace(/[&<>"']/g, match => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&#39;',"'":'&#39;'})[match]).replace(/\n/g, '<br>');
-    const formatDisplayDate = (dateStr) => new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { timeZone: "UTC", year: 'numeric', month: 'long', day: 'numeric' }); // Added 'T00:00:00' for consistent date parsing
-    const generateLogId = () => Math.random().toString(36).substring(2, 9); // Corrected to substring
+    const formatDisplayDate = (dateStr) => new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { timeZone: "UTC", year: 'numeric', month: 'long', day: 'numeric' });
+    const generateLogId = () => Math.random().toString(36).substring(2, 9);
 
     // --- Local Storage Management for Guests ---
     function loadGuestDataFromLocalStorage() {
@@ -78,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (storedJournal) guestData.journalEntries = JSON.parse(storedJournal);
         } catch (e) {
             console.error("Error loading guest data from local storage:", e);
-            guestData = { tasks: [], journalEntries: [] }; // Reset on error
+            guestData = { tasks: [], journalEntries: [] };
         }
     }
 
@@ -87,48 +115,34 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('guestJournal', JSON.stringify(guestData.journalEntries));
     }
 
-
     // --- Core Application Logic ---
     function initializeFirebase() { const app = initializeApp(firebaseConfig); auth = getAuth(app); db = getFirestore(app); }
 
     async function handleAuthStateChange(user) {
+        ui.loadingOverlay.classList.add('hidden'); 
+
         if (user) {
             ui.appContainer.classList.remove('hidden');
             ui.loginContainer.classList.add('hidden');
             userId = user.uid;
 
             if (user.isAnonymous) {
-                // --- Anonymous User (Guest Mode) ---
                 ui.userIdDisplay.textContent = 'GUEST';
-                ui.apiKeySection.classList.add('hidden'); // Hide API Key input/save button
-                ui.categorySelect.disabled = true; // Disable category selection for guests
-                ui.manageCategoriesBtn.classList.add('hidden'); // Hide manage categories button
-
-                // Hide category container as well to make it clean for guests
+                ui.apiKeySection.classList.add('hidden'); 
                 document.getElementById('taskCategoryContainer').classList.add('hidden');
-
-                apiKey = null; // Ensure API key is null for guests
-
+                apiKey = null;
                 loadGuestDataFromLocalStorage();
-                loadTasks(true); // Pass true to indicate guest mode
-                loadJournal(true); // Pass true to indicate guest mode
-                
+                loadTasks(true); 
+                loadJournal(true); 
             } else {
-                // --- Authenticated User ---
                 ui.userIdDisplay.textContent = user.displayName?.split(' ')[0].toUpperCase() || 'AGENT';
-                ui.apiKeySection.classList.remove('hidden'); // Show API Key input/save button
-                ui.categorySelect.disabled = false; // Enable category selection
-                ui.manageCategoriesBtn.classList.remove('hidden'); // Show manage categories button
-
-                // Show category container for authenticated users
+                ui.apiKeySection.classList.remove('hidden');
                 document.getElementById('taskCategoryContainer').classList.remove('hidden');
-
                 tasksCollectionRef = collection(db, `users/${userId}/tasks`);
                 journalCollectionRef = collection(db, `users/${userId}/journalEntries`);
                 taskCategoriesCollectionRef = collection(db, `users/${userId}/taskCategories`);
-                
                 await loadUserConfig();
-                loadCategoriesAndTasks(); // This loads tasks for authenticated users
+                loadCategoriesAndTasks(); 
             }
             
             const savedTab = localStorage.getItem('systemlog-activeTab') || 'tasks';
@@ -142,8 +156,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (unsubscribeCategories) unsubscribeCategories();
             hasJournalLoaded = false;
             hasSystemDataLoaded = false;
-            apiKey = null; // Clear API key on logout
-            guestData = { tasks: [], journalEntries: [] }; // Clear guest data on full logout
+            apiKey = null; 
+            guestData = { tasks: [], journalEntries: [] }; 
         }
     }
 
@@ -158,19 +172,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // --- UI, Tasks, Journal, System ---
     function switchToView(viewName, isInitialLoad = false) { 
         const views = { tasks: ui.tasksView, journal: ui.journalView, system: ui.systemView }; 
         const tabs = { tasks: ui.tasksTabBtn, journal: ui.journalTabBtn, system: ui.systemTabBtn }; 
-        
         Object.values(views).forEach(v => v.classList.add('hidden')); 
         Object.values(tabs).forEach(t => t.classList.remove('active')); 
-        
         if (views[viewName]) { 
             views[viewName].classList.remove('hidden'); 
             tabs[viewName].classList.add('active'); 
             localStorage.setItem('systemlog-activeTab', viewName); 
-            
             const titles = { tasks: "Task Log", journal: "Daily Entry", system: "System Panel" }; 
             if (!isInitialLoad) typewriterScrambleEffect(ui[`${viewName}ViewTitle`], titles[viewName]); 
             else ui[`${viewName}ViewTitle`].textContent = titles[viewName]; 
@@ -178,9 +188,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function showFeedback(message, isError = false) { clearTimeout(feedbackTimeout); ui.feedbackBox.textContent = message; ui.feedbackBox.style.backgroundColor = isError ? 'var(--accent-danger)' : 'var(--accent-secondary)'; ui.feedbackBox.classList.remove('hidden'); feedbackTimeout = setTimeout(() => ui.feedbackBox.classList.add('hidden'), 3000); }
     
-    // loadCategoriesAndTasks only called for authenticated users
     async function loadCategoriesAndTasks() { 
-        if (auth.currentUser && auth.currentUser.isAnonymous) return; // Skip for guests
+        if (auth.currentUser && auth.currentUser.isAnonymous) return; 
         if (unsubscribeCategories) unsubscribeCategories(); 
         try { 
             const snapshot = await getDocs(taskCategoriesCollectionRef); 
@@ -190,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const categories = categorySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
                 renderCategoryDropdown(categories); 
                 renderCategoryManager(categories); 
-                loadTasks(false); // Ensure tasks are loaded from Firebase here
+                loadTasks(false); 
             }); 
         } catch (error) { 
             console.error("FATAL ERROR during initial category load:", error); 
@@ -209,23 +218,18 @@ document.addEventListener('DOMContentLoaded', () => {
         ui.categorySelect.value = selectedValue || 'all'; 
     }
 
-    // loadTasks now accepts isGuest parameter
     function loadTasks(isGuest = false) { 
         if (unsubscribeTasks) unsubscribeTasks(); 
         ui.taskList.innerHTML = `<p class="text-center p-2 opacity-70">Querying tasks...</p>`; 
-        
         if (isGuest) {
-            ui.categorySelect.innerHTML = '<option value="default">My Tasks</option>'; // Simple category for guests
-            ui.categorySelect.disabled = true; // Disable category selection
-            ui.manageCategoriesBtn.classList.add('hidden'); // Hide manage categories button
-
+            ui.categorySelect.innerHTML = '<option value="default">My Tasks</option>';
+            ui.categorySelect.disabled = true; 
+            ui.manageCategoriesBtn.classList.add('hidden'); 
             ui.taskList.innerHTML = guestData.tasks.length === 0 ? `<p class="text-center p-2 opacity-70">No active tasks in this list.</p>` : "";
-            // Sort guest tasks by creation date (most recent first)
             guestData.tasks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).forEach(renderTask);
         } else {
-            ui.categorySelect.disabled = false; // Enable category selection
-            ui.manageCategoriesBtn.classList.remove('hidden'); // Show manage categories button
-            // Original Firebase logic
+            ui.categorySelect.disabled = false; 
+            ui.manageCategoriesBtn.classList.remove('hidden'); 
             const baseQuery = currentCategory === "all" ? [orderBy("isPriority", "desc"), orderBy("createdAt", "desc")] : [where("category", "==", currentCategory), orderBy("isPriority", "desc"), orderBy("createdAt", "desc")]; 
             const q = query(tasksCollectionRef, ...baseQuery); 
             unsubscribeTasks = onSnapshot(q, (snapshot) => { 
@@ -238,32 +242,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // addTask now handles guest mode
     async function addTask() { 
         const taskText = ui.taskInput.value.trim(); 
         if (taskText === "") {
-            if (!auth.currentUser || !auth.currentUser.isAnonymous) { // Only show warning for non-anonymous if empty
+            if (!auth.currentUser || !auth.currentUser.isAnonymous) { 
                 showFeedback("Task cannot be empty.", true);
             }
             return;
         }
-
         if (auth.currentUser && auth.currentUser.isAnonymous) {
-            // Guest mode: Add to local guest tasks
-            const newTask = {
-                id: generateLogId(),
-                text: taskText,
-                completed: false,
-                isPriority: false,
-                createdAt: new Date().toISOString() // Store as ISO string
-            };
+            const newTask = { id: generateLogId(), text: taskText, completed: false, isPriority: false, createdAt: new Date().toISOString() };
             guestData.tasks.push(newTask);
             saveGuestDataToLocalStorage();
-            loadTasks(true); // Re-render tasks for guest
+            loadTasks(true); 
             ui.taskInput.value = "";
             showFeedback("Task added to local storage.");
         } else {
-            // Authenticated mode: Add to Firebase
             if (ui.categorySelect.value === "all") {
                 showFeedback("Please select a specific list to add tasks to.", true);
                 return;
@@ -278,38 +272,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // renderTask now handles guest mode event listeners
     function renderTask(task) { 
         const item = document.createElement('div'); 
         item.className = `task-item-90s ${task.completed ? 'completed' : ''}`; 
         item.innerHTML = `<div class="task-status"></div><p class="task-text">${escapeHTML(task.text)}</p><span class="priority-toggle ${task.isPriority ? 'active' : ''}">&#9733;</span><button class="delete-btn-90s">[DEL]</button>`; 
-        
         if (auth.currentUser && auth.currentUser.isAnonymous) {
-            // Guest mode: Update local storage directly
             item.querySelector('.task-status').addEventListener('click', () => { 
                 const index = guestData.tasks.findIndex(t => t.id === task.id);
-                if (index > -1) {
-                    guestData.tasks[index].completed = !guestData.tasks[index].completed;
-                    saveGuestDataToLocalStorage();
-                    loadTasks(true); // Re-render to reflect changes
-                }
+                if (index > -1) { guestData.tasks[index].completed = !guestData.tasks[index].completed; saveGuestDataToLocalStorage(); loadTasks(true); }
             }); 
             item.querySelector('.priority-toggle').addEventListener('click', () => { 
                 const index = guestData.tasks.findIndex(t => t.id === task.id);
-                if (index > -1) {
-                    guestData.tasks[index].isPriority = !guestData.tasks[index].isPriority;
-                    saveGuestDataToLocalStorage();
-                    loadTasks(true); // Re-render to reflect changes
-                }
+                if (index > -1) { guestData.tasks[index].isPriority = !guestData.tasks[index].isPriority; saveGuestDataToLocalStorage(); loadTasks(true); }
             }); 
             item.querySelector('.delete-btn-90s').addEventListener('click', () => { 
-                playSound('clickSound'); 
-                guestData.tasks = guestData.tasks.filter(t => t.id !== task.id);
-                saveGuestDataToLocalStorage();
-                loadTasks(true); // Re-render to reflect changes
+                playSound('clickSound'); guestData.tasks = guestData.tasks.filter(t => t.id !== task.id); saveGuestDataToLocalStorage(); loadTasks(true); 
             }); 
         } else {
-            // Authenticated mode: Update Firebase
             item.querySelector('.task-status').addEventListener('click', () => updateDoc(doc(db, `users/${userId}/tasks`, task.id), { completed: !task.completed })); 
             item.querySelector('.priority-toggle').addEventListener('click', () => updateDoc(doc(db, `users/${userId}/tasks`, task.id), { isPriority: !task.isPriority })); 
             item.querySelector('.delete-btn-90s').addEventListener('click', () => { playSound('clickSound'); deleteDoc(doc(db, `users/${userId}/tasks`, task.id)); }); 
@@ -333,196 +312,112 @@ document.addEventListener('DOMContentLoaded', () => {
         }); 
     }
     async function addCategory() { 
-        const categoryName = ui.newCategoryInput.value.trim(); 
-        if (categoryName === "") return; 
-        try { 
-            await addDoc(taskCategoriesCollectionRef, { name: categoryName }); 
-            ui.newCategoryInput.value = ""; 
-        } catch(error) { 
-            console.error("Error adding category:", error); 
-            showFeedback("Error adding list.", true); 
-        } 
+        const categoryName = ui.newCategoryInput.value.trim(); if (categoryName === "") return; 
+        try { await addDoc(taskCategoriesCollectionRef, { name: categoryName }); ui.newCategoryInput.value = ""; } 
+        catch(error) { console.error("Error adding category:", error); showFeedback("Error adding list.", true); } 
     }
     async function deleteCategory(id, name) { 
         if (!confirm(`Delete the "${name}" list? (Tasks in this list will NOT be deleted).`)) return; 
-        try { 
-            await deleteDoc(doc(taskCategoriesCollectionRef, id)); 
-        } catch(error) { 
-            console.error("Error deleting category:", error); 
-            showFeedback("Error deleting list.", true); 
-        } 
+        try { await deleteDoc(doc(taskCategoriesCollectionRef, id)); } 
+        catch(error) { console.error("Error deleting category:", error); showFeedback("Error deleting list.", true); } 
     }
 
-    // addJournalLog now handles guest mode
     async function addJournalLog() { 
-        const logContent = ui.journalInput.value.trim(); 
-        if (logContent === "") return; 
-
+        const logContent = ui.journalInput.value.trim(); if (logContent === "") return; 
         if (auth.currentUser && auth.currentUser.isAnonymous) {
-            // Guest mode: Add to local guest journal
-            const todayId = getTodayDocId();
-            let dayEntry = guestData.journalEntries.find(entry => entry.id === todayId);
-
-            const newLog = {
-                id: generateLogId(),
-                time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-                content: logContent
-            };
-
-            if (dayEntry) {
-                dayEntry.logs.push(newLog);
-                dayEntry.lastUpdated = new Date().toISOString(); // Update timestamp for sorting
-            } else {
-                dayEntry = {
-                    id: todayId,
-                    logs: [newLog],
-                    displayDate: formatDisplayDate(todayId),
-                    lastUpdated: new Date().toISOString()
-                };
-                guestData.journalEntries.unshift(dayEntry); // Add to beginning for most recent first
-            }
-            saveGuestDataToLocalStorage();
-            loadJournal(true); // Re-render journal for guest
-            ui.journalInput.value = "";
-            showFeedback("Log committed to local storage.");
+            const todayId = getTodayDocId(); let dayEntry = guestData.journalEntries.find(entry => entry.id === todayId);
+            const newLog = { id: generateLogId(), time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }), content: logContent };
+            if (dayEntry) { dayEntry.logs.push(newLog); dayEntry.lastUpdated = new Date().toISOString(); } 
+            else { dayEntry = { id: todayId, logs: [newLog], displayDate: formatDisplayDate(todayId), lastUpdated: new Date().toISOString() }; guestData.journalEntries.unshift(dayEntry); }
+            saveGuestDataToLocalStorage(); loadJournal(true); ui.journalInput.value = ""; showFeedback("Log committed to local storage.");
         } else {
-            // Authenticated mode: Add to Firebase
-            const todayId = getTodayDocId(); 
-            const journalDocRef = doc(db, `users/${userId}/journalEntries`, todayId); 
+            const todayId = getTodayDocId(); const journalDocRef = doc(db, `users/${userId}/journalEntries`, todayId); 
             const newLog = { id: generateLogId(), time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }), content: logContent }; 
             try { 
                 const docSnap = await getDoc(journalDocRef); 
-                if (docSnap.exists()) { 
-                    await updateDoc(journalDocRef, { logs: arrayUnion(newLog), lastUpdated: serverTimestamp() }); 
-                } else { 
-                    await setDoc(journalDocRef, { logs: [newLog], displayDate: formatDisplayDate(todayId), lastUpdated: serverTimestamp() }); 
-                } 
-                ui.journalInput.value = ""; 
-                showFeedback("Log committed."); 
-            } catch (error) { 
-                console.error("Error adding journal log:", error); 
-                showFeedback("Error: Could not save log.", true); 
-            } 
+                if (docSnap.exists()) await updateDoc(journalDocRef, { logs: arrayUnion(newLog), lastUpdated: serverTimestamp() }); 
+                else await setDoc(journalDocRef, { logs: [newLog], displayDate: formatDisplayDate(todayId), lastUpdated: serverTimestamp() }); 
+                ui.journalInput.value = ""; showFeedback("Log committed."); 
+            } catch (error) { console.error("Error adding journal log:", error); showFeedback("Error: Could not save log.", true); } 
         }
     }
 
-    // loadJournal now accepts isGuest parameter
     function loadJournal(isGuest = false) { 
         if (unsubscribeJournal) unsubscribeJournal(); 
         lastVisibleJournalDoc = null; 
         ui.journalList.innerHTML = `<p class="text-center p-2 opacity-70">Accessing archives...</p>`; 
         ui.journalLoadMoreContainer.innerHTML = ''; 
-        
         if (isGuest) {
             ui.journalList.innerHTML = guestData.journalEntries.length === 0 ? `<p class="text-center p-2 opacity-70">No logs found.</p>` : "";
-            // Sort guest journal entries by lastUpdated (most recent first)
             guestData.journalEntries.sort((a,b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()).forEach(renderJournalDayEntry);
-            
-            // Hide/disable heatmap and streak for guests
             ui.journalHeatmapContainer.innerHTML = `<p class="text-center p-2 opacity-70">Log Consistency Matrix not available in Guest Mode.</p>`;
             ui.journalStreakDisplay.textContent = `-- DAYS (Guest)`;
-            ui.journalLoadMoreContainer.innerHTML = ''; // No load more for local storage
+            ui.journalLoadMoreContainer.innerHTML = ''; 
         } else {
-            // Original Firebase logic
             const q = query(journalCollectionRef, orderBy("lastUpdated", "desc"), limit(JOURNAL_PAGE_SIZE)); 
             unsubscribeJournal = onSnapshot(q, (snapshot) => { 
                 if (lastVisibleJournalDoc === null) ui.journalList.innerHTML = ''; 
                 if (snapshot.empty && lastVisibleJournalDoc === null) { ui.journalList.innerHTML = `<p class="text-center p-2 opacity-70">No logs found.</p>`; return; } 
                 snapshot.docs.forEach(doc => renderJournalDayEntry({ id: doc.id, ...doc.data() })); 
-                if (snapshot.docs.length >= JOURNAL_PAGE_SIZE) { 
-                    lastVisibleJournalDoc = snapshot.docs[snapshot.docs.length - 1]; 
-                    renderLoadMoreButton(); 
-                } else { 
-                    lastVisibleJournalDoc = null; 
-                    ui.journalLoadMoreContainer.innerHTML = ''; 
-                } 
+                if (snapshot.docs.length >= JOURNAL_PAGE_SIZE) { lastVisibleJournalDoc = snapshot.docs[snapshot.docs.length - 1]; renderLoadMoreButton(); } 
+                else { lastVisibleJournalDoc = null; ui.journalLoadMoreContainer.innerHTML = ''; } 
             }); 
         }
     }
 
     function renderLoadMoreButton() { ui.journalLoadMoreContainer.innerHTML = `<button id="journalLoadMoreBtn" class="button-90s">Load More Archives</button>`; document.getElementById('journalLoadMoreBtn').addEventListener('click', loadMoreJournalEntries); }
     async function loadMoreJournalEntries() { 
-        if (!lastVisibleJournalDoc || (auth.currentUser && auth.currentUser.isAnonymous)) return; // No load more for guests
-        const loadMoreBtn = document.getElementById('journalLoadMoreBtn'); 
-        loadMoreBtn.textContent = 'Loading...'; 
-        loadMoreBtn.disabled = true; 
+        if (!lastVisibleJournalDoc || (auth.currentUser && auth.currentUser.isAnonymous)) return; 
+        const loadMoreBtn = document.getElementById('journalLoadMoreBtn'); loadMoreBtn.textContent = 'Loading...'; loadMoreBtn.disabled = true; 
         const q = query(journalCollectionRef, orderBy("lastUpdated", "desc"), startAfter(lastVisibleJournalDoc), limit(JOURNAL_PAGE_SIZE)); 
         const snapshot = await getDocs(q); 
         snapshot.docs.forEach(doc => renderJournalDayEntry({ id: doc.id, ...doc.data() })); 
-        if (snapshot.docs.length < JOURNAL_PAGE_SIZE) { 
-            lastVisibleJournalDoc = null; 
-            ui.journalLoadMoreContainer.innerHTML = ''; 
-        } else { 
-            lastVisibleJournalDoc = snapshot.docs[snapshot.docs.length - 1]; 
-            loadMoreBtn.textContent = 'Load More Archives'; 
-            loadMoreBtn.disabled = false; 
-        } 
+        if (snapshot.docs.length < JOURNAL_PAGE_SIZE) { lastVisibleJournalDoc = null; ui.journalLoadMoreContainer.innerHTML = ''; } 
+        else { lastVisibleJournalDoc = snapshot.docs[snapshot.docs.length - 1]; loadMoreBtn.textContent = 'Load More Archives'; loadMoreBtn.disabled = false; } 
     }
 
-    // renderJournalDayEntry now hides chat button for guests and modifies delete listeners
     function renderJournalDayEntry(dayEntry) { 
-        const item = document.createElement('div'); 
-        item.className = 'journal-day-entry border-b border-dashed border-border-color pb-4 mb-4'; 
+        const item = document.createElement('div'); item.className = 'journal-day-entry border-b border-dashed border-border-color pb-4 mb-4'; 
         item.innerHTML = `<div class="journal-day-header"><p class="font-bold flex-grow"><span class="toggle-indicator mr-2">[+]</span>${dayEntry.displayDate}</p><div class="journal-day-controls"><span class="journal-control-btn chat">[chat]</span><span class="journal-control-btn delete">[delete]</span></div></div><div class="journal-day-content"></div>`; 
-        
         const contentDiv = item.querySelector('.journal-day-content'); 
-        // Iterate over logs, handling local vs Firebase deletion
         const logsToProcess = dayEntry.logs || [];
         if (logsToProcess.length > 0) { 
             logsToProcess.slice().reverse().forEach(log => { 
-                const logEl = document.createElement('div'); 
-                logEl.className = 'flex justify-between items-start py-1'; 
+                const logEl = document.createElement('div'); logEl.className = 'flex justify-between items-start py-1'; 
                 logEl.innerHTML = `<div><span class="opacity-70">[${log.time}]</span> ${escapeHTML(log.content)}</div><button class="delete-log-btn text-sm opacity-70 hover:opacity-100">[del]</button>`; 
-                
                 if (auth.currentUser && auth.currentUser.isAnonymous) {
                     logEl.querySelector('.delete-log-btn').addEventListener('click', (e) => { 
                         e.stopPropagation(); 
                         const dayIndex = guestData.journalEntries.findIndex(entry => entry.id === dayEntry.id);
                         if (dayIndex > -1) {
                             guestData.journalEntries[dayIndex].logs = guestData.journalEntries[dayIndex].logs.filter(l => l.id !== log.id);
-                            // If the day now has no logs, remove the day entry itself
-                            if (guestData.journalEntries[dayIndex].logs.length === 0) {
-                                guestData.journalEntries = guestData.journalEntries.filter(entry => entry.id !== dayEntry.id);
-                            }
-                            saveGuestDataToLocalStorage();
-                            loadJournal(true); // Re-render to reflect changes
+                            if (guestData.journalEntries[dayIndex].logs.length === 0) guestData.journalEntries = guestData.journalEntries.filter(entry => entry.id !== dayEntry.id);
+                            saveGuestDataToLocalStorage(); loadJournal(true); 
                         }
                     }); 
-                } else {
-                    logEl.querySelector('.delete-log-btn').addEventListener('click', (e) => { e.stopPropagation(); deleteIndividualLog(dayEntry.id, log); }); 
-                }
+                } else { logEl.querySelector('.delete-log-btn').addEventListener('click', (e) => { e.stopPropagation(); deleteIndividualLog(dayEntry.id, log); }); }
                 contentDiv.appendChild(logEl); 
             }); 
-        } else {
-            contentDiv.innerHTML = `<p class="opacity-70 italic p-2">No logs for this day.</p>`;
-        }
-        
+        } else { contentDiv.innerHTML = `<p class="opacity-70 italic p-2">No logs for this day.</p>`; }
         const header = item.querySelector('.journal-day-header'); 
         header.addEventListener('click', (e) => { 
-            if (e.target.classList.contains('journal-control-btn')) return; 
-            playSound('clickSound'); 
-            item.classList.toggle('expanded'); 
-            item.querySelector('.toggle-indicator').textContent = item.classList.contains('expanded') ? '[-]' : '[+]'; 
+            if (e.target.classList.contains('journal-control-btn')) return; playSound('clickSound'); 
+            item.classList.toggle('expanded'); item.querySelector('.toggle-indicator').textContent = item.classList.contains('expanded') ? '[-]' : '[+]'; 
         }); 
-        
-        const chatButton = item.querySelector('.chat');
-        const deleteDayButton = item.querySelector('.delete');
-
+        const chatButton = item.querySelector('.chat'); const deleteDayButton = item.querySelector('.delete');
         if (auth.currentUser && auth.currentUser.isAnonymous) {
-            chatButton.classList.add('hidden'); // Hide chat button for guests
+            chatButton.classList.add('hidden'); 
             deleteDayButton.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (confirm(`Delete all logs for ${dayEntry.displayDate}?`)) {
                     guestData.journalEntries = guestData.journalEntries.filter(entry => entry.id !== dayEntry.id);
-                    saveGuestDataToLocalStorage();
-                    loadJournal(true); // Re-render
+                    saveGuestDataToLocalStorage(); loadJournal(true); 
                 }
             });
         } else {
             chatButton.addEventListener('click', (e) => { e.stopPropagation(); playSound('clickSound'); openAiChat(dayEntry); }); 
             deleteDayButton.addEventListener('click', (e) => { e.stopPropagation(); deleteJournalDay(dayEntry.id, dayEntry.displayDate); }); 
         }
-        
         ui.journalList.appendChild(item); 
     }
 
@@ -530,217 +425,211 @@ document.addEventListener('DOMContentLoaded', () => {
     async function deleteJournalDay(dayDocId, dayDate) { if (!confirm(`Delete all logs for ${dayDate}?`)) return; await deleteDoc(doc(db, `users/${userId}/journalEntries`, dayDocId)); }
     function handleJournalSearch() { const searchTerm = ui.journalSearch.value.toLowerCase(); document.querySelectorAll('#journalList > .journal-day-entry').forEach(entry => { entry.style.display = entry.textContent.toLowerCase().includes(searchTerm) ? '' : 'none'; }); }
     
-    // loadAllJournalMetadata only called for authenticated users
     async function loadAllJournalMetadata() { 
-        if (auth.currentUser && auth.currentUser.isAnonymous) return; // Skip for guests
+        if (auth.currentUser && auth.currentUser.isAnonymous) return; 
         const q = query(journalCollectionRef, orderBy("lastUpdated", "desc")); 
-        const snapshot = await getDocs(q); 
-        const journalDocs = snapshot.docs; 
-        renderJournalHeatmap(journalDocs); 
-        calculateJournalStreak(journalDocs); 
+        const snapshot = await getDocs(q); const journalDocs = snapshot.docs; 
+        renderJournalHeatmap(journalDocs); calculateJournalStreak(journalDocs); 
     }
 
     function calculateJournalStreak(journalDocs) { 
         const journalDates = new Set(journalDocs.map(doc => doc.id)); 
         if (journalDates.size === 0) { ui.journalStreakDisplay.textContent = `0 DAYS`; return; } 
-        let streak = 0; 
-        let currentDate = new Date(); 
+        let streak = 0; let currentDate = new Date(); 
         if (!journalDates.has(getTodayDocId())) currentDate.setDate(currentDate.getDate() - 1); 
-        while (journalDates.has(toYMDString(currentDate))) { 
-            streak++; 
-            currentDate.setDate(currentDate.getDate() - 1); 
-        } 
+        while (journalDates.has(toYMDString(currentDate))) { streak++; currentDate.setDate(currentDate.getDate() - 1); } 
         ui.journalStreakDisplay.textContent = `${streak} DAY${streak !== 1 ? 'S' : ''}`; 
     }
     function renderJournalHeatmap(docs) { 
         ui.journalHeatmapContainer.innerHTML = ''; 
         const logDates = new Set(docs.map(doc => doc.id)); 
         for (let i = HEATMAP_DAYS - 1; i >= 0; i--) { 
-            let date = new Date(); 
-            date.setDate(date.getDate() - i); 
-            const dateString = toYMDString(date); 
-            const dayDiv = document.createElement('div'); 
-            dayDiv.className = 'heatmap-day'; 
-            dayDiv.title = formatDisplayDate(dateString); 
+            let date = new Date(); date.setDate(date.getDate() - i); 
+            const dateString = toYMDString(date); const dayDiv = document.createElement('div'); 
+            dayDiv.className = 'heatmap-day'; dayDiv.title = formatDisplayDate(dateString); 
             if (logDates.has(dateString)) dayDiv.classList.add('active'); 
             ui.journalHeatmapContainer.appendChild(dayDiv); 
         } 
     }
     
-    // --- AI Chat Functions ---
     function openAiChat(dayEntry) {
-        if (auth.currentUser && auth.currentUser.isAnonymous) return; // Prevent opening for guests
-        currentAiChatContext = dayEntry;
-        ui.aiChatHistory.innerHTML = '';
-        ui.aiChatInput.value = '';
+        if (auth.currentUser && auth.currentUser.isAnonymous) return; 
+        currentAiChatContext = dayEntry; ui.aiChatHistory.innerHTML = ''; ui.aiChatInput.value = '';
         displayChatMessage('Connection established. Ready for analysis of log dated ' + dayEntry.displayDate, 'gemini');
-        ui.aiChatModal.classList.remove('hidden');
-        ui.aiChatInput.focus();
+        ui.aiChatModal.classList.remove('hidden'); ui.aiChatInput.focus();
     }
-
-    function closeAiChat() {
-        ui.aiChatModal.classList.add('hidden');
-        currentAiChatContext = null;
-    }
-
+    function closeAiChat() { ui.aiChatModal.classList.add('hidden'); currentAiChatContext = null; }
     async function sendAiChatMessage() {
-        const userPrompt = ui.aiChatInput.value.trim();
-        if (userPrompt === "") return; // Don't send empty messages
-        if (!apiKey) { // Check apiKey at the point of sending
-            showFeedback("Error: API Key not configured in System tab.", true);
-            return;
-        }
-        ui.aiChatInput.value = '';
-        ui.aiChatInput.disabled = true;
-        ui.aiChatSendBtn.disabled = true;
-
-        displayChatMessage(userPrompt, 'user');
-        const thinkingMessage = displayChatMessage('...', 'gemini');
-        
-        try {
-            const aiResponse = await getAiResponse(userPrompt, currentAiChatContext);
-            thinkingMessage.querySelector('p').innerHTML = escapeHTML(aiResponse);
-        } catch (error) {
-            thinkingMessage.querySelector('p').textContent = `Error: ${error.message}`;
-            console.error("AI Chat Error:", error);
-        } finally {
-            ui.aiChatInput.disabled = false;
-            ui.aiChatSendBtn.disabled = false;
-            ui.aiChatInput.focus();
-        }
+        const userPrompt = ui.aiChatInput.value.trim(); if (userPrompt === "") return; 
+        if (!apiKey) { showFeedback("Error: API Key not configured in System tab.", true); return; }
+        ui.aiChatInput.value = ''; ui.aiChatInput.disabled = true; ui.aiChatSendBtn.disabled = true;
+        displayChatMessage(userPrompt, 'user'); const thinkingMessage = displayChatMessage('...', 'gemini');
+        try { const aiResponse = await getAiResponse(userPrompt, currentAiChatContext); thinkingMessage.querySelector('p').innerHTML = escapeHTML(aiResponse); } 
+        catch (error) { thinkingMessage.querySelector('p').textContent = `Error: ${error.message}`; console.error("AI Chat Error:", error); } 
+        finally { ui.aiChatInput.disabled = false; ui.aiChatSendBtn.disabled = false; ui.aiChatInput.focus(); }
     }
-
     function displayChatMessage(message, sender) {
-        const messageWrapper = document.createElement('div');
-        messageWrapper.className = `ai-chat-message ${sender}`;
+        const messageWrapper = document.createElement('div'); messageWrapper.className = `ai-chat-message ${sender}`;
         messageWrapper.innerHTML = `<div class="sender">${sender}</div><p>${escapeHTML(message)}</p>`;
-        ui.aiChatHistory.appendChild(messageWrapper);
-        ui.aiChatHistory.scrollTop = ui.aiChatHistory.scrollHeight;
+        ui.aiChatHistory.appendChild(messageWrapper); ui.aiChatHistory.scrollTop = ui.aiChatHistory.scrollHeight;
         return messageWrapper;
     }
-
     async function getAiResponse(userPrompt, journalEntry) {
         if (!apiKey) throw new Error("API Key not found. Please save your key in the System tab.");
-
         const logsText = journalEntry.logs.map(log => `- ${log.time}: ${log.content}`).join('\n');
         const fullPrompt = `SYSTEM PREMISE: You are Gemma, a helpful AI assistant integrated into a personal journaling app called "System Log". Your persona is that of a slightly retro, cyberpunk AI. You are analyzing a journal entry for your user, whom you refer to as "Master". Be helpful, insightful, and maintain the persona.
-        
-        JOURNAL CONTEXT:
-        Date of Entry: ${journalEntry.displayDate}
-        Logs:
-        ${logsText}
-        ---
-        USER QUERY: ${userPrompt}`;
-
+        JOURNAL CONTEXT: Date of Entry: ${journalEntry.displayDate} Logs:\n${logsText}\n---\nUSER QUERY: ${userPrompt}`;
         const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: fullPrompt }] }],
-                generationConfig: { temperature: 0.7, topK: 40 }
-            })
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }], generationConfig: { temperature: 0.7, topK: 40 } })
         });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error("API Error Response:", errorData);
-            throw new Error(`API request failed with status ${response.status}.`);
-        }
-        
-        const data = await response.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!text) throw new Error("Invalid response structure from API.");
-        return text;
+        if (!response.ok) { const errorData = await response.json(); console.error("API Error Response:", errorData); throw new Error(`API request failed with status ${response.status}.`); }
+        const data = await response.json(); const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) throw new Error("Invalid response structure from API."); return text;
     }
 
-    // --- Restored Features & Init Block ---
-    function initializeThemes() { Object.keys(THEMES).forEach(themeName => { const button = document.createElement('button'); button.textContent = themeName; button.className = 'button-90s theme-button'; button.dataset.theme = themeName; button.addEventListener('click', () => { playSound('clickSound'); applyTheme(themeName); }); ui.themeSwitcher.appendChild(button); }); const savedTheme = localStorage.getItem('systemlog-theme') || 'Default'; applyTheme(savedTheme); }
-    function applyTheme(themeName) { document.body.className = THEMES[themeName] || ''; localStorage.setItem('systemlog-theme', themeName); document.querySelectorAll('.theme-button').forEach(btn => btn.classList.toggle('active', btn.dataset.theme === themeName)); }
-    // Refined typewriterScrambleEffect for a cleaner reveal
-    function typewriterScrambleEffect(element, text) { 
-        if (!element) return; 
-        activeScrambleTimers.forEach(timer => clearInterval(timer)); 
-        activeScrambleTimers = []; 
-        element.textContent = ''; 
-        let revealedText = ''; 
-        let i = 0; 
+    // --- Appearance (Designs & Palettes) ---
+    function initializeAppearanceControls() {
+        ui.themeSwitcher.innerHTML = ''; 
 
-        const typeCharacter = () => { 
-            if (i < text.length) { 
-                const originalChar = text.charAt(i); 
-                let scrambleCount = 0; 
-                const scrambleInterval = setInterval(() => { 
-                    if (scrambleCount >= SCRAMBLE_CYCLES) { 
-                        clearInterval(scrambleInterval); 
-                        revealedText += originalChar; 
-                        element.textContent = revealedText; 
-                        i++; 
-                        typeCharacter(); 
-                    } else { 
-                        const randomChar = CHAR_POOL.charAt(Math.floor(Math.random() * CHAR_POOL.length)); 
-                        element.textContent = revealedText + randomChar; 
-                        scrambleCount++; 
-                    } 
-                }, TYPEWRITER_SPEED / 2); 
-                activeScrambleTimers.push(scrambleInterval); 
-            } 
-        }; 
-        typeCharacter(); 
-    };
+        const designHeader = document.createElement('h4');
+        designHeader.textContent = 'Overall Design:';
+        designHeader.className = 'jp-subtitle !uppercase !text-sm !text-left !mb-1 !mt-0';
+        ui.themeSwitcher.appendChild(designHeader);
+        
+        const designContainer = document.createElement('div');
+        designContainer.className = 'design-selector-container mb-4';
+        ui.themeSwitcher.appendChild(designContainer);
+
+        Object.keys(DESIGNS).forEach(designName => {
+            const button = document.createElement('button');
+            button.textContent = designName;
+            button.className = 'button-90s design-button theme-button'; 
+            button.dataset.design = DESIGNS[designName];
+            button.addEventListener('click', () => {
+                playSound('clickSound');
+                currentDesign = DESIGNS[designName];
+                // When design changes, set palette to the default for that design
+                currentPalette = DESIGN_DEFAULT_PALETTES[currentDesign] || Object.values(PALETTES)[0];
+                applyAppearance();
+            });
+            designContainer.appendChild(button);
+        });
+
+        const paletteHeader = document.createElement('h4');
+        paletteHeader.textContent = 'Color Palette:';
+        paletteHeader.className = 'jp-subtitle !uppercase !text-sm !text-left !mb-1 mt-3'; // Added mt-3
+        ui.themeSwitcher.appendChild(paletteHeader);
+
+        const paletteContainer = document.createElement('div');
+        paletteContainer.className = 'palette-selector-container';
+        ui.themeSwitcher.appendChild(paletteContainer);
+        
+        Object.keys(PALETTES).forEach(paletteName => {
+            const button = document.createElement('button');
+            button.textContent = paletteName;
+            button.className = 'button-90s palette-button theme-button';
+            button.dataset.palette = PALETTES[paletteName];
+            button.addEventListener('click', () => {
+                playSound('clickSound');
+                currentPalette = PALETTES[paletteName];
+                applyAppearance();
+            });
+            paletteContainer.appendChild(button);
+        });
+
+        currentDesign = localStorage.getItem('systemlog-design') || DESIGNS['Wired'];
+        // Ensure the loaded palette is valid; if not, use design's default
+        let savedPalette = localStorage.getItem('systemlog-palette');
+        if (savedPalette && Object.values(PALETTES).includes(savedPalette)) {
+            currentPalette = savedPalette;
+        } else {
+            currentPalette = DESIGN_DEFAULT_PALETTES[currentDesign] || Object.values(PALETTES)[0];
+        }
+        applyAppearance();
+    }
+
+    function applyAppearance() {
+        document.body.className = `${currentDesign} ${currentPalette}`;
+        localStorage.setItem('systemlog-design', currentDesign);
+        localStorage.setItem('systemlog-palette', currentPalette);
+
+        document.querySelectorAll('.design-button').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.design === currentDesign);
+        });
+        document.querySelectorAll('.palette-button').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.palette === currentPalette);
+        });
+    }
+    
+    function typewriterScrambleEffect(element, text) {
+        return new Promise((resolve) => {
+            if (!element) { resolve(); return; }
+            activeScrambleTimers.forEach(timer => clearInterval(timer));
+            activeScrambleTimers = [];
+            element.textContent = '';
+            let revealedText = '';
+            let i = 0;
+
+            const typeCharacter = () => {
+                if (i < text.length) {
+                    const originalChar = text.charAt(i);
+                    let scrambleCount = 0;
+                    const scrambleInterval = setInterval(() => {
+                        if (scrambleCount >= SCRAMBLE_CYCLES) {
+                            clearInterval(scrambleInterval);
+                            revealedText += originalChar;
+                            element.textContent = revealedText;
+                            i++;
+                            if (i >= text.length) { resolve(); } 
+                            else { typeCharacter(); }
+                        } else {
+                            const randomChar = CHAR_POOL.charAt(Math.floor(Math.random() * CHAR_POOL.length));
+                            element.textContent = revealedText + randomChar;
+                            scrambleCount++;
+                        }
+                    }, TYPEWRITER_SPEED / 2);
+                    activeScrambleTimers.push(scrambleInterval);
+                } else { resolve(); }
+            };
+            if (text.length > 0) { typeCharacter(); } else { resolve(); }
+        });
+    }
+
     function playSound(soundId) { const sound = document.getElementById(soundId); if (!sound) return; const volume = parseFloat(sound.getAttribute('data-volume')) || 1.0; sound.volume = volume; sound.currentTime = 0; sound.play().catch(error => { if (error.name !== "NotAllowedError") console.error("Audio playback error:", error); }); }
     function startKaleidoscope() { ui.kaleidoscopeModal.classList.remove('hidden'); if (!kaleidoscopeSketch) kaleidoscopeSketch = new p5(k_sketch); }
     function stopKaleidoscope() { ui.kaleidoscopeModal.classList.add('hidden'); }
     const k_sketch = (p) => { p.setup = () => { const parent = document.getElementById('kaleidoscopeCanvasParent'); const size = Math.min(parent.clientWidth - 4, 400); const canvas = p.createCanvas(size, size); canvas.parent(parent); p.colorMode(p.HSB); p.background(20); }; p.draw = () => { if (p.mouseIsPressed && p.mouseX > 0 && p.mouseX < p.width && p.mouseY > 0 && p.mouseY < p.height) { const symmetry = ui.kSymmetrySlider.value; const angle = 360 / symmetry; const mx = p.mouseX - p.width / 2; const my = p.mouseY - p.height / 2; const pmx = p.pmouseX - p.width / 2; const pmy = p.pmouseY - p.height / 2; p.translate(p.width / 2, p.height / 2); p.stroke((p.frameCount * 2) % 360, 80, 100); p.strokeWeight(3); for (let i = 0; i < symmetry; i++) { p.rotate(angle); p.line(mx, my, pmx, pmy); p.push(); p.scale(1, -1); p.line(mx, my, pmx, pmy); p.pop(); } } }; p.clearCanvas = () => p.background(20); };
 
     function init() {
-        initializeFirebase();
-        initializeThemes();
+        initializeFirebase(); 
+        initializeAppearanceControls(); 
         ui.signInBtn.addEventListener('click', () => { if (auth) signInWithPopup(auth, new GoogleAuthProvider()); });
-        console.log("Guest Sign In Button Element:", ui.guestSignInBtn); // Debugging: Check if element is found
-        ui.guestSignInBtn.addEventListener('click', async () => { // NEW: Async to await login and handle loading overlay
-            console.log("Guest Sign In Button Clicked!"); // Debugging: Confirm click handler fires
+        ui.guestSignInBtn.addEventListener('click', async () => {
             if (auth) {
-                ui.loadingOverlay.classList.remove('hidden'); // Show loading overlay
-                // Set loading message with typewriter effect
-                typewriterScrambleEffect(ui.loadingMessage, 'ACCESSING CORE...'); 
-                try {
-                    await signInAnonymously(auth);
-                    console.log('Anonymous user signed in.');
-                } catch (error) {
-                    console.error("Anonymous sign-in error:", error);
-                    showFeedback("Error logging in as guest.", true);
-                } finally {
-                    ui.loadingOverlay.classList.add('hidden'); // Hide loading overlay regardless of success/failure
-                }
+                ui.loadingOverlay.classList.remove('hidden');
+                await typewriterScrambleEffect(ui.loadingMessage, 'ACCESSING CORE...'); 
+                try { await signInAnonymously(auth); } 
+                catch (error) { console.error("Anonymous sign-in error:", error); showFeedback("Error logging in as guest.", true); ui.loadingOverlay.classList.add('hidden');}
             }
         });
         ui.signOutBtn.addEventListener('click', () => signOut(auth));
-        
         ui.tasksTabBtn.addEventListener('click', () => { playSound('clickSound'); switchToView('tasks'); });
         ui.journalTabBtn.addEventListener('click', () => { 
             playSound('clickSound'); 
-            // Only load journal from Firebase if it hasn't been loaded AND it's not a guest
-            if (!hasJournalLoaded && (!auth.currentUser || !auth.currentUser.isAnonymous)) { 
-                loadJournal(false); 
-                hasJournalLoaded = true; 
-            } else if (auth.currentUser && auth.currentUser.isAnonymous) { // If guest, always load local journal
-                loadJournal(true);
-            }
+            if (!hasJournalLoaded && (!auth.currentUser || !auth.currentUser.isAnonymous)) { loadJournal(false); hasJournalLoaded = true; } 
+            else if (auth.currentUser && auth.currentUser.isAnonymous) { loadJournal(true); }
             switchToView('journal'); 
         });
         ui.systemTabBtn.addEventListener('click', () => { 
             playSound('clickSound'); 
-            // Only load system data from Firebase if not already loaded AND not a guest
-            if (!hasSystemDataLoaded && (!auth.currentUser || !auth.currentUser.isAnonymous)) { 
-                loadAllJournalMetadata(); 
-                hasSystemDataLoaded = true; 
-            } else if (auth.currentUser && auth.currentUser.isAnonymous) { // Clear/hide system data for guests
+            if (!hasSystemDataLoaded && (!auth.currentUser || !auth.currentUser.isAnonymous)) { loadAllJournalMetadata(); hasSystemDataLoaded = true; } 
+            else if (auth.currentUser && auth.currentUser.isAnonymous) { 
                 ui.journalHeatmapContainer.innerHTML = `<p class="text-center p-2 opacity-70">Log Consistency Matrix not available in Guest Mode.</p>`;
                 ui.journalStreakDisplay.textContent = `-- DAYS (Guest)`;
             }
             switchToView('system'); 
         });
-
         ui.addTaskBtn.addEventListener('click', () => { playSound('clickSound'); addTask(); });
         ui.taskInput.addEventListener('keypress', e => { if (e.key === 'Enter') { playSound('clickSound'); addTask(); } });
         ui.addJournalBtn.addEventListener('click', () => { playSound('clickSound'); addJournalLog(); });
@@ -753,26 +642,16 @@ document.addEventListener('DOMContentLoaded', () => {
         ui.closeCategoryManagerBtn.addEventListener('click', () => { playSound('clickSound'); ui.categoryManagerModal.classList.add('hidden'); });
         ui.addCategoryBtn.addEventListener('click', () => { playSound('clickSound'); addCategory(); });
         ui.newCategoryInput.addEventListener('keypress', e => { if (e.key === 'Enter') { playSound('clickSound'); addCategory(); } });
-        
         ui.saveApiKeyBtn.addEventListener('click', async () => {
-            playSound('clickSound');
-            const keyToSave = ui.apiKeyInput.value;
+            playSound('clickSound'); const keyToSave = ui.apiKeyInput.value;
             const configRef = doc(db, `users/${userId}/configuration/api`);
-            try {
-                await setDoc(configRef, { geminiApiKey: keyToSave });
-                apiKey = keyToSave;
-                showFeedback("API Key saved securely.");
-            } catch (error) {
-                console.error("Error saving API Key:", error);
-                showFeedback("Error: Could not save API Key.", true);
-            }
+            try { await setDoc(configRef, { geminiApiKey: keyToSave }); apiKey = keyToSave; showFeedback("API Key saved securely."); } 
+            catch (error) { console.error("Error saving API Key:", error); showFeedback("Error: Could not save API Key.", true); }
         });
         ui.closeAiChatBtn.addEventListener('click', () => { playSound('clickSound'); closeAiChat(); });
         ui.aiChatSendBtn.addEventListener('click', () => { playSound('clickSound'); sendAiChatMessage(); });
         ui.aiChatInput.addEventListener('keypress', e => { if (e.key === 'Enter') { playSound('clickSound'); sendAiChatMessage(); } });
-
         onAuthStateChanged(auth, handleAuthStateChange);
     }
-    
     init();
 });

@@ -1,43 +1,210 @@
-/* --- Root Variables & Default Theme --- */
+/* style.css */
+/* --- Root Variables for Fallback --- */
 :root {
-    --background-main: #1a1a1d;
-    --container-bg: rgba(26, 26, 29, 0.75);
-    --input-bg: #2c2c31;
-    --input-bg-focus: #3a3a41;
-    --text-primary: #00ffc3; /* Cyberpunk Teal */
-    --text-secondary: #00c3ff; /* Neon Blue */
-    --text-dim: #7a7f8a;
-    --accent-primary: #c300ff; /* Neon Purple */
-    --accent-secondary: #00c3ff; /* Neon Blue */
-    --accent-danger: #ff0055; /* Hot Pink/Red */
-    --border-color: #555a69;
-    --font-main: 'VT323', monospace;
+    --font-main: 'VT323', monospace; 
     --scroller-speed: 40s;
+    /* Fallback colors if no design/palette is somehow applied */
+    --background-main: #111;
+    --text-primary: #eee;
+    --border-color: #555;
+    --container-bg: #222;
+    --input-bg: #333;
+    --input-bg-focus: #444;
+    --text-secondary: #0f0;
+    --text-dim: #888;
+    --accent-primary: #0f0;
+    --accent-secondary: #0ff;
+    --accent-danger: #f00;
 }
 
-/* --- Themes --- */
-body.theme-lain {
-    --text-primary: #EAEAEA; --text-secondary: #B0B0B0; --accent-primary: #D13030;
-    --accent-secondary: #B0B0B0; --accent-danger: #D13030; --border-color: #444;
+/* --- DESIGN: Wired (Cyberpunk) --- */
+body.design-wired {
+    --font-main: 'VT323', monospace;
+    text-shadow: 0 0 2px var(--text-primary);
 }
-body.theme-bebop {
+body.design-wired .container-90s {
+    border-image: linear-gradient(to right, var(--accent-primary), var(--accent-secondary)) 1;
+    backdrop-filter: blur(5px);
+}
+body.design-wired h1, body.design-wired .app-title { text-shadow: 0 0 8px var(--accent-primary); }
+body.design-wired h2, body.design-wired h3 { text-shadow: 0 0 4px var(--accent-secondary); }
+body.design-wired .button-90s:hover { animation: text-glitch 0.3s linear; }
+body.design-wired .nav-tab:hover { animation: text-glitch 0.3s linear; }
+body.design-wired .scroller-accent { text-shadow: 0 0 5px var(--text-primary); animation: text-glitch 1.5s linear infinite alternate; }
+body.design-wired #kaleidoscopeModal .container-90s,
+body.design-wired #categoryManagerModal .container-90s,
+body.design-wired #aiChatModal .container-90s {
+    border-image: linear-gradient(to right, var(--accent-primary), var(--accent-secondary)) 1;
+}
+
+
+/* --- DESIGN: Mecha Manual --- */
+body.design-mecha-manual {
+    --font-main: 'Share Tech Mono', monospace;
+    text-shadow: none;
+    background-image: 
+        linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+    background-size: 25px 25px; /* Technical grid */
+}
+body.design-mecha-manual::before {
+    opacity: 0.03; 
+    background-size: 40px 40px; /* Slightly different base grid */
+}
+body.design-mecha-manual::after { /* More subtle scanlines or static */
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0, rgba(0,0,0,0.1) 1px, rgba(0,0,0,0.05) 2px);
+    opacity: 0.15; 
+}
+body.design-mecha-manual .container-90s {
+    border-image: none;
+    border: 1px solid var(--border-color); 
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03), 0 1px 3px rgba(0,0,0,0.3); /* Panel look */
+    border-radius: 2px; /* Sharper corners */
+    backdrop-filter: blur(2px); /* Less blur */
+}
+body.design-mecha-manual h1, body.design-mecha-manual .app-title {
+    text-shadow: 0 0 3px var(--text-secondary), 0 0 8px var(--text-secondary); 
+    color: var(--text-secondary);
+    font-size: 28px; /* Slightly adjusted */
+    letter-spacing: 1.5px; /* More spaced out for a HUD feel */
+    font-weight: normal;
+}
+body.design-mecha-manual .app-subtitle { color: var(--text-primary); opacity: 0.75; font-size: 16px; }
+body.design-mecha-manual h2, body.design-mecha-manual h3 {
+    text-shadow: none;
+    border-bottom: 1px solid var(--text-secondary); 
+    color: var(--text-secondary);
+    padding-bottom: 4px; 
+    margin-bottom: 12px; 
+    font-size: 18px; /* Smaller section headers */
+    font-weight: normal;
+    letter-spacing: 1px;
+}
+body.design-mecha-manual h3 { 
+    font-size: 15px; 
+    border-bottom-style: dashed; 
+    margin-top: 2rem; /* More space above H3 */
+}
+body.design-mecha-manual .jp-subtitle { font-size: 13px; margin-bottom: 10px; }
+body.design-mecha-manual .input-90s { 
+    border-radius: 1px; 
+    border: 1px solid var(--border-color); 
+    font-size: 16px; /* Slightly smaller input text */
+    padding: 8px 10px;
+}
+body.design-mecha-manual .input-90s:focus { 
+    box-shadow: 0 0 3px 1px var(--text-secondary); 
+    border-color: var(--text-secondary); 
+    background-color: var(--input-bg); /* Keep bg same on focus for less flash */
+}
+body.design-mecha-manual .button-90s {
+    border-radius: 1px; 
+    font-size: 14px; /* Smaller button text */
+    padding: 8px 16px;
+    box-shadow: inset 0px 1px 0px rgba(255,255,255,0.05);
+    letter-spacing: 0.5px;
+    font-weight: normal;
+    border: 1px solid var(--border-color);
+}
+body.design-mecha-manual .button-90s:hover {
+    background-color: var(--text-secondary); 
+    border-color: var(--text-secondary);
+    color: var(--background-main);
+    animation: none; 
+    box-shadow: inset 0px 1px 0px rgba(0,0,0,0.1), 0 0 5px var(--text-secondary);
+}
+body.design-mecha-manual .button-90s:active { 
+    box-shadow: inset 0px 2px 2px rgba(0,0,0,0.2); 
+    transform: translateY(1px); 
+    background-color: var(--text-secondary); /* Keep active state consistent */
+    color: var(--background-main);
+}
+body.design-mecha-manual .nav-tab {
+    font-size: 14px;
+    border: 1px solid transparent; /* Prepare for border on active */
+    border-bottom: 1px solid var(--border-color); /* Default bottom border */
+    margin-bottom: -1px; /* Align with overall content border */
+    padding: 8px 10px;
+}
+body.design-mecha-manual .nav-tab.active { 
+    background-color: var(--container-bg); /* Panel background */
+    color: var(--text-secondary); 
+    border: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--container-bg); /* Cut out bottom border */
+    box-shadow: 0 -2px 0 var(--text-secondary); /* Indicator line on top */
+}
+body.design-mecha-manual .nav-tab:hover:not(.active) { background-color: var(--input-bg); color: var(--text-secondary); }
+body.design-mecha-manual .task-status { border: 1px solid var(--text-dim); width: 14px; height: 14px; background-color: var(--input-bg); }
+body.design-mecha-manual .task-item-90s.completed .task-status { background-color: var(--accent-danger); border-color: var(--accent-danger); }
+body.design-mecha-manual .priority-toggle.active { color: var(--text-secondary); }
+body.design-mecha-manual #taskList, 
+body.design-mecha-manual #journalList,
+body.design-mecha-manual #aiChatHistory { 
+    background-color: rgba(0,0,0,0.2); 
+    border: 1px solid var(--border-color);
+    border-radius: 1px;
+    padding: 8px;
+}
+body.design-mecha-manual .scroller-accent { color: var(--text-secondary); text-shadow: 0 0 3px var(--text-secondary); animation: none; }
+body.design-mecha-manual #kaleidoscopeModal .container-90s,
+body.design-mecha-manual #categoryManagerModal .container-90s,
+body.design-mecha-manual #aiChatModal .container-90s {
+    border-image: none; border: 1px solid var(--border-color); background-color: var(--container-bg);
+}
+body.design-mecha-manual #feedbackBox { background-color: var(--text-secondary); color: var(--background-main); border-color: var(--text-secondary); font-size: 14px; padding: 8px 15px; }
+body.design-mecha-manual .theme-button { font-size: 12px; padding: 5px 10px; } /* Smaller theme buttons for Mecha */
+body.design-mecha-manual .design-button.active, 
+body.design-mecha-manual .palette-button.active { 
+    background-color: var(--text-secondary); 
+    color: var(--background-main); 
+    border-color: var(--text-secondary);
+}
+
+/* --- PALETTE Definitions (Colors Only) --- */
+body.palette-cyber-default {
+    --background-main: #1a1a1d; --container-bg: rgba(26, 26, 29, 0.75);
+    --input-bg: #2c2c31; --input-bg-focus: #3a3a41;
+    --text-primary: #00ffc3; --text-secondary: #00c3ff; --text-dim: #7a7f8a;
+    --accent-primary: #c300ff; --accent-secondary: #00c3ff; --accent-danger: #ff0055;
+    --border-color: #555a69;
+}
+body.palette-lain {
+    --background-main: #181818; --container-bg: rgba(10, 10, 10, 0.8);
+    --input-bg: #222222; --input-bg-focus: #303030;
+    --text-primary: #EAEAEA; --text-secondary: #B0B0B0; --text-dim: #666666;
+    --accent-primary: #D13030; --accent-secondary: #B0B0B0; --accent-danger: #D13030; 
+    --border-color: #383838;
+}
+body.palette-bebop {
     --background-main: #0c142c; --container-bg: rgba(12, 20, 44, 0.8);
-    --text-primary: #ffcc00; --text-secondary: #4a90e2; --accent-primary: #e24a90;
-    --accent-secondary: #4a90e2; --accent-danger: #d0021b; --border-color: #2a3a60;
+    --input-bg: #1a233f; --input-bg-focus: #253050;
+    --text-primary: #ffcc00; --text-secondary: #4a90e2; --text-dim: #8a98b0;
+    --accent-primary: #e24a90; --accent-secondary: #4a90e2; --accent-danger: #d0021b; 
+    --border-color: #2a3a60;
 }
-body.theme-ghost {
-    --background-main: #1E2228; --text-primary: #FF9900; --text-secondary: #66F6FF;
-    --accent-primary: #FF9900; --accent-secondary: #66F6FF; --accent-danger: #FF2D55;
+body.palette-ghost {
+    --background-main: #1E2228; --container-bg: rgba(40, 45, 52, 0.8);
+    --input-bg: #2c313a; --input-bg-focus: #383e48;
+    --text-primary: #FF9900; --text-secondary: #66F6FF; --text-dim: #808a99;
+    --accent-primary: #FF9900; --accent-secondary: #66F6FF; --accent-danger: #FF2D55; 
     --border-color: #576574;
 }
-body.theme-kaido {
-    --background-main: #fcf3d0; --container-bg: rgba(210, 180, 140, 0.7);
-    --input-bg: #e6d8b6; --input-bg-focus: #d2b48c; --text-primary: #40332B;
-    --text-secondary: #005A9C; --text-dim: #7d6b5a; --accent-primary: #9e4242;
-    --accent-secondary: #005A9C; --accent-danger: #c73e3e; --border-color: #a58e71;
+body.palette-kaido {
+    --background-main: #fcf3d0; --container-bg: rgba(210, 180, 140, 0.8); /* More opaque */
+    --input-bg: #e6d8b6; --input-bg-focus: #d2b48c; 
+    --text-primary: #4a3b31; --text-secondary: #005A9C; --text-dim: #7d6b5a; 
+    --accent-primary: #9e4242; --accent-secondary: #005A9C; --accent-danger: #c73e3e; 
+    --border-color: #a58e71;
+}
+body.palette-mecha-amber { /* Default colors for Mecha Manual Design */
+    --background-main: #222831; --container-bg: rgba(40, 45, 55, 0.85);
+    --input-bg: #393E46; --input-bg-focus: #4A505A;
+    --text-primary: #EEEEEE; --text-secondary: #FFD369; --text-dim: #888B93;
+    --accent-primary: #E57373; --accent-secondary: #64B5F6; --accent-danger: #EF5350;
+    --border-color: #616A78;
 }
 
-/* --- Keyframe Animations --- */
+/* --- Keyframe Animations (common) --- */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes scrolling-grid { 0% { background-position: 0 0; } 100% { background-position: -50px -50px; } }
 @keyframes flickerIn {
@@ -47,47 +214,21 @@ body.theme-kaido {
     60% { opacity: 1; text-shadow: 0 0 5px var(--text-primary), 0 0 15px var(--accent-primary); }
     100% { opacity: 1; text-shadow: 0 0 2px var(--text-primary); }
 }
-@keyframes scroll-text {
-    0% { transform: translateX(0%); }
-    100% { transform: translateX(-50%); }
-}
-@keyframes text-glitch {
-    2%, 64% { transform: translate(2px, 0) skew(0deg); }
-    4%, 60% { transform: translate(-2px, 0) skew(0deg); }
-    62% { transform: translate(0,0) skew(5deg); }
-}
-/* NEW: Loading animation keyframes */
-@keyframes dot-blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
-}
-@keyframes glow-pulse {
-    0%, 100% { text-shadow: 0 0 8px var(--text-primary), 0 0 16px var(--accent-primary); }
-    50% { text-shadow: 0 0 12px var(--text-primary), 0 0 24px var(--accent-primary), 0 0 36px var(--text-primary); }
-}
-@keyframes scanline-effect {
-    0% { background-position: 0% 0%; }
-    100% { background-position: 100% 100%; }
-}
-@keyframes crt-flicker {
-    0%, 100% { opacity: 0.9; }
-    5%, 15%, 25% { opacity: 0.95; }
-    10%, 20% { opacity: 0.85; }
-    30% { opacity: 0.9; }
-    80% { opacity: 0.92; }
-}
+@keyframes scroll-text { 0% { transform: translateX(0%); } 100% { transform: translateX(-50%); } }
+@keyframes text-glitch { 2%, 64% { transform: translate(2px, 0) skew(0deg); } 4%, 60% { transform: translate(-2px, 0) skew(0deg); } 62% { transform: translate(0,0) skew(5deg); } }
+@keyframes dot-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes glow-pulse { 0%, 100% { text-shadow: 0 0 8px var(--text-primary), 0 0 16px var(--accent-primary); } 50% { text-shadow: 0 0 12px var(--text-primary), 0 0 24px var(--accent-primary), 0 0 36px var(--text-primary); } }
+@keyframes scanline-effect { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
+@keyframes crt-flicker { 0%, 100% { opacity: 0.9; } 5%, 15%, 25% { opacity: 0.95; } 10%, 20% { opacity: 0.85; } 30% { opacity: 0.9; } 80% { opacity: 0.92; } }
 
-
-/* --- Core Body & Layout --- */
+/* --- Global Element Styles (should be minimal, mostly design-specific now) --- */
 body {
     font-family: var(--font-main); background-color: var(--background-main);
     color: var(--text-primary); padding-top: 10px; overflow-x: hidden;
-    animation: fadeIn 1s ease-in-out; text-shadow: 0 0 2px var(--text-primary);
-    transition: background-color 0.5s, color 0.5s;
+    animation: fadeIn 1s ease-in-out;
+    transition: background-color 0.3s, color 0.3s; 
 }
-body.theme-kaido, body.theme-lain { text-shadow: none; }
-
-body::before {
+body::before { /* Base grid, can be overridden by design */
     content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     z-index: -2;
     background-image:
@@ -96,67 +237,43 @@ body::before {
     background-size: 50px 50px; opacity: 0.1;
     animation: scrolling-grid 2s linear infinite;
 }
-body::after {
+body::after { /* Base scanlines, can be overridden by design */
     content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: repeating-linear-gradient(0deg, rgba(0,0,0,0.3) 0, rgba(0,0,0,0.4) 1px, rgba(0,0,0,0) 2px);
     opacity: 0.4; z-index: 1000; pointer-events: none;
 }
+
 .container-90s {
     background-color: var(--container-bg); border: 1px solid var(--border-color);
-    backdrop-filter: blur(5px); padding: 20px; width: 95%; max-width: 650px;
+    padding: 20px; width: 95%; max-width: 650px;
     margin: 20px auto; position: relative; z-index: 10;
-    border-image: linear-gradient(to right, var(--accent-primary), var(--accent-secondary)) 1;
 }
-#appContainer { animation: flickerIn 0.7s ease-in-out forwards; }
+#appContainer { animation: flickerIn 0.7s ease-in-out forwards; } 
 .hidden { display: none; }
 
-/* --- Typography & Headers --- */
-h1, .app-title { font-size: 32px; text-align: center; color: var(--text-primary); text-shadow: 0 0 8px var(--accent-primary); margin-bottom: 0px; text-transform: uppercase; }
+h1, .app-title { font-size: 32px; text-align: center; color: var(--text-primary); margin-bottom: 0px; text-transform: uppercase; }
 .app-subtitle { font-size: 18px; text-align: center; color: var(--text-dim); margin-bottom: 15px; }
-h2 { font-size: 24px; text-align: left; border-bottom: 1px solid var(--accent-primary); padding-bottom: 5px; min-height: 32px; text-shadow: 0 0 4px var(--accent-secondary); }
-h3 { font-size: 18px; text-align: left; margin-top: 1.5rem; margin-bottom: 0.5rem; text-transform: uppercase; color: var(--text-secondary); text-shadow: 0 0 4px var(--accent-secondary); }
+h2 { font-size: 24px; text-align: left; border-bottom: 1px solid var(--accent-primary); padding-bottom: 5px; min-height: 32px; }
+h3 { font-size: 18px; text-align: left; margin-top: 1.5rem; margin-bottom: 0.5rem; text-transform: uppercase; color: var(--text-secondary); }
 .jp-subtitle { color: var(--text-dim); font-size: 14px; margin-top: 4px; margin-bottom: 12px; opacity: 0.8; }
 
-/* --- UI Components --- */
 .input-90s { background-color: var(--input-bg); color: var(--text-primary); padding: 10px; font-family: var(--font-main); font-size: 18px; width: 100%; border: 1px solid var(--border-color); transition: all 0.3s; }
 .input-90s:focus { outline: none; background-color: var(--input-bg-focus); border-color: var(--accent-primary); }
 .input-90s::placeholder { color: var(--text-dim); }
 
 .button-90s { background-color: transparent; border: 1px solid var(--border-color); padding: 10px 15px; font-family: var(--font-main); font-size: 18px; color: var(--text-dim); cursor: pointer; text-shadow: none; transition: all 0.2s ease-in-out; text-transform: uppercase; }
-.button-90s:hover { background-color: var(--accent-primary); border-color: var(--accent-primary); color: var(--background-main); text-shadow: none; animation: text-glitch 0.3s linear; }
+.button-90s:hover { background-color: var(--accent-primary); border-color: var(--accent-primary); color: var(--background-main); text-shadow: none; }
 .button-90s:disabled { cursor: not-allowed; opacity: 0.5; }
 
-/* New subtle link style for guest login */
-.subtle-link-90s {
-    background: none;
-    border: none;
-    font-family: var(--font-main);
-    font-size: 14px; /* Smaller font size */
-    color: var(--text-dim); /* Dimmed color */
-    cursor: pointer;
-    text-decoration: underline; /* Underlined by default */
-    text-underline-offset: 3px;
-    transition: color 0.2s, text-shadow 0.2s;
-    padding: 5px 10px; /* Some padding to make it clickable */
-    margin: 0;
-    display: inline-block; /* Allows padding and transitions */
-}
-
-.subtle-link-90s:hover {
-    color: var(--accent-secondary); /* Accent color on hover */
-    text-shadow: 0 0 5px var(--accent-secondary); /* Subtle glow on hover */
-    text-decoration: none; /* No underline on hover */
-}
-
+.subtle-link-90s { background: none; border: none; font-family: var(--font-main); font-size: 14px; color: var(--text-dim); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; transition: color 0.2s, text-shadow 0.2s; padding: 5px 10px; margin: 0; display: inline-block; }
+.subtle-link-90s:hover { color: var(--accent-secondary); text-shadow: 0 0 5px var(--accent-secondary); text-decoration: none; }
 
 .nav-tabs { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
 .nav-tab { flex-grow: 1; padding: 10px; font-size: 16px; border: none; margin-bottom: -1px; background-color: transparent; color: var(--text-dim); }
 .nav-tab.active { color: var(--text-primary); border-bottom: 2px solid var(--accent-primary); }
-.nav-tab:hover { animation: text-glitch 0.3s linear; }
+
 
 #feedbackBox { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: var(--accent-secondary); color: var(--background-main); padding: 10px 20px; z-index: 2000; border: 1px solid var(--border-color); font-size: 16px; text-shadow: none; }
-
-/* --- Task View --- */
 .task-item-90s { padding: 12px; margin-bottom: 8px; display: flex; align-items: center; border-bottom: 1px dashed var(--border-color); }
 .task-text { flex-grow: 1; margin: 0 15px; font-size: 18px; }
 .task-status { cursor: pointer; user-select: none; width: 16px; height: 16px; background-color: transparent; border: 1px solid var(--text-dim); flex-shrink: 0; position: relative; }
@@ -167,8 +284,7 @@ h3 { font-size: 18px; text-align: left; margin-top: 1.5rem; margin-bottom: 0.5re
 .delete-btn-90s { background-color: transparent; border: none; color: var(--text-dim); padding: 4px 8px; font-size: 16px; cursor: pointer; margin-left: auto; }
 .delete-btn-90s:hover { color: var(--accent-danger); }
 #taskList { min-height: 200px; max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; background-color: rgba(34,37,44,0.5); margin-bottom: 20px; }
-
-/* --- Journal View --- */
+.journal-textarea { min-height: 120px; resize: vertical;}
 #journalList { min-height: 200px; max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; background-color: rgba(34,37,44,0.5); margin-bottom: 20px; }
 .journal-day-header { cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
 .journal-day-header:hover p { color: var(--accent-secondary); }
@@ -179,30 +295,23 @@ h3 { font-size: 18px; text-align: left; margin-top: 1.5rem; margin-bottom: 0.5re
 .journal-control-btn:hover { color: var(--accent-primary); text-decoration: underline; }
 .journal-control-btn.delete:hover { color: var(--accent-danger); }
 .delete-log-btn:hover { color: var(--accent-danger); }
-
-/* --- System View --- */
 #journalStreakDisplay { text-align: center; font-size: 20px; margin-bottom: 1rem; color: var(--text-secondary); }
 #journalHeatmapContainer { display: grid; grid-template-columns: repeat(15, 1fr); gap: 4px; padding: 10px; border: 1px solid var(--border-color); }
 .heatmap-day { aspect-ratio: 1 / 1; background-color: var(--input-bg); }
 .heatmap-day.active { background-color: var(--accent-primary); }
-.theme-switcher-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-.theme-button { padding: 4px 8px; font-size: 14px; }
-.theme-button.active { background-color: var(--text-primary); color: var(--background-main); border-color: var(--text-primary); }
-
-/* --- Kaleidoscope Modal --- */
+.theme-switcher-container { display: flex; flex-direction: column; gap: 10px; } 
+.design-selector-container, .palette-selector-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.theme-button { padding: 4px 8px; font-size: 14px; } 
+.design-button.active, .palette-button.active { background-color: var(--text-primary); color: var(--background-main); border-color: var(--text-primary); }
 #kaleidoscopeModal { background-color: rgba(0,0,0,0.8); }
 #kaleidoscopeModal .container-90s { background-color: var(--background-main); }
 #kaleidoscopeCanvasParent { display: flex; justify-content: center; border: 1px solid var(--border-color); }
-
-/* --- Category Manager Modal --- */
 #categoryManagerModal { background-color: rgba(0,0,0,0.8); }
 #categoryManagerModal .container-90s { background-color: var(--background-main); }
 .category-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px dashed var(--border-color); font-size: 18px; }
 .category-item-name { flex-grow: 1; }
 .category-delete-btn { font-size: 14px; text-transform: uppercase; color: var(--text-dim); cursor: pointer; margin-left: 1rem; }
 .category-delete-btn:hover { color: var(--accent-danger); }
-
-/* --- AI Chat Modal --- */
 #aiChatModal { background-color: rgba(0,0,0,0.8); }
 #aiChatModal .container-90s { background-color: var(--background-main); max-width: 800px; }
 .ai-chat-message { margin-bottom: 12px; padding: 8px 12px; }
@@ -210,54 +319,32 @@ h3 { font-size: 18px; text-align: left; margin-top: 1.5rem; margin-bottom: 0.5re
 .ai-chat-message.gemini { background-color: rgba(195, 0, 255, 0.05); border-left: 2px solid var(--accent-primary); }
 .ai-chat-message p { margin: 0; font-size: 18px; }
 .ai-chat-message .sender { text-transform: uppercase; opacity: 0.7; font-size: 14px; margin-bottom: 4px; }
-
-/* NEW: Loading overlay and message styling */
-#loadingOverlay {
-    background-color: var(--background-main); /* Base background */
-    opacity: 0.95; /* Almost opaque to cover content */
-    background-image: 
-        linear-gradient(rgba(0,0,0,0.2) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,0,0,0.2) 1px, transparent 1px); /* Subtle grid for scanlines */
-    background-size: 20px 20px;
-    animation: scanline-effect 10s linear infinite; /* Animated scanlines */
-}
-
-.loading-message-text {
-    font-size: 3rem; /* Larger font size for impact */
-    font-size: 8vw; /* Scales well on different screen sizes */
-    color: var(--text-primary);
-    text-shadow: 
-        0 0 10px var(--text-primary),
-        0 0 20px var(--accent-primary),
-        0 0 30px var(--text-primary),
-        0 0 40px var(--accent-primary); /* Intense glow */
-    animation: glow-pulse 1.5s infinite alternate, crt-flicker 2s infinite alternate; /* Pulsing glow and subtle flicker */
-    position: relative;
-    padding-right: 1.5em; /* Space for dots */
-}
-
-.loading-message-text::after {
-    content: '...';
-    position: absolute;
-    right: 0;
-    animation: dot-blink 1s steps(1, end) infinite;
-}
-
-/* Mobile specific font size for loading message */
-@media (max-width: 768px) {
-    .loading-message-text {
-        font-size: 10vw; /* Even larger on small screens for maximum impact */
-        text-shadow: 0 0 5px var(--text-primary), 0 0 10px var(--accent-primary); /* Slightly less intense glow for potentially better performance */
-    }
-}
-
-
-/* --- Footer Scroller --- */
+#loadingOverlay { background-color: var(--background-main); opacity: 0.95; background-image: linear-gradient(rgba(0,0,0,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.2) 1px, transparent 1px); background-size: 20px 20px; animation: scanline-effect 10s linear infinite; }
+.loading-message-text { font-size: 3rem; font-size: 8vw; color: var(--text-primary); text-shadow: 0 0 10px var(--text-primary), 0 0 20px var(--accent-primary), 0 0 30px var(--text-primary), 0 0 40px var(--accent-primary); animation: glow-pulse 1.5s infinite alternate, crt-flicker 2s infinite alternate; position: relative; padding-right: 1.5em; }
+.loading-message-text::after { content: '...'; position: absolute; right: 0; animation: dot-blink 1s steps(1, end) infinite; }
+@media (max-width: 768px) { .loading-message-text { font-size: 10vw; text-shadow: 0 0 5px var(--text-primary), 0 0 10px var(--accent-primary); } }
 .status-scroller-container { background-color: var(--input-bg); border: 1px solid var(--border-color); width: 95%; max-width: 650px; margin: 20px auto; overflow: hidden; padding: 5px; }
 .status-scroller-text { white-space: nowrap; display: inline-block; animation: scroll-text var(--scroller-speed) linear infinite; }
 .scroller-accent { color: var(--text-primary); text-shadow: 0 0 5px var(--text-primary); animation: text-glitch 1.5s linear infinite alternate; }
 
-/* --- Mobile Optimizations --- */
+/* Mobile Optimizations for text-shadows based on design+palette */
 @media (max-width: 768px) {
-    body, h1, .app-title, h2, h3, .scroller-accent { text-shadow: none !important; }
+    body.design-wired.palette-cyber-default h1, 
+    body.design-wired.palette-cyber-default .app-title, 
+    body.design-wired.palette-cyber-default h2, 
+    body.design-wired.palette-cyber-default h3, 
+    body.design-wired.palette-cyber-default .scroller-accent,
+    body.design-wired.palette-bebop h1, 
+    body.design-wired.palette-bebop .app-title, 
+    body.design-wired.palette-bebop h2, 
+    body.design-wired.palette-bebop h3, 
+    body.design-wired.palette-bebop .scroller-accent,
+    body.design-wired.palette-ghost h1, 
+    body.design-wired.palette-ghost .app-title, 
+    body.design-wired.palette-ghost h2, 
+    body.design-wired.palette-ghost h3, 
+    body.design-wired.palette-ghost .scroller-accent {
+        text-shadow: none !important;
+    }
+    /* Lain, Kaido, Mecha already have text-shadow: none or specific minimal shadows in their design classes */
 }
