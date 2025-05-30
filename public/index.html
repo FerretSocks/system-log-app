@@ -11,7 +11,15 @@
 </head>
 <body>
 
-    <audio id="clickSound" src="/assets/click.wav" data-volume="0.1"></audio>
+	<audio id="clickSound" src="/assets/click.wav" data-volume="0.1"></audio>
+
+    <div id="loadingOverlay" class="hidden fixed inset-0 flex items-center justify-center z-[9999] bg-background-main opacity-75">
+        <span id="loadingMessage" class="loading-message-text"></span>
+    </div>
+	
+    <div id="loadingOverlay" class="hidden fixed inset-0 flex items-center justify-center z-[9999] bg-background-main">
+        <span id="loadingMessage" class="loading-message-text"></span>
+    </div>
 
     <div id="loginContainer">
         <div class="container-90s mx-auto text-center" style="margin-top: 10vh;">

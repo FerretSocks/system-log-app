@@ -57,7 +57,10 @@ document.addEventListener('DOMContentLoaded', () => {
         aiChatModal: document.getElementById('aiChatModal'), aiChatHistory: document.getElementById('aiChatHistory'),
         aiChatInput: document.getElementById('aiChatInput'), aiChatSendBtn: document.getElementById('aiChatSendBtn'),
         closeAiChatBtn: document.getElementById('closeAiChatBtn'),
+        loadingOverlay: document.getElementById('loadingOverlay'), 
+        loadingMessage: document.getElementById('loadingMessage'), 
     };
+    
 
     // --- Date Logic & Utilities ---
     const getTodayDocId = () => { const now = new Date(); const timezoneOffset = now.getTimezoneOffset() * 60000; const localDate = new Date(now.getTime() - timezoneOffset); return localDate.toISOString().slice(0, 10); };
@@ -664,15 +667,20 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeThemes();
         ui.signInBtn.addEventListener('click', () => { if (auth) signInWithPopup(auth, new GoogleAuthProvider()); });
         console.log("Guest Sign In Button Element:", ui.guestSignInBtn); // Debugging: Check if element is found
-        ui.guestSignInBtn.addEventListener('click', () => { // New: Guest sign-in listener
+        ui.guestSignInBtn.addEventListener('click', async () => { // NEW: Async to await login and handle loading overlay
             console.log("Guest Sign In Button Clicked!"); // Debugging: Confirm click handler fires
             if (auth) {
-                signInAnonymously(auth)
-                    .then(() => console.log('Anonymous user signed in.'))
-                    .catch((error) => {
-                        console.error("Anonymous sign-in error:", error);
-                        showFeedback("Error logging in as guest.", true);
-                    });
+                ui.loadingOverlay.classList.remove('hidden'); // Show loading overlay
+                ui.loadingMessage.textContent = 'LOADING...'; // Set loading message
+                try {
+                    await signInAnonymously(auth);
+                    console.log('Anonymous user signed in.');
+                } catch (error) {
+                    console.error("Anonymous sign-in error:", error);
+                    showFeedback("Error logging in as guest.", true);
+                } finally {
+                    ui.loadingOverlay.classList.add('hidden'); // Hide loading overlay regardless of success/failure
+                }
             }
         });
         ui.signOutBtn.addEventListener('click', () => signOut(auth));
