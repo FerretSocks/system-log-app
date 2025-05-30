@@ -14,7 +14,8 @@ const CHAR_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()[]{}<>';
 
 const DESIGNS = {
     'Wired': 'design-wired', 
-    'Mecha Manual': 'design-mecha-manual'
+    'Mecha Manual': 'design-mecha-manual',
+    'Goblins Ledger': 'design-goblins-ledger'
 };
 
 const PALETTES = {
@@ -24,17 +25,14 @@ const PALETTES = {
     'Ghost': 'palette-ghost',
     'Kaido-64': 'palette-kaido',
     'Mecha Amber': 'palette-mecha-amber', 
+    'Parchment & Ink': 'palette-parchment-ink'
 };
 
-// Define which palettes are primarily intended or default for which design
 const DESIGN_DEFAULT_PALETTES = {
     'design-wired': 'palette-cyber-default',
-    'design-mecha-manual': 'palette-mecha-amber'
+    'design-mecha-manual': 'palette-mecha-amber',
+    'design-goblins-ledger': 'palette-parchment-ink'
 };
-
-// Optional: Define palettes that are explicitly compatible if not all are global
-// For now, we'll assume all palettes can technically be applied to all designs,
-// but the default will guide the initial sensible choice. User can override.
 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent";
 
@@ -53,8 +51,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentAiChatContext = null;
     let guestData = { tasks: [], journalEntries: [] };
 
-    let currentDesign = DESIGNS['Wired']; // Default design
-    let currentPalette = PALETTES['Cyber Default']; // Default palette
+    let currentDesign = DESIGNS['Wired']; 
+    let currentPalette = PALETTES['Cyber Default']; 
 
     // --- UI Element Cache ---
     const ui = {
@@ -88,12 +86,13 @@ document.addEventListener('DOMContentLoaded', () => {
         closeAiChatBtn: document.getElementById('closeAiChatBtn'),
         loadingOverlay: document.getElementById('loadingOverlay'), 
         loadingMessage: document.getElementById('loadingMessage'), 
+        statusScrollerContainer: document.querySelector('.status-scroller-container') // Added for scroller control
     };
     
     // --- Date Logic & Utilities ---
     const getTodayDocId = () => { const now = new Date(); const timezoneOffset = now.getTimezoneOffset() * 60000; const localDate = new Date(now.getTime() - timezoneOffset); return localDate.toISOString().slice(0, 10); };
     const toYMDString = (date) => { const timezoneOffset = date.getTimezoneOffset() * 60000; const localDate = new Date(date.getTime() - timezoneOffset); return localDate.toISOString().slice(0, 10); };
-    const escapeHTML = str => str.replace(/[&<>"']/g, match => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&#39;',"'":'&#39;'})[match]).replace(/\n/g, '<br>');
+    const escapeHTML = str => str.replace(/[&<>"']/g, match => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[match]).replace(/\n/g, '<br>');
     const formatDisplayDate = (dateStr) => new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { timeZone: "UTC", year: 'numeric', month: 'long', day: 'numeric' });
     const generateLogId = () => Math.random().toString(36).substring(2, 9);
 
@@ -146,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             const savedTab = localStorage.getItem('systemlog-activeTab') || 'tasks';
-            switchToView(savedTab, true);
+            switchToView(savedTab, true); // Pass true for initial load to skip animations
 
         } else {
             ui.appContainer.classList.add('hidden');
@@ -159,6 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
             apiKey = null; 
             guestData = { tasks: [], journalEntries: [] }; 
         }
+        applyAppearance(); // Ensure scroller visibility is updated on auth change
     }
 
     async function loadUserConfig() {
@@ -177,15 +177,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const tabs = { tasks: ui.tasksTabBtn, journal: ui.journalTabBtn, system: ui.systemTabBtn }; 
         Object.values(views).forEach(v => v.classList.add('hidden')); 
         Object.values(tabs).forEach(t => t.classList.remove('active')); 
+
         if (views[viewName]) { 
             views[viewName].classList.remove('hidden'); 
             tabs[viewName].classList.add('active'); 
             localStorage.setItem('systemlog-activeTab', viewName); 
             const titles = { tasks: "Task Log", journal: "Daily Entry", system: "System Panel" }; 
-            if (!isInitialLoad) typewriterScrambleEffect(ui[`${viewName}ViewTitle`], titles[viewName]); 
-            else ui[`${viewName}ViewTitle`].textContent = titles[viewName]; 
+            const titleElement = ui[`${viewName}ViewTitle`];
+
+            if (titleElement) { // Check if titleElement exists
+                titleElement.classList.remove('fade-in-title'); // Remove class for re-triggering
+                void titleElement.offsetWidth; // Trigger reflow
+
+                if (isInitialLoad) {
+                     titleElement.textContent = titles[viewName];
+                } else if (currentDesign === 'design-goblins-ledger') {
+                    titleElement.textContent = titles[viewName];
+                    titleElement.classList.add('fade-in-title'); // Apply CSS fade-in
+                } else {
+                    typewriterScrambleEffect(titleElement, titles[viewName]);
+                }
+            }
         } 
     }
+
     function showFeedback(message, isError = false) { clearTimeout(feedbackTimeout); ui.feedbackBox.textContent = message; ui.feedbackBox.style.backgroundColor = isError ? 'var(--accent-danger)' : 'var(--accent-secondary)'; ui.feedbackBox.classList.remove('hidden'); feedbackTimeout = setTimeout(() => ui.feedbackBox.classList.add('hidden'), 3000); }
     
     async function loadCategoriesAndTasks() { 
@@ -509,7 +524,6 @@ document.addEventListener('DOMContentLoaded', () => {
             button.addEventListener('click', () => {
                 playSound('clickSound');
                 currentDesign = DESIGNS[designName];
-                // When design changes, set palette to the default for that design
                 currentPalette = DESIGN_DEFAULT_PALETTES[currentDesign] || Object.values(PALETTES)[0];
                 applyAppearance();
             });
@@ -518,7 +532,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const paletteHeader = document.createElement('h4');
         paletteHeader.textContent = 'Color Palette:';
-        paletteHeader.className = 'jp-subtitle !uppercase !text-sm !text-left !mb-1 mt-3'; // Added mt-3
+        paletteHeader.className = 'jp-subtitle !uppercase !text-sm !text-left !mb-1 mt-3';
         ui.themeSwitcher.appendChild(paletteHeader);
 
         const paletteContainer = document.createElement('div');
@@ -539,14 +553,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         currentDesign = localStorage.getItem('systemlog-design') || DESIGNS['Wired'];
-        // Ensure the loaded palette is valid; if not, use design's default
         let savedPalette = localStorage.getItem('systemlog-palette');
         if (savedPalette && Object.values(PALETTES).includes(savedPalette)) {
             currentPalette = savedPalette;
         } else {
             currentPalette = DESIGN_DEFAULT_PALETTES[currentDesign] || Object.values(PALETTES)[0];
         }
-        applyAppearance();
+        applyAppearance(); // Initial appearance application
     }
 
     function applyAppearance() {
@@ -560,6 +573,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.palette-button').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.palette === currentPalette);
         });
+
+        // Conditionally show/hide status scroller
+        if (ui.statusScrollerContainer) {
+            if (currentDesign === 'design-goblins-ledger') {
+                ui.statusScrollerContainer.style.display = 'none';
+            } else {
+                ui.statusScrollerContainer.style.display = 'block'; // Or 'flex' or whatever its default is
+            }
+        }
     }
     
     function typewriterScrambleEffect(element, text) {
