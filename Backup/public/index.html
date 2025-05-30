@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Log</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <audio id="clickSound" src="/assets/click.wav" data-volume="0.1"></audio>
+
+    <div id="loginContainer">
+        <div class="container-90s mx-auto text-center" style="margin-top: 10vh;">
+            <h1>System Log</h1>
+            <p class="app-subtitle">システム記録</p>
+            <button id="signInBtn" class="button-90s mx-auto mt-6">Authenticate</button>
+        </div>
+    </div>
+
+    <div id="appContainer" class="hidden">
+        <div class="container-90s">
+            <header class="mb-4 text-center">
+                <h1 class="app-title text-2xl mb-0">System Log</h1>
+                <p class="app-subtitle text-base">システム記録</p>
+                <div class="flex justify-between items-center text-sm border-t border-b border-dashed border-border-color py-1">
+                    <p>USER: <span id="userIdDisplay">...</span></p>
+                    <p>STATUS: <span class="scroller-accent">SECURE</span></p>
+                    <button id="signOutBtn" class="button-90s" style="padding: 2px 6px; font-size:14px;">LOGOUT</button>
+                </div>
+            </header>
+
+            <nav class="nav-tabs">
+                <button id="tasksTabBtn" class="nav-tab button-90s active">Tasks</button>
+                <button id="journalTabBtn" class="nav-tab button-90s">Journal</button>
+                <button id="systemTabBtn" class="nav-tab button-90s">System</button>
+            </nav>
+
+            <main>
+                <div id="tasksView">
+                    <h2 id="tasksViewTitle"></h2>
+                    <p class="jp-subtitle">タスク記録</p>
+                    <div id="taskCategoryContainer" class="flex gap-2 mb-2 items-center">
+                        <select id="categorySelect" class="input-90s w-full"></select>
+                        <button id="manageCategoriesBtn" class="button-90s text-sm">MANAGE</button>
+                    </div>
+                    <div class="flex gap-2 mb-4">
+                        <input type="text" id="taskInput" placeholder="New task..." class="input-90s w-full">
+                        <button id="addTaskBtn" class="button-90s">ADD</button>
+                    </div>
+                    <div id="taskList"></div>
+                </div>
+
+                <div id="journalView" class="hidden">
+                    <h2 id="journalViewTitle"></h2>
+                    <p class="jp-subtitle">日報</p>
+                    <div class="flex-col">
+                        <textarea id="journalInput" placeholder="Log entry for today..." class="input-90s journal-textarea"></textarea>
+                        <button id="addJournalBtn" class="button-90s w-full mt-2">Commit Log</button>
+                    </div>
+                    <h3 class="mb-0">Log Archives</h3>
+                    <p class="jp-subtitle">過去ログ</p>
+                    <input type="search" id="journalSearch" placeholder="Search..." class="input-90s mb-4">
+                    <div id="journalList"></div>
+                    <div id="journalLoadMoreContainer" class="text-center mt-4"></div>
+                </div>
+
+                <div id="systemView" class="hidden">
+                    <h2 id="systemViewTitle"></h2>
+                    <p class="jp-subtitle">総合パネル</p>
+                    <div class="mb-4">
+                        <h3>Journaling Streak</h3>
+                        <div id="journalStreakDisplay">-- DAYS</div>
+                        <h3 class="mt-6">Log Consistency Matrix</h3>
+                        <div id="journalHeatmapContainer"></div>
+                        <h3 class="mt-6">Aesthetics</h3>
+                        <p class="jp-subtitle">外観設定</p>
+                        <div id="themeSwitcher" class="theme-switcher-container"></div>
+                        <h3 class="mt-6">System Tools</h3>
+                        <button id="launchKaleidoscopeBtn" class="button-90s w-full">Launch K-Mode</button>
+                        <h3 class="mt-6">AI Configuration</h3>
+                        <p class="jp-subtitle">AI設定</p>
+                        <div class="flex gap-2 items-center">
+                            <input type="password" id="apiKeyInput" placeholder="Enter your Google AI API Key..." class="input-90s w-full">
+                            <button id="saveApiKeyBtn" class="button-90s">SAVE</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <div id="kaleidoscopeModal" class="hidden fixed inset-0 flex items-center justify-center z-50">
+        <div class="container-90s w-11/12 max-w-lg">
+            <h2>Kaleidoscope</h2>
+            <div id="kaleidoscopeCanvasParent" class="my-4"></div>
+            <div class="grid gap-4">
+                <input type="range" id="kSymmetrySlider" min="2" max="20" value="6" step="1" class="w-full">
+                <button id="kClearBtn" class="button-90s w-full">Clear</button>
+                <button id="closeKaleidoscopeBtn" class="button-90s w-full">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="categoryManagerModal" class="hidden fixed inset-0 flex items-center justify-center z-50">
+        <div class="container-90s w-11/12 max-w-lg">
+            <h2>Manage Lists</h2>
+            <div id="categoryList" class="my-4 max-h-60 overflow-y-auto"></div>
+            <div class="flex gap-2 my-4">
+                <input type="text" id="newCategoryInput" placeholder="New list name..." class="input-90s w-full">
+                <button id="addCategoryBtn" class="button-90s">ADD</button>
+            </div>
+            <button id="closeCategoryManagerBtn" class="button-90s w-full">Close</button>
+        </div>
+    </div>
+
+    <div id="aiChatModal" class="hidden fixed inset-0 flex items-center justify-center z-50">
+        <div class="container-90s w-11/12 max-w-2xl flex flex-col" style="height: 80vh;">
+            <h2>AI Log Analysis</h2>
+            <div id="aiChatHistory" class="my-4 flex-grow overflow-y-auto border border-border-color p-2 bg-input-bg"></div>
+            <div class="flex gap-2">
+                <input type="text" id="aiChatInput" placeholder="Ask about this entry..." class="input-90s w-full">
+                <button id="aiChatSendBtn" class="button-90s">SEND</button>
+            </div>
+            <button id="closeAiChatBtn" class="button-90s w-full mt-4">Close</button>
+        </div>
+    </div>
+
+    <div id="feedbackBox" class="hidden"></div>
+
+    <footer class="text-center mt-6 pb-6">
+		<div class="status-scroller-container">
+            <p class="status-scroller-text">
+                SYSTEM <span class="scroller-accent">ONLINE</span>... AUTH STATUS: <span class="scroller-accent">VALIDATED</span>... QUERYING DATABASE... LOGS <span class="scroller-accent">SECURE</span>... STANDBY FOR INPUT... // SYSTEM.LOG v2.7... //&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SYSTEM <span class="scroller-accent">ONLINE</span>... AUTH STATUS: <span class="scroller-accent">VALIDATED</span>... QUERYING DATABASE... LOGS <span class="scroller-accent">SECURE</span>... STANDBY FOR INPUT... // SYSTEM.LOG v2.7... //&nbsp;
+            </p>
+		</div>
+		<p class="text-sm opacity-50">&copy; 2025 System Log Engineering</p>
+	</footer>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
