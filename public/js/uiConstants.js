@@ -23,14 +23,14 @@ export const PALETTES = {
     'Royal Decree': 'palette-goblin-royal-decree',
     'Forest Map': 'palette-goblin-forest-map',
     'Ancient Tome': 'palette-goblin-ancient-tome',
-    'Shield & Scroll': 'palette-goblin-shield-scroll',
-    "Herbalist's Notes": 'palette-goblin-herbalist-notes',
+    'Runestone Tablet': 'palette-goblin-runestone-tablet',
+    "Sylvan Script": 'palette-goblin-sylvan-script'
 };
 
 export const DESIGN_SPECIFIC_PALETTES = {
     'design-wired': ['Cyber Default', 'Lain', 'Bebop Jazz', 'Ghost Protocol', 'Neon Noir'],
     'design-mecha-manual': ['Heavy Industry', 'Hangar Bay', 'Olive Drab Unit', 'System Alert', 'Digital Hazard'], // MODIFIED ORDER
-    'design-goblins-ledger': ['Royal Decree', 'Forest Map', 'Ancient Tome', 'Shield & Scroll', "Herbalist's Notes"]
+    'design-goblins-ledger': ['Royal Decree', 'Forest Map', 'Ancient Tome', 'Runestone Tablet', "Sylvan Script"]
 };
 
 export const DESIGN_DEFAULT_PALETTES = {

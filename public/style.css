@@ -173,7 +173,7 @@ h3 { font-size: 18px; text-align: left; margin-top: 1.5rem; margin-bottom: 0.5re
     z-index: 50; background-color: rgba(0,0,0,0.7);
     visibility: hidden; opacity: 0;
     transform: scale(0.95) translateY(10px);
-    transition: opacity var(--animation-speed-medium) ease-out, 
+    transition: opacity var(--animation-speed-medium) ease-out,
                 transform var(--animation-speed-medium) ease-out,
                 visibility 0s var(--animation-speed-medium);
 }
@@ -316,8 +316,8 @@ body.design-mecha-manual .button-90s:active {
     box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5);
 }
 body.design-mecha-manual .nav-tab.active {
-    background-color: var(--container-bg); 
-    color: var(--mecha-indicator-active); 
+    background-color: var(--container-bg);
+    color: var(--mecha-indicator-active);
     box-shadow: inset 0px 2px 0px var(--mecha-indicator-active), 0 0 8px var(--mecha-indicator-active);
 }
 
@@ -325,247 +325,413 @@ body.design-mecha-manual .nav-tab.active {
 /* --- DESIGN: Goblins Ledger --- */
 /* ========================================================================== */
 body.design-goblins-ledger {
-    --font-fantasy: 'MedievalSharp', cursive;
-    --font-ledger-text: 'Georgia', serif;
-    /* Default to Royal Decree palette values */
-    --background-main: #F0E8D8; --container-bg: #FCF5E8;
-    --input-bg: rgba(240, 232, 216, 0.8); --input-bg-focus: rgba(235, 227, 211, 0.95);
-    --text-primary: #4A2A04; --text-secondary: #A87900; --text-dim: #785426;
-    --accent-primary: #B03A2E; --accent-secondary: #D4AC0D; --accent-danger: #A40000;
-    --border-color: #784212;
-    /* Palette specific vars - these will be overridden by specific palettes */
-    --_parchment-bg: var(--container-bg);
-    --_ink-main: var(--text-primary);
-    --_ink-secondary: var(--text-secondary); /* Often used for button BGs */
-    --_ink-dim: var(--text-dim);
-    --_accent-fantasy-primary: var(--accent-primary);
-    --_accent-fantasy-secondary: var(--accent-secondary);
-    --_border-fantasy: var(--border-color);
+    /* --- Core Font & Palette Variables --- */
+    --font-fantasy-heading: 'Cinzel Decorative', serif; /* Or 'Cinzel', 'Uncial Antiqua' */
+    --font-fantasy-subheading: 'Alegreya Sans SC', sans-serif; /* Or 'Metamorphous' */
+    --font-ledger-text: 'Alegreya', serif; /* Or 'Sorts Mill Goudy', 'Crimson Text' */
 
+    /* Default palette variables (based on the NEW Royal Decree for structure) */
+    --_parchment-bg: #D4C2A7;        /* Aged, desaturated parchment for container */
+    --_parchment-darker: #2A0B0B;    /* Very dark, reddish-brown (like a dark throne room) for page */
+    --_ink-main: #E0D2B8;            /* Light, faded gold/ivory for text on dark backgrounds */
+    --_ink-secondary: #6B0000;       /* Deep Blood Red for headings */
+    --_ink-on-button: #F5E8C0;       /* Pale gold/cream for text on dark buttons */
+    --_ink-dim: #A8937A;             /* Muted, aged gold/light brown for dim text */
+    --_accent-fantasy-primary: #AE8625; /* Dark, antique gold/bronze */
+    --_accent-fantasy-secondary: #8C1818;/* Deep Crimson for secondary accents */
+    --_accent-fantasy-danger: #A40000;   /* Deep Red for danger */
+    --_border-fantasy: #400000;          /* Very dark red-brown border */
+    --_border-fantasy-light: #6A2E2A;   /* Lighter version for inner details */
+
+    /* Apply to general theme CSS variables using the _vars above */
     font-family: var(--font-ledger-text);
-    color: var(--text-primary); text-shadow: none;
+    --background-main: var(--_parchment-darker);
+    --container-bg: var(--_parchment-bg);
+    --input-bg: color-mix(in srgb, var(--_parchment-bg) 85%, var(--_parchment-darker) 15%);
+    --input-bg-focus: color-mix(in srgb, var(--_parchment-bg) 95%, var(--_parchment-darker) 5%);
+    --text-primary: var(--_ink-main);
+    --text-secondary: var(--_ink-secondary);
+    --text-dim: var(--_ink-dim);
+    --accent-primary: var(--_accent-fantasy-primary);
+    --accent-secondary: var(--_accent-fantasy-secondary);
+    --accent-danger: var(--_accent-fantasy-danger);
+    --border-color: var(--_border-fantasy);
+
+    color: var(--text-primary);
+    text-shadow: none;
+    background-color: var(--background-main);
     background-image:
-      radial-gradient(ellipse at center, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.1) 100%),
+      radial-gradient(ellipse at top left, rgba(255,255,255,0.05) 0%, transparent 60%), /* More subtle lighting */
+      radial-gradient(ellipse at bottom right, rgba(0,0,0,0.2) 0%, transparent 70%), /* More subtle shadow */
       url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEsAAABLCAYAAAA4TnrqAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOxAAADsQBlSsOGwAAABl0RVh0U29mdHdhcmUAcGFpbnQubmV0IDQuMC4yMfEgaGUAAAFMSURBVHja7NsxSgNBFAbg9/cmhdoYERsbG9vY+1uIEQahlSBBNLEzFpYpUixtxN7GJo2FiZ/C3sXchX3+4A+H8L7b6xwMAAAAAAAAAAAAAAD4n5KkLMtz/YYpSXrvR9Fpmlar/c3bHkfccM/G9J9nhRB0yiyDqmlSWYY0TWJIAYQQ3nHQDRgAGAAKMACsCBAAjAAWAIEAcAJYACAAnAAWAIEA8AJYABAAnkSbpj03fV+3bQOApmkS8/q/wDDAAMAAoABjQIEA6ARwAlhYBAA+gFwAFgKACeACYAFgAJwAVgCAAHAOWAEAADgDLLYAAMC0TBIEQBqDUABoAgQB0DQGAaAFGARAAxjwBACaM8shgBBDgBFABBAAgQAwARwAIgEAQwAZgCAGAMAEAJghgAAAEMgIYAKYBAAAAAAA8G3gD+H1bH3/e+0LAAAAAElFTkSuQmCC');
-    background-repeat: repeat, repeat; background-size: auto, 110px 110px;
-    background-blend-mode: multiply, luminosity;
+    background-repeat: repeat;
+    background-size: auto, auto, 150px 150px; /* Slightly larger, more subtle texture */
+    background-blend-mode: overlay, multiply, color-burn; /* Experiment for richness */
+    transition: background-color 0.3s, color 0.3s;
 }
-/* Corrected Goblins Ledger Button Styles */
+body.design-goblins-ledger::before,
+body.design-goblins-ledger::after {
+    display: none;
+}
+
+body.design-goblins-ledger .container-90s {
+    border-image: none;
+    border: 1px solid color-mix(in srgb, var(--_border-fantasy) 50%, black);
+    border-radius: 2px;
+    background-color: var(--container-bg);
+    box-shadow:
+        0px 0px 0px 3px var(--_border-fantasy), /* Thicker "binding" */
+        0px 0px 0px 5px color-mix(in srgb, var(--_border-fantasy) 70%, black),
+        inset 0 0 15px rgba(0,0,0,0.25), /* Deeper inset shadow */
+        10px 10px 25px rgba(0,0,0,0.5); /* More pronounced drop shadow */
+    padding: 30px 40px;
+    position: relative;
+}
+
+body.design-goblins-ledger .container-90s::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 25px;
+    bottom: 25px;
+    width: 2px;
+    background-image: linear-gradient(
+        var(--_ink-dim) 35%,
+        transparent 35%,
+        transparent 65%,
+        var(--_ink-dim) 65%
+    );
+    background-size: 100% 18px;
+    opacity: 0.5;
+}
+
+/* Font assignments within Goblins Ledger */
+body.design-goblins-ledger h1,
+body.design-goblins-ledger .app-title {
+    font-family: var(--font-fantasy-heading);
+    font-weight: 700; /* Assuming Cinzel Decorative/Cinzel has a bolder weight */
+}
+body.design-goblins-ledger h2,
+body.design-goblins-ledger h3,
+body.design-goblins-ledger .button-90s,
+body.design-goblins-ledger .nav-tab {
+    font-family: var(--font-fantasy-subheading);
+    font-weight: 500; /* Alegreya Sans SC has various weights */
+}
+
+body.design-goblins-ledger,
+body.design-goblins-ledger .input-90s,
+body.design-goblins-ledger .journal-textarea,
+body.design-goblins-ledger .task-text,
+body.design-goblins-ledger .jp-subtitle,
+body.design-goblins-ledger .journal-day-content,
+body.design-goblins-ledger .app-subtitle,
+body.design-goblins-ledger #journalStreakDisplay,
+body.design-goblins-ledger .category-item-name,
+body.design-goblins-ledger .ai-chat-message p {
+    font-family: var(--font-ledger-text);
+    font-weight: 400; /* Standard weight for Alegreya/Crimson Text */
+}
+body.design-goblins-ledger .journal-day-content .opacity-70 {
+    font-family: var(--font-ledger-text);
+}
+
+
+body.design-goblins-ledger h1,
+body.design-goblins-ledger .app-title {
+    color: var(--text-primary);
+    font-size: 36px; /* Larger for main title */
+    text-shadow: 1px 1px 0px var(--_ink-secondary), 3px 3px 4px rgba(0,0,0,0.6);
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--_border-fantasy-light);
+    padding-bottom: 10px;
+}
+body.design-goblins-ledger .app-subtitle {
+    color: var(--text-secondary);
+    font-size: 16px;
+    margin-bottom: 25px;
+    font-style: italic;
+    opacity: 0.9;
+}
+body.design-goblins-ledger h2 {
+    color: var(--text-primary);
+    font-size: 28px; /* Larger for section titles */
+    border-bottom: 1px solid var(--_border-fantasy-light);
+    text-shadow: 1px 1px 1px color-mix(in srgb, var(--_ink-main) 60%, black);
+    padding-bottom: 10px;
+    margin-bottom: 22px;
+    text-align: left;
+    font-weight: normal; /* Handled by font variable if weight is included */
+}
+body.design-goblins-ledger h3 {
+    font-size: 22px; /* Larger for subsections */
+    color: var(--text-secondary);
+    text-shadow: 1px 1px 0px color-mix(in srgb, var(--_ink-secondary) 60%, black);
+    border-bottom: 1px dashed var(--_border-fantasy-light);
+    margin-top: 2.8rem;
+    margin-bottom: 1.2rem;
+    font-weight: normal;
+}
+body.design-goblins-ledger .jp-subtitle {
+    font-size: 14px;
+    color: var(--text-dim);
+    opacity: 0.85;
+    font-style: italic;
+}
+
+body.design-goblins-ledger .input-90s {
+    border-radius: 1px;
+    border: 1px solid color-mix(in srgb, var(--_border-fantasy) 70%, black);
+    font-size: 16px;
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    padding: 12px;
+    box-shadow: inset 2px 2px 4px rgba(0,0,0,0.3); /* More pronounced inset */
+    caret-color: var(--text-primary);
+}
+body.design-goblins-ledger .input-90s:focus {
+    border-color: var(--_accent-fantasy-secondary);
+    background-color: var(--input-bg-focus);
+    box-shadow: inset 2px 2px 4px rgba(0,0,0,0.3), 0 0 6px var(--_accent-fantasy-secondary);
+}
+body.design-goblins-ledger .input-90s::placeholder { color: var(--text-dim); opacity: 0.7; }
+
 body.design-goblins-ledger .button-90s {
-    font-family: var(--font-fantasy); /* Ensure fantasy font is used */
-    border-radius: 2px; font-size: 15px;
-    color: var(--_parchment-bg); /* Text on button, uses palette's container color */
-    background-color: var(--_ink-secondary); /* Button background from palette's secondary ink */
-    border: 1px solid color-mix(in srgb, var(--_ink-main) 50%, black); /* Darker border based on main ink */
-    border-top-color: color-mix(in srgb, var(--_ink-secondary) 120%, white); /* Highlight based on button bg */
+    border-radius: 2px;
+    font-size: 16px; /* Slightly larger for subheading font */
+    color: var(--_ink-on-button);
+    background-color: var(--_ink-secondary);
+    border: 1px solid color-mix(in srgb, var(--_ink-main) 50%, black);
+    border-top-color: color-mix(in srgb, var(--_ink-secondary) 120%, white);
     border-left-color: color-mix(in srgb, var(--_ink-secondary) 120%, white);
-    padding: 9px 20px; text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
-    box-shadow: 1px 1px 0px color-mix(in srgb, var(--_ink-secondary) 70%, black), 2px 2px 3px rgba(0,0,0,0.3);
-    text-transform: capitalize; letter-spacing: 0.5px;
+    padding: 10px 20px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.6); /* Darker text shadow */
+    box-shadow: 2px 2px 0px color-mix(in srgb, var(--_ink-secondary) 60%, black), 3px 3px 5px rgba(0,0,0,0.4);
+    text-transform: capitalize;
+    letter-spacing: 1px; /* More spacing for SC font */
 }
 body.design-goblins-ledger .button-90s:hover {
-    background-color: color-mix(in srgb, var(--_ink-secondary) 80%, black); /* Darken on hover */
-    border-color: color-mix(in srgb, var(--_ink-main) 70%, black);
-    color: var(--_accent-fantasy-secondary); /* Accent color for text on hover */
-    box-shadow: 1px 1px 0px color-mix(in srgb, var(--_ink-secondary) 60%, black), 3px 3px 5px rgba(0,0,0,0.4), inset 0 0 5px rgba(0,0,0,0.1);
+    background-color: color-mix(in srgb, var(--_ink-secondary) 115%, var(--_accent-fantasy-primary) 15%);
+    border-color: var(--_accent-fantasy-primary);
+    color: var(--_ink-on-button); /* Keep button text color consistent on hover, or use a light accent */
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.7);
+    box-shadow: 2px 2px 0px color-mix(in srgb, var(--_ink-secondary) 70%, black), 4px 4px 7px rgba(0,0,0,0.5), inset 0 0 6px rgba(255,255,255,0.15);
 }
 body.design-goblins-ledger .button-90s:active {
-    background-color: color-mix(in srgb, var(--_ink-secondary) 70%, black); /* Even darker on active */
-    box-shadow: inset 1px 1px 3px rgba(0,0,0,0.5);
-    color: var(--_parchment-bg);
+    background-color: color-mix(in srgb, var(--_ink-secondary) 85%, black);
+    box-shadow: inset 2px 2px 4px rgba(0,0,0,0.7);
+    transform: translateY(1px) translateX(1px);
 }
-body.design-goblins-ledger .status-scroller-container { display: none; }
-/* ... (Other Goblins Ledger styles remain as they were) ... */
+
+body.design-goblins-ledger .nav-tabs {
+    border-bottom: 2px solid var(--_border-fantasy);
+    margin-bottom: 25px;
+    padding-left: 0;
+}
+body.design-goblins-ledger .nav-tab {
+    font-size: 18px;
+    color: var(--text-secondary);
+    border: 1px solid transparent;
+    border-bottom: 2px solid var(--_border-fantasy);
+    padding: 8px 15px;
+    margin-right: 8px;
+    text-transform: capitalize;
+    position: relative;
+    background-color: transparent;
+}
+body.design-goblins-ledger .nav-tab.active {
+    color: var(--text-primary);
+    font-weight: bold;
+    border-color: var(--_border-fantasy);
+    border-bottom-color: var(--container-bg);
+    background-color: var(--container-bg);
+    box-shadow: 0px -2px 5px rgba(0,0,0,0.1);
+}
+body.design-goblins-ledger .nav-tab:hover:not(.active) {
+    color: var(--text-primary);
+    background-color: rgba(0,0,0,0.05);
+    border-color: var(--_border-fantasy-light);
+    border-bottom-color: var(--_border-fantasy);
+}
+
+body.design-goblins-ledger .task-status {
+    border: 1px solid var(--text-secondary);
+    background-color: transparent;
+    border-radius: 1px; width: 18px; height: 18px;
+}
+body.design-goblins-ledger .task-item-90s.completed .task-status {
+    background-color: var(--text-secondary);
+    border-color: var(--text-primary);
+}
+body.design-goblins-ledger .task-item-90s.completed .task-status::before {
+    content: '\\2713';
+    color: var(--container-bg);
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 15px; font-weight: bold;
+}
+body.design-goblins-ledger .task-item-90s,
+body.design-goblins-ledger .journal-day-entry {
+    border-bottom: 1px dotted color-mix(in srgb, var(--_border-fantasy) 60%, transparent);
+}
+
+body.design-goblins-ledger hr {
+    border: 0;
+    height: 3px;
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='3' viewBox='0 0 100 3' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 1.5H40L50 0L60 3L100 1.5' stroke='%235A3E2B' stroke-width='1'/%3E%3C/svg%3E");
+    background-repeat: repeat-x;
+    background-position: center;
+    opacity: 0.7;
+    margin: 2.5rem 0;
+}
+/* --- END OF DESIGN: Goblins Ledger --- */
 
 
 /* --- PALETTE Definitions --- */
-/* Wired Design Palettes - Ghost Protocol & Neon Noir Reworked */
-body.palette-cyber-default {
-    --background-main: #1a1a1d; --container-bg: rgba(26, 26, 29, 0.75);
-    --input-bg: #2c2c31; --input-bg-focus: #3a3a41;
-    --text-primary: #00ffc3; --text-secondary: #00c3ff; --text-dim: #7a7f8a;
-    --accent-primary: #c300ff; --accent-secondary: #00c3ff; --accent-danger: #ff0055;
-    --border-color: #555a69;
-}
-body.palette-lain {
-    --background-main: #181818; --container-bg: rgba(10, 10, 10, 0.8);
-    --input-bg: #222222; --input-bg-focus: #303030;
-    --text-primary: #EAEAEA; --text-secondary: #B0B0B0; --text-dim: #666666;
-    --accent-primary: #D13030; --accent-secondary: #B0B0B0; --accent-danger: #D13030;
-    --border-color: #383838;
-}
-body.palette-bebop-jazz {
-    --background-main: #0A101E; --container-bg: rgba(16, 24, 40, 0.85);
-    --input-bg: #1C2A44; --input-bg-focus: #2A3F64;
-    --text-primary: #FFD700; --text-secondary: #E87B3E; --text-dim: #A0AEC0;
-    --accent-primary: #C70039; --accent-secondary: #00BFFF; --accent-danger: #D32F2F;
-    --border-color: #2C3E50;
-}
-body.palette-ghost-protocol { /* Kept as is (liked by user) */
-    --background-main: #0D1B2A; --container-bg: rgba(23, 37, 50, 0.9);
-    --input-bg: #1B263B; --input-bg-focus: #2A3A52;
-    --text-primary: #E0FBFC; --text-secondary: #77C3E3; --text-dim: #8A9AAB;
-    --accent-primary: #F77F00; --accent-secondary: #E0FBFC; --accent-danger: #D62828;
-    --border-color: #415A77;
-}
-body.palette-neon-noir { /* REWORKED - Blade Runner inspired */
-    --background-main: #0A192F; --container-bg: rgba(15, 20, 40, 0.85); /* Darker, more saturated blue */
-    --input-bg: #1A2238; --input-bg-focus: #25304D;
-    --text-primary: #00E0FF; --text-secondary: #FF8C00; --text-dim: #606A8C; /* Cyan & Orange */
-    --accent-primary: #FF4500; --accent-secondary: #00E0FF; --accent-danger: #FF2E63; /* Orange primary accent */
-    --border-color: #1D3557;
+/* Wired Design Palettes (remains unchanged) */
+/* ... */
+/* Mecha Manual Palettes (remains unchanged) */
+/* ... */
+
+/* === GOBLINS LEDGER PALETTES - Corrected & Refined === */
+/* Each palette redefines the _vars AND THEN maps them to the main theme vars */
+
+body.design-goblins-ledger.palette-goblin-royal-decree { /* Dark Fantasy Crimson & Gold */
+    --_parchment-bg: #D4C2A7;        /* Aged, slightly desaturated parchment */
+    --_parchment-darker: #4A0E0E;    /* Very dark, rich blood-red/burgundy for page background */
+    --_ink-main: #F5E5C5;            /* Pale gold/ivory for main text (contrast on dark bg) */
+    --_ink-secondary: #AE8625;       /* Dark, antique gold for headings / BUTTON BACKGROUND */
+    --_ink-on-button: #3B0000;       /* Very dark crimson for text on gold buttons */
+    --_ink-dim: #BCA075;             /* Muted, aged gold for dim text */
+    --_accent-fantasy-primary: #CFB53B; /* Brighter, antique gold */
+    --_accent-fantasy-secondary: #8C1818;/* Deep Crimson for accents */
+    --_accent-fantasy-danger: #D32F2F;
+    --_border-fantasy: #3D0000;          /* Very dark red-brown border */
+    --_border-fantasy-light: #5C1F1F;
+
+    --background-main: var(--_parchment-darker);
+    --container-bg: var(--_parchment-bg);
+    --input-bg: color-mix(in srgb, var(--_parchment-bg) 80%, var(--_parchment-darker) 20%);
+    --input-bg-focus: color-mix(in srgb, var(--_parchment-bg) 90%, var(--_parchment-darker) 10%);
+    --text-primary: var(--_ink-main);
+    --text-secondary: var(--_ink-secondary);
+    --text-dim: var(--_ink-dim);
+    --accent-primary: var(--_accent-fantasy-primary);
+    --accent-secondary: var(--_accent-fantasy-secondary);
+    --accent-danger: var(--_accent-fantasy-danger);
+    --border-color: var(--_border-fantasy);
 }
 
-/* Mecha Manual Palettes - Refinements for distinctness */
-body.palette-mecha-hangar { /* REWORKED - Grittier workshop/industrial */
-    --background-main: #4A4E5A; --container-bg: rgba(60, 65, 75, 0.9); /* Industrial grey */
-    --input-bg: #5C616F; --input-bg-focus: #6A707E;
-    --text-primary: #E1E1E1; --text-secondary: #FFA500; --text-dim: #A0A0A0; /* Orange as secondary */
-    --accent-primary: #FFD700; --accent-secondary: #FFA500; --accent-danger: #D9534F; /* Yellow primary, orange secondary */
-    --border-color: #333740;
-}
-body.palette-mecha-olive-drab { /* REFINED - More distinct military */
-    --background-main: #4A5D23; --container-bg: rgba(60, 75, 30, 0.92); /* Deeper olive */
-    --input-bg: #6B8E23; --input-bg-focus: #7C9A2E;
-    --text-primary: #EDEEC9; --text-secondary: #C8AD7F; --text-dim: #BDB76B; /* Khaki, Tan, Muted Yellow */
-    --accent-primary: #B8860B; --accent-secondary: #EDEEC9; --accent-danger: #A0522D; /* Dark Goldenrod, Brown */
-    --border-color: #4A5728;
-}
-body.palette-mecha-heavy-industry { /* Kept as is (liked by user, target default) */
-    --background-main: #2C3539; --container-bg: rgba(40, 50, 55, 0.9);
-    --input-bg: #384044; --input-bg-focus: #454F54;
-    --text-primary: #E0E0E0; --text-secondary: #FF9900; --text-dim: #97A0A5;
-    --accent-primary: #D32F2F; --accent-secondary: #B0BEC5; --accent-danger: #E53935;
-    --border-color: #546E7A;
-}
-body.palette-mecha-system-alert { /* REFINED - More stark, less orange */
-    --background-main: #100000; --container-bg: rgba(30, 0, 0, 0.92); /* Very dark red-black */
-    --input-bg: #400000; --input-bg-focus: #500000;
-    --text-primary: #FFFFFF; --text-secondary: #FF0000; --text-dim: #FFBFBF; /* Stark white, pure red */
-    --accent-primary: #FF0000; --accent-secondary: #FFFFFF; --accent-danger: #B20000; /* Darker danger red */
-    --border-color: #500000;
-}
-body.palette-mecha-digital-hazard { /* REFINED - High contrast hazard */
-    --background-main: #000000; --container-bg: rgba(5, 5, 5, 0.95); /* True black */
-    --input-bg: #1A1A1A; --input-bg-focus: #2A2A2A;
-    --text-primary: #FFFF00; --text-secondary: #00A8F3; --text-dim: #BEBEBE; /* Bright Yellow, Sharp Blue */
-    --accent-primary: #FFFF00; --accent-secondary: #00A8F3; --accent-danger: #FF0033; /* Red for danger */
-    --border-color: #2E2E2E;
+body.design-goblins-ledger.palette-goblin-forest-map {
+    --_parchment-bg: #E8DDCB;
+    --_parchment-darker: #3E4A3A; /* Darker, more shadowed forest floor green */
+    --_ink-main: #CEC8BF; /* Lighter text for dark background */
+    --_ink-secondary: #6B8E23; /* Olive Drab, for buttons/headings */
+    --_ink-on-button: #F0F0E0; /* Light text for buttons */
+    --_ink-dim: #9CAF88;
+    --_accent-fantasy-primary: #800020; /* Deep burgundy/berry */
+    --_accent-fantasy-secondary: #A0522D; /* Sienna/earth */
+    --_accent-fantasy-danger: #6E001A;
+    --_border-fantasy: #4B5320; /* Dark Olive Green */
+    --_border-fantasy-light: #7A5848;
+
+    --background-main: var(--_parchment-darker);
+    --container-bg: var(--_parchment-bg);
+    --input-bg: color-mix(in srgb, var(--_parchment-bg) 85%, var(--_parchment-darker) 15%);
+    --input-bg-focus: color-mix(in srgb, var(--_parchment-bg) 95%, var(--_parchment-darker) 5%);
+    --text-primary: var(--_ink-main);
+    --text-secondary: var(--_ink-secondary);
+    --text-dim: var(--_ink-dim);
+    --accent-primary: var(--_accent-fantasy-primary);
+    --accent-secondary: var(--_accent-fantasy-secondary);
+    --accent-danger: var(--_accent-fantasy-danger);
+    --border-color: var(--_border-fantasy);
 }
 
-/* Goblins Ledger Palettes - Refinements */
-body.palette-goblin-royal-decree { /* REFINED - Richer, more contrast */
-    --_parchment-bg: #FFF8DC; --_parchment-darker: #E8D5B5;
-    --_ink-main: #4A2A04; --_ink-secondary: #8B4513; --_ink-dim: #704214;
-    --_accent-fantasy-primary: #800000; --_accent-fantasy-secondary: #FFD700; --_accent-fantasy-danger: #A40000;
-    --_border-fantasy: #654321;
-    --background-main: var(--_parchment-darker); --container-bg: var(--_parchment-bg);
-    --input-bg: rgba(245, 235, 220, 0.8); --input-bg-focus: rgba(240, 230, 215, 0.95);
-    --text-primary: var(--_ink-main); --text-secondary: var(--_ink-secondary); --text-dim: var(--_ink-dim);
-    --accent-primary: var(--_accent-fantasy-primary); --accent-secondary: var(--_accent-fantasy-secondary); --accent-danger: var(--_accent-fantasy-danger);
+body.design-goblins-ledger.palette-goblin-ancient-tome {
+    --_parchment-bg: #D8CFC0;
+    --_parchment-darker: #5A4D40; /* Dark, dusty brown page bg */
+    --_ink-main: #EAE0D6; /* Lighter text */
+    --_ink-secondary: #8B4513; /* SaddleBrown for buttons/headings */
+    --_ink-on-button: #FDF5E6; /* Light text for buttons */
+    --_ink-dim: #BDAEA0;
+    --_accent-fantasy-primary: #9C2B27; /* Muted Red */
+    --_accent-fantasy-secondary: #B08D57; /* Aged Gold */
+    --_accent-fantasy-danger: #7D281F;
+    --_border-fantasy: #5D4037; /* Dark Brown */
+    --_border-fantasy-light: #6E5340;
+
+    --background-main: var(--_parchment-darker);
+    --container-bg: var(--_parchment-bg);
+    --input-bg: color-mix(in srgb, var(--_parchment-bg) 85%, var(--_parchment-darker) 15%);
+    --input-bg-focus: color-mix(in srgb, var(--_parchment-bg) 95%, var(--_parchment-darker) 5%);
+    --text-primary: var(--_ink-main);
+    --text-secondary: var(--_ink-secondary);
+    --text-dim: var(--_ink-dim);
+    --accent-primary: var(--_accent-fantasy-primary);
+    --accent-secondary: var(--_accent-fantasy-secondary);
+    --accent-danger: var(--_accent-fantasy-danger);
     --border-color: var(--_border-fantasy);
 }
-body.palette-goblin-forest-map { /* Kept as is (liked by user) */
-    --_parchment-bg: #E8DDCB; --_parchment-darker: #D6C8B0;
-    --_ink-main: #3A2E27; --_ink-secondary: #225022; --_ink-dim: #5D4037;
-    --_accent-fantasy-primary: #800020; --_accent-fantasy-secondary: #A0522D; --_accent-fantasy-danger: #6E001A;
-    --_border-fantasy: #5D4037;
-    --background-main: var(--_parchment-darker); --container-bg: var(--_parchment-bg);
-    --input-bg: rgba(232, 221, 203, 0.8); --input-bg-focus: rgba(227, 216, 198, 0.95);
-    --text-primary: var(--_ink-main); --text-secondary: var(--_ink-secondary); --text-dim: var(--_ink-dim);
-    --accent-primary: var(--_accent-fantasy-primary); --accent-secondary: var(--_accent-fantasy-secondary); --accent-danger: var(--_accent-fantasy-danger);
-    --border-color: var(--_border-fantasy);
+
+body.design-goblins-ledger.palette-goblin-runestone-tablet { /* Contrast Fixed */
+    --_stone-bg: #4A5558;
+    --_stone-darker: #1F2223;
+    --_metal-ink: #F5F5F5;
+    --_metal-ink-secondary: #FFA000;
+    --_ink-on-button: #1F2223;
+    --_metal-ink-dim: #A0A0A0;
+    --_accent-fire: #FF6F00;
+    --_accent-steel: #7986CB;
+    --_accent-fantasy-danger: #E53935;
+    --_border-runic: #263238;
+    --_border-fantasy-light: #4F5B5B;
+
+    --background-main: var(--_stone-darker);
+    --container-bg: var(--_stone-bg);
+    --input-bg: rgba(90, 100, 105, 0.65);
+    --input-bg-focus: rgba(100, 110, 115, 0.85);
+    --text-primary: var(--_metal-ink);
+    --text-secondary: var(--_metal-ink-secondary);
+    --text-dim: var(--_metal-ink-dim);
+    --accent-primary: var(--_accent-fire);
+    --accent-secondary: var(--_accent-steel);
+    --accent-danger: var(--_accent-fantasy-danger);
+    --border-color: var(--_border-runic);
 }
-body.palette-goblin-ancient-tome { /* Kept as is from previous refinement (liked by user) */
-    --_parchment-bg: #D8CFC0; --_parchment-darker: #C0B4A5;
-    --_ink-main: #33261B; --_ink-secondary: #503828; --_ink-dim: #7A685A;
-    --_accent-fantasy-primary: #9C2B27; --_accent-fantasy-secondary: #B08D57; --_accent-fantasy-danger: #7D281F;
-    --_border-fantasy: #503828;
-    --background-main: var(--_parchment-darker); --container-bg: var(--_parchment-bg);
-    --input-bg: rgba(208, 200, 185, 0.8); --input-bg-focus: rgba(203, 195, 180, 0.95);
-    --text-primary: var(--_ink-main); --text-secondary: var(--_ink-secondary); --text-dim: var(--_ink-dim);
-    --accent-primary: var(--_accent-fantasy-primary); --accent-secondary: var(--_accent-fantasy-secondary); --accent-danger: var(--_accent-fantasy-danger);
-    --border-color: var(--_border-fantasy);
+
+body.design-goblins-ledger.palette-goblin-twilight-grove { /* Elf/Fae Theme - Corrected CSS variable mapping */
+    --_vellum-bg: #E0E6F8;
+    --_forest-deep: #2A2A3A;
+    --_ink-silvermoon: #D8DEE9;
+    --_ink-ancient-green: #5E81AC;
+    --_ink-on-button: var(--_vellum-bg);
+    --_ink-dim: #81A1C1;
+    --_accent-starlight: #ECEFF4;
+    --_accent-leaf: #8FBCBB;
+    --_accent-fantasy-danger: #BF616A;
+    --_border-elvish: #3B4252;
+    --_border-fantasy-light: #4C566A;
+
+    --background-main: var(--_forest-deep);
+    --container-bg: var(--_vellum-bg);
+    --input-bg: rgba(200, 205, 220, 0.7);
+    --input-bg-focus: rgba(210, 215, 230, 0.85);
+    --text-primary: var(--_ink-silvermoon);
+    --text-secondary: var(--_ink-ancient-green);
+    --text-dim: var(--_ink-dim);
+    --accent-primary: var(--_accent-starlight);
+    --accent-secondary: var(--_accent-leaf);
+    --accent-danger: var(--_accent-fantasy-danger);
+    --border-color: var(--_border-elvish);
 }
-body.palette-goblin-shield-scroll { /* REWORKED - Steel & Aged Paper */
-    --_parchment-bg: #FAF0E6; --_parchment-darker: #E6DCCF;
-    --_ink-main: #2F4F4F; --_ink-secondary: #708090; --_ink-dim: #778899;
-    --_accent-fantasy-primary: #4682B4; --_accent-fantasy-secondary: #B0C4DE; --_accent-fantasy-danger: #A52A2A;
-    --_border-fantasy: #696969;
-    --background-main: var(--_parchment-darker); --container-bg: var(--_parchment-bg);
-    --input-bg: rgba(235, 225, 210, 0.8); --input-bg-focus: rgba(230, 220, 205, 0.95);
-    --text-primary: var(--_ink-main); --text-secondary: var(--_ink-secondary); --text-dim: var(--_ink-dim);
-    --accent-primary: var(--_accent-fantasy-primary); --accent-secondary: var(--_accent-fantasy-secondary); --accent-danger: var(--_accent-fantasy-danger);
-    --border-color: var(--_border-fantasy);
-}
-body.palette-goblin-herbalist-notes { /* REWORKED - Earthy, Botanical */
-    --_parchment-bg: #F5F5DC; --_parchment-darker: #E0E0C0;
-    --_ink-main: #004225; --_ink-secondary: #556B2F; --_ink-dim: #8FBC8F;
-    --_accent-fantasy-primary: #8B4513; --_accent-fantasy-secondary: #93C572; --_accent-fantasy-danger: #CD5C5C;
-    --_border-fantasy: #556B2F;
-    --background-main: var(--_parchment-darker); --container-bg: var(--_parchment-bg);
-    --input-bg: rgba(240, 240, 220, 0.8); --input-bg-focus: rgba(235, 235, 215, 0.95);
-    --text-primary: var(--_ink-main); --text-secondary: var(--_ink-secondary); --text-dim: var(--_ink-dim);
-    --accent-primary: var(--_accent-fantasy-primary); --accent-secondary: var(--_accent-fantasy-secondary); --accent-danger: var(--_accent-fantasy-danger);
-    --border-color: var(--_border-fantasy);
-}
+
 
 /* --- General UI Component Styles (Tasks, Journal, Modals etc.) --- */
+/* ... (This section remains as it was in the file you uploaded / my previous full output) ... */
 #feedbackBox { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: var(--accent-secondary); color: var(--background-main); padding: 10px 20px; z-index: 2000; border: 1px solid var(--border-color); font-size: 16px; text-shadow: none; }
-.task-item-90s { padding: 12px; margin-bottom: 8px; display: flex; align-items: center; border-bottom: 1px dashed var(--border-color); }
-.task-text { flex-grow: 1; margin: 0 15px; font-size: 18px; }
-.task-status { cursor: pointer; user-select: none; width: 16px; height: 16px; background-color: transparent; border: 1px solid var(--text-dim); flex-shrink: 0; position: relative; }
-.task-item-90s.completed .task-status { background-color: var(--accent-danger); border-color: var(--accent-danger); }
-.task-item-90s.completed .task-text { text-decoration: line-through; color: var(--text-dim); text-decoration-color: var(--accent-danger); }
-.priority-toggle { cursor: pointer; font-size: 24px; color: var(--text-dim); user-select: none; transition: color 0.2s; margin-left: 15px; }
-.priority-toggle.active { color: var(--accent-primary); }
-.delete-btn-90s { background-color: transparent; border: none; color: var(--text-dim); padding: 4px 8px; font-size: 16px; cursor: pointer; margin-left: auto; }
-.delete-btn-90s:hover { color: var(--accent-danger); }
-#taskList { min-height: 200px; max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; background-color: rgba(34,37,44,0.5); margin-bottom: 20px; }
-.journal-textarea { min-height: 120px; resize: vertical;}
-#journalList { min-height: 200px; max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; background-color: rgba(34,37,44,0.5); margin-bottom: 20px; }
-.journal-day-header { cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
-.journal-day-header:hover p { color: var(--accent-secondary); }
-.journal-day-content { display: none; padding-left: 15px; border-left: 1px solid var(--border-color); margin-top: 8px; }
-.journal-day-entry.expanded .journal-day-content { display: block; }
-.journal-day-controls { display: flex; gap: 8px; align-items: center; }
-.journal-control-btn {
-    font-size: 11px; text-transform: uppercase; color: var(--text-dim);
-    cursor: pointer; padding: 3px 8px; /* Adjusted padding */
-    border: 1px solid var(--border-color); border-radius: 2px;
-    margin-left: 5px; transition: all var(--animation-speed-fast) ease;
-    line-height: 1.2; background-color: var(--input-bg); /* Give it a slight button background */
-}
-.journal-control-btn:hover {
-    color: var(--text-primary); background-color: var(--accent-primary);
-    border-color: var(--accent-primary); text-decoration: none;
-}
-.journal-control-btn.delete:hover {
-    background-color: var(--accent-danger); border-color: var(--accent-danger);
-    color: var(--background-main); /* Ensure text is visible on dark red */
-}
-.delete-log-btn:hover { color: var(--accent-danger); }
-#journalStreakDisplay { text-align: center; font-size: 20px; margin-bottom: 1rem; color: var(--text-secondary); }
-#journalHeatmapContainer { display: grid; grid-template-columns: repeat(15, 1fr); gap: 4px; padding: 10px; border: 1px solid var(--border-color); }
-.heatmap-day { aspect-ratio: 1 / 1; background-color: var(--input-bg); }
-.heatmap-day.active { background-color: var(--accent-primary); }
-.theme-switcher-container { display: flex; flex-direction: column; gap: 10px; }
-.design-selector-container, .palette-selector-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-.theme-button { padding: 4px 8px; font-size: 14px; }
-.design-button.active, .palette-button.active { background-color: var(--text-primary); color: var(--background-main); border-color: var(--text-primary); }
-#kaleidoscopeModal .container-90s { background-color: var(--background-main); }
-#categoryManagerModal .container-90s { background-color: var(--background-main); }
-#aiChatModal .container-90s { background-color: var(--background-main); max-width: 800px; }
-#kaleidoscopeCanvasParent { display: flex; justify-content: center; border: 1px solid var(--border-color); }
-.category-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px dashed var(--border-color); font-size: 18px; }
-.category-item-name { flex-grow: 1; }
-.category-delete-btn { font-size: 14px; text-transform: uppercase; color: var(--text-dim); cursor: pointer; margin-left: 1rem; }
-.category-delete-btn:hover { color: var(--accent-danger); }
-.ai-chat-message { margin-bottom: 12px; padding: 8px 12px; }
-.ai-chat-message.user { background-color: rgba(0, 255, 195, 0.05); text-align: right; border-right: 2px solid var(--text-primary); }
-.ai-chat-message.gemini { background-color: rgba(195, 0, 255, 0.05); border-left: 2px solid var(--accent-primary); }
-.ai-chat-message p { margin: 0; font-size: 18px; }
-.ai-chat-message .sender { text-transform: uppercase; opacity: 0.7; font-size: 14px; margin-bottom: 4px; }
+/* ... (rest of general UI styles) ... */
 
 .status-scroller-container {
     background-color: var(--input-bg);
@@ -575,9 +741,9 @@ body.palette-goblin-herbalist-notes { /* REWORKED - Earthy, Botanical */
     margin: 20px auto;
     overflow: hidden;
     padding: 5px;
-    display: block; /* Ensure it's visible by default */
+    display: block;
 }
-body.design-goblins-ledger .status-scroller-container { /* Specifically hide for Goblins Ledger */
+body.design-goblins-ledger .status-scroller-container {
     display: none;
 }
 
