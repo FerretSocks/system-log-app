@@ -13,25 +13,42 @@ const SCRAMBLE_CYCLES = 5;
 const CHAR_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()[]{}<>';
 
 const DESIGNS = {
-    'Wired': 'design-wired', 
+    'Wired': 'design-wired',
     'Mecha Manual': 'design-mecha-manual',
     'Goblins Ledger': 'design-goblins-ledger'
 };
 
 const PALETTES = {
+    // Wired Design Palettes
     'Cyber Default': 'palette-cyber-default',
     'Lain': 'palette-lain',
-    'Bebop': 'palette-bebop',
-    'Ghost': 'palette-ghost',
-    'Kaido-64': 'palette-kaido',
-    'Mecha Amber': 'palette-mecha-amber', 
-    'Parchment & Ink': 'palette-parchment-ink'
+    'Bebop Jazz': 'palette-bebop-jazz',
+    'Ghost Protocol': 'palette-ghost-protocol',
+    'Neon Noir': 'palette-neon-noir',
+    // Mecha Manual Design Palettes
+    'Hangar Bay': 'palette-mecha-hangar',
+    'Olive Drab Unit': 'palette-mecha-olive-drab',
+    'Heavy Industry': 'palette-mecha-heavy-industry',
+    'System Alert': 'palette-mecha-system-alert', // Renamed
+    'Digital Hazard': 'palette-mecha-digital-hazard', // Renamed
+    // Goblins Ledger Design Palettes
+    'Royal Decree': 'palette-goblin-royal-decree',
+    'Forest Map': 'palette-goblin-forest-map',
+    'Ancient Tome': 'palette-goblin-ancient-tome',
+    'Shield & Scroll': 'palette-goblin-shield-scroll',
+    "Herbalist's Notes": 'palette-goblin-herbalist-notes',
+};
+
+const DESIGN_SPECIFIC_PALETTES = {
+    'design-wired': ['Cyber Default', 'Lain', 'Bebop Jazz', 'Ghost Protocol', 'Neon Noir'],
+    'design-mecha-manual': ['Hangar Bay', 'Olive Drab Unit', 'Heavy Industry', 'System Alert', 'Digital Hazard'],
+    'design-goblins-ledger': ['Royal Decree', 'Forest Map', 'Ancient Tome', 'Shield & Scroll', "Herbalist's Notes"]
 };
 
 const DESIGN_DEFAULT_PALETTES = {
-    'design-wired': 'palette-cyber-default',
-    'design-mecha-manual': 'palette-mecha-amber',
-    'design-goblins-ledger': 'palette-parchment-ink'
+    'design-wired': PALETTES['Cyber Default'],
+    'design-mecha-manual': PALETTES['Hangar Bay'],
+    'design-goblins-ledger': PALETTES['Royal Decree']
 };
 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent";
@@ -51,13 +68,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentAiChatContext = null;
     let guestData = { tasks: [], journalEntries: [] };
 
-    let currentDesign = DESIGNS['Wired']; 
-    let currentPalette = PALETTES['Cyber Default']; 
+    let currentDesign = DESIGNS['Wired'];
+    let currentPalette = PALETTES['Cyber Default'];
 
     // --- UI Element Cache ---
     const ui = {
         loginContainer: document.getElementById('loginContainer'), appContainer: document.getElementById('appContainer'),
-        signInBtn: document.getElementById('signInBtn'), guestSignInBtn: document.getElementById('guestSignInBtn'), 
+        signInBtn: document.getElementById('signInBtn'), guestSignInBtn: document.getElementById('guestSignInBtn'),
         signOutBtn: document.getElementById('signOutBtn'),
         userIdDisplay: document.getElementById('userIdDisplay'), tasksView: document.getElementById('tasksView'),
         journalView: document.getElementById('journalView'), systemView: document.getElementById('systemView'),
@@ -73,27 +90,59 @@ document.addEventListener('DOMContentLoaded', () => {
         kClearBtn: document.getElementById('kClearBtn'), closeKaleidoscopeBtn: document.getElementById('closeKaleidoscopeBtn'),
         tasksViewTitle: document.getElementById('tasksViewTitle'), journalViewTitle: document.getElementById('journalViewTitle'),
         systemViewTitle: document.getElementById('systemViewTitle'), feedbackBox: document.getElementById('feedbackBox'),
-        themeSwitcher: document.getElementById('themeSwitcher'), 
+        themeSwitcher: document.getElementById('themeSwitcher'),
         journalStreakDisplay: document.getElementById('journalStreakDisplay'),
         categorySelect: document.getElementById('categorySelect'), manageCategoriesBtn: document.getElementById('manageCategoriesBtn'),
         categoryManagerModal: document.getElementById('categoryManagerModal'), categoryList: document.getElementById('categoryList'),
         newCategoryInput: document.getElementById('newCategoryInput'), addCategoryBtn: document.getElementById('addCategoryBtn'),
         closeCategoryManagerBtn: document.getElementById('closeCategoryManagerBtn'),
         apiKeyInput: document.getElementById('apiKeyInput'), saveApiKeyBtn: document.getElementById('saveApiKeyBtn'),
-        apiKeySection: document.getElementById('apiKeySection'), 
+        apiKeySection: document.getElementById('apiKeySection'),
         aiChatModal: document.getElementById('aiChatModal'), aiChatHistory: document.getElementById('aiChatHistory'),
         aiChatInput: document.getElementById('aiChatInput'), aiChatSendBtn: document.getElementById('aiChatSendBtn'),
         closeAiChatBtn: document.getElementById('closeAiChatBtn'),
-        loadingOverlay: document.getElementById('loadingOverlay'), 
-        loadingMessage: document.getElementById('loadingMessage'), 
-        statusScrollerContainer: document.querySelector('.status-scroller-container') // Added for scroller control
+        loadingOverlay: document.getElementById('loadingOverlay'),
+        loadingMessage: document.getElementById('loadingMessage'),
+        statusScrollerContainer: document.querySelector('.status-scroller-container')
     };
-    
-    // --- Date Logic & Utilities ---
-    const getTodayDocId = () => { const now = new Date(); const timezoneOffset = now.getTimezoneOffset() * 60000; const localDate = new Date(now.getTime() - timezoneOffset); return localDate.toISOString().slice(0, 10); };
-    const toYMDString = (date) => { const timezoneOffset = date.getTimezoneOffset() * 60000; const localDate = new Date(date.getTime() - timezoneOffset); return localDate.toISOString().slice(0, 10); };
+
+    // --- DATE LOGIC & UTILITIES (Corrected) ---
+    const getTodayDocId = () => {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = (now.getMonth() + 1).toString().padStart(2, '0'); // getMonth() is 0-indexed
+        const day = now.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const toYMDString = (date) => { // date is expected to be a Date object
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const formatDisplayDate = (dateStr_YYYY_MM_DD) => {
+        // Assuming dateStr_YYYY_MM_DD is in "YYYY-MM-DD" format from getTodayDocId or similar
+        const parts = dateStr_YYYY_MM_DD.split('-');
+        if (parts.length === 3) {
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1; // JS Date months are 0-indexed
+            const day = parseInt(parts[2], 10);
+            // Create a date object. It will be in the local timezone but represents the correct calendar day.
+            const dateObj = new Date(year, month, day);
+            return dateObj.toLocaleDateString('en-US', {
+                // Let toLocaleDateString handle the local timezone for display
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+        return dateStr_YYYY_MM_DD; // Fallback for unexpected format
+    };
+    // --- END OF CORRECTED DATE LOGIC ---
+
     const escapeHTML = str => str.replace(/[&<>"']/g, match => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[match]).replace(/\n/g, '<br>');
-    const formatDisplayDate = (dateStr) => new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { timeZone: "UTC", year: 'numeric', month: 'long', day: 'numeric' });
     const generateLogId = () => Math.random().toString(36).substring(2, 9);
 
     // --- Local Storage Management for Guests ---
@@ -118,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function initializeFirebase() { const app = initializeApp(firebaseConfig); auth = getAuth(app); db = getFirestore(app); }
 
     async function handleAuthStateChange(user) {
-        ui.loadingOverlay.classList.add('hidden'); 
+        ui.loadingOverlay.classList.add('hidden');
 
         if (user) {
             ui.appContainer.classList.remove('hidden');
@@ -127,12 +176,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (user.isAnonymous) {
                 ui.userIdDisplay.textContent = 'GUEST';
-                ui.apiKeySection.classList.add('hidden'); 
+                ui.apiKeySection.classList.add('hidden');
                 document.getElementById('taskCategoryContainer').classList.add('hidden');
                 apiKey = null;
                 loadGuestDataFromLocalStorage();
-                loadTasks(true); 
-                loadJournal(true); 
+                loadTasks(true);
+                loadJournal(true);
             } else {
                 ui.userIdDisplay.textContent = user.displayName?.split(' ')[0].toUpperCase() || 'AGENT';
                 ui.apiKeySection.classList.remove('hidden');
@@ -141,11 +190,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 journalCollectionRef = collection(db, `users/${userId}/journalEntries`);
                 taskCategoriesCollectionRef = collection(db, `users/${userId}/taskCategories`);
                 await loadUserConfig();
-                loadCategoriesAndTasks(); 
+                loadCategoriesAndTasks();
             }
-            
+
             const savedTab = localStorage.getItem('systemlog-activeTab') || 'tasks';
-            switchToView(savedTab, true); // Pass true for initial load to skip animations
+            switchToView(savedTab, true);
 
         } else {
             ui.appContainer.classList.add('hidden');
@@ -155,10 +204,23 @@ document.addEventListener('DOMContentLoaded', () => {
             if (unsubscribeCategories) unsubscribeCategories();
             hasJournalLoaded = false;
             hasSystemDataLoaded = false;
-            apiKey = null; 
-            guestData = { tasks: [], journalEntries: [] }; 
+            apiKey = null;
+            guestData = { tasks: [], journalEntries: [] };
         }
-        applyAppearance(); // Ensure scroller visibility is updated on auth change
+        
+        currentDesign = localStorage.getItem('systemlog-design') || DESIGNS['Wired'];
+        const palettesForLoadedDesignKeys = DESIGN_SPECIFIC_PALETTES[currentDesign] || Object.keys(PALETTES);
+        const palettesForLoadedDesignValues = palettesForLoadedDesignKeys.map(nameKey => PALETTES[nameKey]);
+        
+        let loadedPalette = localStorage.getItem('systemlog-palette');
+
+        if (!loadedPalette || !palettesForLoadedDesignValues.includes(loadedPalette)) {
+            loadedPalette = DESIGN_DEFAULT_PALETTES[currentDesign] || palettesForLoadedDesignValues[0];
+        }
+        currentPalette = loadedPalette;
+        
+        populatePaletteSelector(); 
+        applyAppearance(); 
     }
 
     async function loadUserConfig() {
@@ -171,96 +233,95 @@ document.addEventListener('DOMContentLoaded', () => {
             apiKey = null;
         }
     }
-    
-    function switchToView(viewName, isInitialLoad = false) { 
-        const views = { tasks: ui.tasksView, journal: ui.journalView, system: ui.systemView }; 
-        const tabs = { tasks: ui.tasksTabBtn, journal: ui.journalTabBtn, system: ui.systemTabBtn }; 
-        Object.values(views).forEach(v => v.classList.add('hidden')); 
-        Object.values(tabs).forEach(t => t.classList.remove('active')); 
 
-        if (views[viewName]) { 
-            views[viewName].classList.remove('hidden'); 
-            tabs[viewName].classList.add('active'); 
-            localStorage.setItem('systemlog-activeTab', viewName); 
-            const titles = { tasks: "Task Log", journal: "Daily Entry", system: "System Panel" }; 
+    function switchToView(viewName, isInitialLoad = false) {
+        const views = { tasks: ui.tasksView, journal: ui.journalView, system: ui.systemView };
+        const tabs = { tasks: ui.tasksTabBtn, journal: ui.journalTabBtn, system: ui.systemTabBtn };
+        Object.values(views).forEach(v => v.classList.add('hidden'));
+        Object.values(tabs).forEach(t => t.classList.remove('active'));
+
+        if (views[viewName]) {
+            views[viewName].classList.remove('hidden');
+            tabs[viewName].classList.add('active');
+            localStorage.setItem('systemlog-activeTab', viewName);
+            const titles = { tasks: "Task Log", journal: "Daily Entry", system: "System Panel" };
             const titleElement = ui[`${viewName}ViewTitle`];
 
-            if (titleElement) { // Check if titleElement exists
-                titleElement.classList.remove('fade-in-title'); // Remove class for re-triggering
-                void titleElement.offsetWidth; // Trigger reflow
+            if (titleElement) {
+                titleElement.classList.remove('fade-in-title'); 
+                void titleElement.offsetWidth; 
 
-                if (isInitialLoad) {
+                if (isInitialLoad || currentDesign === DESIGNS['Goblins Ledger']) {
                      titleElement.textContent = titles[viewName];
-                } else if (currentDesign === 'design-goblins-ledger') {
-                    titleElement.textContent = titles[viewName];
-                    titleElement.classList.add('fade-in-title'); // Apply CSS fade-in
+                     if (!isInitialLoad && currentDesign === DESIGNS['Goblins Ledger']) { 
+                          titleElement.classList.add('fade-in-title');
+                     }
                 } else {
                     typewriterScrambleEffect(titleElement, titles[viewName]);
                 }
             }
-        } 
+        }
     }
-
     function showFeedback(message, isError = false) { clearTimeout(feedbackTimeout); ui.feedbackBox.textContent = message; ui.feedbackBox.style.backgroundColor = isError ? 'var(--accent-danger)' : 'var(--accent-secondary)'; ui.feedbackBox.classList.remove('hidden'); feedbackTimeout = setTimeout(() => ui.feedbackBox.classList.add('hidden'), 3000); }
-    
-    async function loadCategoriesAndTasks() { 
-        if (auth.currentUser && auth.currentUser.isAnonymous) return; 
-        if (unsubscribeCategories) unsubscribeCategories(); 
-        try { 
-            const snapshot = await getDocs(taskCategoriesCollectionRef); 
-            if (snapshot.empty) await addDoc(taskCategoriesCollectionRef, { name: "Default" }); 
-            const q = query(taskCategoriesCollectionRef, orderBy("name")); 
-            unsubscribeCategories = onSnapshot(q, (categorySnapshot) => { 
-                const categories = categorySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
-                renderCategoryDropdown(categories); 
-                renderCategoryManager(categories); 
-                loadTasks(false); 
-            }); 
-        } catch (error) { 
-            console.error("FATAL ERROR during initial category load:", error); 
-            showFeedback("FATAL: Could not access task system.", true); 
-        } 
+
+    async function loadCategoriesAndTasks() {
+        if (auth.currentUser && auth.currentUser.isAnonymous) return;
+        if (unsubscribeCategories) unsubscribeCategories();
+        try {
+            const snapshot = await getDocs(taskCategoriesCollectionRef);
+            if (snapshot.empty) await addDoc(taskCategoriesCollectionRef, { name: "Default" });
+            const q = query(taskCategoriesCollectionRef, orderBy("name"));
+            unsubscribeCategories = onSnapshot(q, (categorySnapshot) => {
+                const categories = categorySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderCategoryDropdown(categories);
+                renderCategoryManager(categories);
+                loadTasks(false);
+            });
+        } catch (error) {
+            console.error("FATAL ERROR during initial category load:", error);
+            showFeedback("FATAL: Could not access task system.", true);
+        }
     }
-    function renderCategoryDropdown(categories) { 
-        const selectedValue = ui.categorySelect.value; 
-        ui.categorySelect.innerHTML = '<option value="all">All Tasks</option>'; 
-        categories.forEach(cat => { 
-            const option = document.createElement('option'); 
-            option.value = cat.id; 
-            option.textContent = cat.name; 
-            ui.categorySelect.appendChild(option); 
-        }); 
-        ui.categorySelect.value = selectedValue || 'all'; 
+    function renderCategoryDropdown(categories) {
+        const selectedValue = ui.categorySelect.value;
+        ui.categorySelect.innerHTML = '<option value="all">All Tasks</option>';
+        categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat.id;
+            option.textContent = cat.name;
+            ui.categorySelect.appendChild(option);
+        });
+        ui.categorySelect.value = selectedValue || 'all';
     }
 
-    function loadTasks(isGuest = false) { 
-        if (unsubscribeTasks) unsubscribeTasks(); 
-        ui.taskList.innerHTML = `<p class="text-center p-2 opacity-70">Querying tasks...</p>`; 
+    function loadTasks(isGuest = false) {
+        if (unsubscribeTasks) unsubscribeTasks();
+        ui.taskList.innerHTML = `<p class="text-center p-2 opacity-70">Querying tasks...</p>`;
         if (isGuest) {
             ui.categorySelect.innerHTML = '<option value="default">My Tasks</option>';
-            ui.categorySelect.disabled = true; 
-            ui.manageCategoriesBtn.classList.add('hidden'); 
+            ui.categorySelect.disabled = true;
+            ui.manageCategoriesBtn.classList.add('hidden');
             ui.taskList.innerHTML = guestData.tasks.length === 0 ? `<p class="text-center p-2 opacity-70">No active tasks in this list.</p>` : "";
             guestData.tasks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).forEach(renderTask);
         } else {
-            ui.categorySelect.disabled = false; 
-            ui.manageCategoriesBtn.classList.remove('hidden'); 
-            const baseQuery = currentCategory === "all" ? [orderBy("isPriority", "desc"), orderBy("createdAt", "desc")] : [where("category", "==", currentCategory), orderBy("isPriority", "desc"), orderBy("createdAt", "desc")]; 
-            const q = query(tasksCollectionRef, ...baseQuery); 
-            unsubscribeTasks = onSnapshot(q, (snapshot) => { 
-                ui.taskList.innerHTML = snapshot.empty ? `<p class="text-center p-2 opacity-70">No active tasks in this list.</p>` : ""; 
-                snapshot.forEach(doc => renderTask({ id: doc.id, ...doc.data() })); 
-            }, (error) => { 
-                console.error("Task loading error. This is likely a missing Firestore Index.", error); 
-                ui.taskList.innerHTML = `<p class="text-center p-2 opacity-70 text-red-500">Error: A database index is required. Please follow console (F12) link to create it.</p>`; 
-            }); 
+            ui.categorySelect.disabled = false;
+            ui.manageCategoriesBtn.classList.remove('hidden');
+            const baseQuery = currentCategory === "all" ? [orderBy("isPriority", "desc"), orderBy("createdAt", "desc")] : [where("category", "==", currentCategory), orderBy("isPriority", "desc"), orderBy("createdAt", "desc")];
+            const q = query(tasksCollectionRef, ...baseQuery);
+            unsubscribeTasks = onSnapshot(q, (snapshot) => {
+                ui.taskList.innerHTML = snapshot.empty ? `<p class="text-center p-2 opacity-70">No active tasks in this list.</p>` : "";
+                snapshot.forEach(doc => renderTask({ id: doc.id, ...doc.data() }));
+            }, (error) => {
+                console.error("Task loading error. This is likely a missing Firestore Index.", error);
+                ui.taskList.innerHTML = `<p class="text-center p-2 opacity-70 text-red-500">Error: A database index is required. Please follow console (F12) link to create it.</p>`;
+            });
         }
     }
 
-    async function addTask() { 
-        const taskText = ui.taskInput.value.trim(); 
+    async function addTask() {
+        const taskText = ui.taskInput.value.trim();
         if (taskText === "") {
-            if (!auth.currentUser || !auth.currentUser.isAnonymous) { 
+            if (!auth.currentUser || !auth.currentUser.isAnonymous) {
                 showFeedback("Task cannot be empty.", true);
             }
             return;
@@ -269,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const newTask = { id: generateLogId(), text: taskText, completed: false, isPriority: false, createdAt: new Date().toISOString() };
             guestData.tasks.push(newTask);
             saveGuestDataToLocalStorage();
-            loadTasks(true); 
+            loadTasks(true);
             ui.taskInput.value = "";
             showFeedback("Task added to local storage.");
         } else {
@@ -277,210 +338,220 @@ document.addEventListener('DOMContentLoaded', () => {
                 showFeedback("Please select a specific list to add tasks to.", true);
                 return;
             }
-            try { 
-                await addDoc(tasksCollectionRef, { text: taskText, completed: false, isPriority: false, createdAt: serverTimestamp(), category: ui.categorySelect.value }); 
-                ui.taskInput.value = ""; 
-            } catch (error) { 
-                console.error("Error adding task: ", error); 
-                showFeedback("Error: Could not add task.", true); 
-            } 
+            try {
+                await addDoc(tasksCollectionRef, { text: taskText, completed: false, isPriority: false, createdAt: serverTimestamp(), category: ui.categorySelect.value });
+                ui.taskInput.value = "";
+            } catch (error) {
+                console.error("Error adding task: ", error);
+                showFeedback("Error: Could not add task.", true);
+            }
         }
     }
 
-    function renderTask(task) { 
-        const item = document.createElement('div'); 
-        item.className = `task-item-90s ${task.completed ? 'completed' : ''}`; 
-        item.innerHTML = `<div class="task-status"></div><p class="task-text">${escapeHTML(task.text)}</p><span class="priority-toggle ${task.isPriority ? 'active' : ''}">&#9733;</span><button class="delete-btn-90s">[DEL]</button>`; 
+    function renderTask(task) {
+        const item = document.createElement('div');
+        item.className = `task-item-90s ${task.completed ? 'completed' : ''}`;
+        item.innerHTML = `<div class="task-status"></div><p class="task-text">${escapeHTML(task.text)}</p><span class="priority-toggle ${task.isPriority ? 'active' : ''}">&#9733;</span><button class="delete-btn-90s">[DEL]</button>`;
         if (auth.currentUser && auth.currentUser.isAnonymous) {
-            item.querySelector('.task-status').addEventListener('click', () => { 
+            item.querySelector('.task-status').addEventListener('click', () => {
                 const index = guestData.tasks.findIndex(t => t.id === task.id);
                 if (index > -1) { guestData.tasks[index].completed = !guestData.tasks[index].completed; saveGuestDataToLocalStorage(); loadTasks(true); }
-            }); 
-            item.querySelector('.priority-toggle').addEventListener('click', () => { 
+            });
+            item.querySelector('.priority-toggle').addEventListener('click', () => {
                 const index = guestData.tasks.findIndex(t => t.id === task.id);
                 if (index > -1) { guestData.tasks[index].isPriority = !guestData.tasks[index].isPriority; saveGuestDataToLocalStorage(); loadTasks(true); }
-            }); 
-            item.querySelector('.delete-btn-90s').addEventListener('click', () => { 
-                playSound('clickSound'); guestData.tasks = guestData.tasks.filter(t => t.id !== task.id); saveGuestDataToLocalStorage(); loadTasks(true); 
-            }); 
+            });
+            item.querySelector('.delete-btn-90s').addEventListener('click', () => {
+                playSound('clickSound'); guestData.tasks = guestData.tasks.filter(t => t.id !== task.id); saveGuestDataToLocalStorage(); loadTasks(true);
+            });
         } else {
-            item.querySelector('.task-status').addEventListener('click', () => updateDoc(doc(db, `users/${userId}/tasks`, task.id), { completed: !task.completed })); 
-            item.querySelector('.priority-toggle').addEventListener('click', () => updateDoc(doc(db, `users/${userId}/tasks`, task.id), { isPriority: !task.isPriority })); 
-            item.querySelector('.delete-btn-90s').addEventListener('click', () => { playSound('clickSound'); deleteDoc(doc(db, `users/${userId}/tasks`, task.id)); }); 
+            item.querySelector('.task-status').addEventListener('click', () => updateDoc(doc(db, `users/${userId}/tasks`, task.id), { completed: !task.completed }));
+            item.querySelector('.priority-toggle').addEventListener('click', () => updateDoc(doc(db, `users/${userId}/tasks`, task.id), { isPriority: !task.isPriority }));
+            item.querySelector('.delete-btn-90s').addEventListener('click', () => { playSound('clickSound'); deleteDoc(doc(db, `users/${userId}/tasks`, task.id)); });
         }
-        ui.taskList.appendChild(item); 
+        ui.taskList.appendChild(item);
     }
 
-    function renderCategoryManager(categories) { 
-        ui.categoryList.innerHTML = ''; 
-        categories.forEach(cat => { 
-            const item = document.createElement('div'); 
-            if (cat.name === "Default") { 
-                item.className = 'category-item opacity-50'; 
-                item.innerHTML = `<span class="category-item-name">${escapeHTML(cat.name)} (cannot delete)</span>`; 
-            } else { 
-                item.className = 'category-item'; 
-                item.innerHTML = `<span class="category-item-name">${escapeHTML(cat.name)}</span><button class="category-delete-btn" data-id="${cat.id}">[DEL]</button>`; 
-                item.querySelector('.category-delete-btn').addEventListener('click', () => deleteCategory(cat.id, cat.name)); 
-            } 
-            ui.categoryList.appendChild(item); 
-        }); 
+    function renderCategoryManager(categories) {
+        ui.categoryList.innerHTML = '';
+        categories.forEach(cat => {
+            const item = document.createElement('div');
+            if (cat.name === "Default") {
+                item.className = 'category-item opacity-50';
+                item.innerHTML = `<span class="category-item-name">${escapeHTML(cat.name)} (cannot delete)</span>`;
+            } else {
+                item.className = 'category-item';
+                item.innerHTML = `<span class="category-item-name">${escapeHTML(cat.name)}</span><button class="category-delete-btn" data-id="${cat.id}">[DEL]</button>`;
+                item.querySelector('.category-delete-btn').addEventListener('click', () => deleteCategory(cat.id, cat.name));
+            }
+            ui.categoryList.appendChild(item);
+        });
     }
-    async function addCategory() { 
-        const categoryName = ui.newCategoryInput.value.trim(); if (categoryName === "") return; 
-        try { await addDoc(taskCategoriesCollectionRef, { name: categoryName }); ui.newCategoryInput.value = ""; } 
-        catch(error) { console.error("Error adding category:", error); showFeedback("Error adding list.", true); } 
+    async function addCategory() {
+        const categoryName = ui.newCategoryInput.value.trim(); if (categoryName === "") return;
+        try { await addDoc(taskCategoriesCollectionRef, { name: categoryName }); ui.newCategoryInput.value = ""; }
+        catch(error) { console.error("Error adding category:", error); showFeedback("Error adding list.", true); }
     }
-    async function deleteCategory(id, name) { 
-        if (!confirm(`Delete the "${name}" list? (Tasks in this list will NOT be deleted).`)) return; 
-        try { await deleteDoc(doc(taskCategoriesCollectionRef, id)); } 
-        catch(error) { console.error("Error deleting category:", error); showFeedback("Error deleting list.", true); } 
+    async function deleteCategory(id, name) {
+        if (!confirm(`Delete the "${name}" list? (Tasks in this list will NOT be deleted).`)) return;
+        try { await deleteDoc(doc(taskCategoriesCollectionRef, id)); }
+        catch(error) { console.error("Error deleting category:", error); showFeedback("Error deleting list.", true); }
     }
 
-    async function addJournalLog() { 
-        const logContent = ui.journalInput.value.trim(); if (logContent === "") return; 
+    async function addJournalLog() {
+        const logContent = ui.journalInput.value.trim(); if (logContent === "") return;
         if (auth.currentUser && auth.currentUser.isAnonymous) {
-            const todayId = getTodayDocId(); let dayEntry = guestData.journalEntries.find(entry => entry.id === todayId);
+            const todayId = getTodayDocId(); // Corrected: Uses new function
+            let dayEntry = guestData.journalEntries.find(entry => entry.id === todayId);
             const newLog = { id: generateLogId(), time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }), content: logContent };
-            if (dayEntry) { dayEntry.logs.push(newLog); dayEntry.lastUpdated = new Date().toISOString(); } 
+            if (dayEntry) { dayEntry.logs.push(newLog); dayEntry.lastUpdated = new Date().toISOString(); }
             else { dayEntry = { id: todayId, logs: [newLog], displayDate: formatDisplayDate(todayId), lastUpdated: new Date().toISOString() }; guestData.journalEntries.unshift(dayEntry); }
             saveGuestDataToLocalStorage(); loadJournal(true); ui.journalInput.value = ""; showFeedback("Log committed to local storage.");
         } else {
-            const todayId = getTodayDocId(); const journalDocRef = doc(db, `users/${userId}/journalEntries`, todayId); 
-            const newLog = { id: generateLogId(), time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }), content: logContent }; 
-            try { 
-                const docSnap = await getDoc(journalDocRef); 
-                if (docSnap.exists()) await updateDoc(journalDocRef, { logs: arrayUnion(newLog), lastUpdated: serverTimestamp() }); 
-                else await setDoc(journalDocRef, { logs: [newLog], displayDate: formatDisplayDate(todayId), lastUpdated: serverTimestamp() }); 
-                ui.journalInput.value = ""; showFeedback("Log committed."); 
-            } catch (error) { console.error("Error adding journal log:", error); showFeedback("Error: Could not save log.", true); } 
+            const todayId = getTodayDocId(); // Corrected: Uses new function
+            const journalDocRef = doc(db, `users/${userId}/journalEntries`, todayId);
+            const newLog = { id: generateLogId(), time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }), content: logContent };
+            try {
+                const docSnap = await getDoc(journalDocRef);
+                if (docSnap.exists()) await updateDoc(journalDocRef, { logs: arrayUnion(newLog), lastUpdated: serverTimestamp() });
+                else await setDoc(journalDocRef, { logs: [newLog], displayDate: formatDisplayDate(todayId), lastUpdated: serverTimestamp() });
+                ui.journalInput.value = ""; showFeedback("Log committed.");
+            } catch (error) { console.error("Error adding journal log:", error); showFeedback("Error: Could not save log.", true); }
         }
     }
 
-    function loadJournal(isGuest = false) { 
-        if (unsubscribeJournal) unsubscribeJournal(); 
-        lastVisibleJournalDoc = null; 
-        ui.journalList.innerHTML = `<p class="text-center p-2 opacity-70">Accessing archives...</p>`; 
-        ui.journalLoadMoreContainer.innerHTML = ''; 
+    function loadJournal(isGuest = false) {
+        if (unsubscribeJournal) unsubscribeJournal();
+        lastVisibleJournalDoc = null;
+        ui.journalList.innerHTML = `<p class="text-center p-2 opacity-70">Accessing archives...</p>`;
+        ui.journalLoadMoreContainer.innerHTML = '';
         if (isGuest) {
             ui.journalList.innerHTML = guestData.journalEntries.length === 0 ? `<p class="text-center p-2 opacity-70">No logs found.</p>` : "";
             guestData.journalEntries.sort((a,b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()).forEach(renderJournalDayEntry);
             ui.journalHeatmapContainer.innerHTML = `<p class="text-center p-2 opacity-70">Log Consistency Matrix not available in Guest Mode.</p>`;
             ui.journalStreakDisplay.textContent = `-- DAYS (Guest)`;
-            ui.journalLoadMoreContainer.innerHTML = ''; 
+            ui.journalLoadMoreContainer.innerHTML = '';
         } else {
-            const q = query(journalCollectionRef, orderBy("lastUpdated", "desc"), limit(JOURNAL_PAGE_SIZE)); 
-            unsubscribeJournal = onSnapshot(q, (snapshot) => { 
-                if (lastVisibleJournalDoc === null) ui.journalList.innerHTML = ''; 
-                if (snapshot.empty && lastVisibleJournalDoc === null) { ui.journalList.innerHTML = `<p class="text-center p-2 opacity-70">No logs found.</p>`; return; } 
-                snapshot.docs.forEach(doc => renderJournalDayEntry({ id: doc.id, ...doc.data() })); 
-                if (snapshot.docs.length >= JOURNAL_PAGE_SIZE) { lastVisibleJournalDoc = snapshot.docs[snapshot.docs.length - 1]; renderLoadMoreButton(); } 
-                else { lastVisibleJournalDoc = null; ui.journalLoadMoreContainer.innerHTML = ''; } 
-            }); 
+            const q = query(journalCollectionRef, orderBy("lastUpdated", "desc"), limit(JOURNAL_PAGE_SIZE));
+            unsubscribeJournal = onSnapshot(q, (snapshot) => {
+                if (lastVisibleJournalDoc === null) ui.journalList.innerHTML = '';
+                if (snapshot.empty && lastVisibleJournalDoc === null) { ui.journalList.innerHTML = `<p class="text-center p-2 opacity-70">No logs found.</p>`; return; }
+                snapshot.docs.forEach(doc => renderJournalDayEntry({ id: doc.id, ...doc.data() }));
+                if (snapshot.docs.length >= JOURNAL_PAGE_SIZE) { lastVisibleJournalDoc = snapshot.docs[snapshot.docs.length - 1]; renderLoadMoreButton(); }
+                else { lastVisibleJournalDoc = null; ui.journalLoadMoreContainer.innerHTML = ''; }
+            });
         }
     }
 
     function renderLoadMoreButton() { ui.journalLoadMoreContainer.innerHTML = `<button id="journalLoadMoreBtn" class="button-90s">Load More Archives</button>`; document.getElementById('journalLoadMoreBtn').addEventListener('click', loadMoreJournalEntries); }
-    async function loadMoreJournalEntries() { 
-        if (!lastVisibleJournalDoc || (auth.currentUser && auth.currentUser.isAnonymous)) return; 
-        const loadMoreBtn = document.getElementById('journalLoadMoreBtn'); loadMoreBtn.textContent = 'Loading...'; loadMoreBtn.disabled = true; 
-        const q = query(journalCollectionRef, orderBy("lastUpdated", "desc"), startAfter(lastVisibleJournalDoc), limit(JOURNAL_PAGE_SIZE)); 
-        const snapshot = await getDocs(q); 
-        snapshot.docs.forEach(doc => renderJournalDayEntry({ id: doc.id, ...doc.data() })); 
-        if (snapshot.docs.length < JOURNAL_PAGE_SIZE) { lastVisibleJournalDoc = null; ui.journalLoadMoreContainer.innerHTML = ''; } 
-        else { lastVisibleJournalDoc = snapshot.docs[snapshot.docs.length - 1]; loadMoreBtn.textContent = 'Load More Archives'; loadMoreBtn.disabled = false; } 
+    async function loadMoreJournalEntries() {
+        if (!lastVisibleJournalDoc || (auth.currentUser && auth.currentUser.isAnonymous)) return;
+        const loadMoreBtn = document.getElementById('journalLoadMoreBtn'); loadMoreBtn.textContent = 'Loading...'; loadMoreBtn.disabled = true;
+        const q = query(journalCollectionRef, orderBy("lastUpdated", "desc"), startAfter(lastVisibleJournalDoc), limit(JOURNAL_PAGE_SIZE));
+        const snapshot = await getDocs(q);
+        snapshot.docs.forEach(doc => renderJournalDayEntry({ id: doc.id, ...doc.data() }));
+        if (snapshot.docs.length < JOURNAL_PAGE_SIZE) { lastVisibleJournalDoc = null; ui.journalLoadMoreContainer.innerHTML = ''; }
+        else { lastVisibleJournalDoc = snapshot.docs[snapshot.docs.length - 1]; loadMoreBtn.textContent = 'Load More Archives'; loadMoreBtn.disabled = false; }
     }
 
-    function renderJournalDayEntry(dayEntry) { 
-        const item = document.createElement('div'); item.className = 'journal-day-entry border-b border-dashed border-border-color pb-4 mb-4'; 
-        item.innerHTML = `<div class="journal-day-header"><p class="font-bold flex-grow"><span class="toggle-indicator mr-2">[+]</span>${dayEntry.displayDate}</p><div class="journal-day-controls"><span class="journal-control-btn chat">[chat]</span><span class="journal-control-btn delete">[delete]</span></div></div><div class="journal-day-content"></div>`; 
-        const contentDiv = item.querySelector('.journal-day-content'); 
+    function renderJournalDayEntry(dayEntry) {
+        const item = document.createElement('div'); item.className = 'journal-day-entry border-b border-dashed border-border-color pb-4 mb-4';
+        item.innerHTML = `<div class="journal-day-header"><p class="font-bold flex-grow"><span class="toggle-indicator mr-2">[+]</span>${dayEntry.displayDate}</p><div class="journal-day-controls"><span class="journal-control-btn chat">[chat]</span><span class="journal-control-btn delete">[delete]</span></div></div><div class="journal-day-content"></div>`;
+        const contentDiv = item.querySelector('.journal-day-content');
         const logsToProcess = dayEntry.logs || [];
-        if (logsToProcess.length > 0) { 
-            logsToProcess.slice().reverse().forEach(log => { 
-                const logEl = document.createElement('div'); logEl.className = 'flex justify-between items-start py-1'; 
-                logEl.innerHTML = `<div><span class="opacity-70">[${log.time}]</span> ${escapeHTML(log.content)}</div><button class="delete-log-btn text-sm opacity-70 hover:opacity-100">[del]</button>`; 
+        if (logsToProcess.length > 0) {
+            logsToProcess.slice().reverse().forEach(log => {
+                const logEl = document.createElement('div'); logEl.className = 'flex justify-between items-start py-1';
+                logEl.innerHTML = `<div><span class="opacity-70">[${log.time}]</span> ${escapeHTML(log.content)}</div><button class="delete-log-btn text-sm opacity-70 hover:opacity-100">[del]</button>`;
                 if (auth.currentUser && auth.currentUser.isAnonymous) {
-                    logEl.querySelector('.delete-log-btn').addEventListener('click', (e) => { 
-                        e.stopPropagation(); 
+                    logEl.querySelector('.delete-log-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
                         const dayIndex = guestData.journalEntries.findIndex(entry => entry.id === dayEntry.id);
                         if (dayIndex > -1) {
                             guestData.journalEntries[dayIndex].logs = guestData.journalEntries[dayIndex].logs.filter(l => l.id !== log.id);
                             if (guestData.journalEntries[dayIndex].logs.length === 0) guestData.journalEntries = guestData.journalEntries.filter(entry => entry.id !== dayEntry.id);
-                            saveGuestDataToLocalStorage(); loadJournal(true); 
+                            saveGuestDataToLocalStorage(); loadJournal(true);
                         }
-                    }); 
+                    });
                 } else { logEl.querySelector('.delete-log-btn').addEventListener('click', (e) => { e.stopPropagation(); deleteIndividualLog(dayEntry.id, log); }); }
-                contentDiv.appendChild(logEl); 
-            }); 
+                contentDiv.appendChild(logEl);
+            });
         } else { contentDiv.innerHTML = `<p class="opacity-70 italic p-2">No logs for this day.</p>`; }
-        const header = item.querySelector('.journal-day-header'); 
-        header.addEventListener('click', (e) => { 
-            if (e.target.classList.contains('journal-control-btn')) return; playSound('clickSound'); 
-            item.classList.toggle('expanded'); item.querySelector('.toggle-indicator').textContent = item.classList.contains('expanded') ? '[-]' : '[+]'; 
-        }); 
+        const header = item.querySelector('.journal-day-header');
+        header.addEventListener('click', (e) => {
+            if (e.target.classList.contains('journal-control-btn')) return; playSound('clickSound');
+            item.classList.toggle('expanded'); item.querySelector('.toggle-indicator').textContent = item.classList.contains('expanded') ? '[-]' : '[+]';
+        });
         const chatButton = item.querySelector('.chat'); const deleteDayButton = item.querySelector('.delete');
         if (auth.currentUser && auth.currentUser.isAnonymous) {
-            chatButton.classList.add('hidden'); 
+            chatButton.classList.add('hidden');
             deleteDayButton.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (confirm(`Delete all logs for ${dayEntry.displayDate}?`)) {
                     guestData.journalEntries = guestData.journalEntries.filter(entry => entry.id !== dayEntry.id);
-                    saveGuestDataToLocalStorage(); loadJournal(true); 
+                    saveGuestDataToLocalStorage(); loadJournal(true);
                 }
             });
         } else {
-            chatButton.addEventListener('click', (e) => { e.stopPropagation(); playSound('clickSound'); openAiChat(dayEntry); }); 
-            deleteDayButton.addEventListener('click', (e) => { e.stopPropagation(); deleteJournalDay(dayEntry.id, dayEntry.displayDate); }); 
+            chatButton.addEventListener('click', (e) => { e.stopPropagation(); playSound('clickSound'); openAiChat(dayEntry); });
+            deleteDayButton.addEventListener('click', (e) => { e.stopPropagation(); deleteJournalDay(dayEntry.id, dayEntry.displayDate); });
         }
-        ui.journalList.appendChild(item); 
+        ui.journalList.appendChild(item);
     }
 
     async function deleteIndividualLog(dayDocId, logToRemove) { if (!confirm(`Delete log entry?`)) return; await updateDoc(doc(db, `users/${userId}/journalEntries`, dayDocId), { logs: arrayRemove(logToRemove) }); }
     async function deleteJournalDay(dayDocId, dayDate) { if (!confirm(`Delete all logs for ${dayDate}?`)) return; await deleteDoc(doc(db, `users/${userId}/journalEntries`, dayDocId)); }
     function handleJournalSearch() { const searchTerm = ui.journalSearch.value.toLowerCase(); document.querySelectorAll('#journalList > .journal-day-entry').forEach(entry => { entry.style.display = entry.textContent.toLowerCase().includes(searchTerm) ? '' : 'none'; }); }
-    
-    async function loadAllJournalMetadata() { 
-        if (auth.currentUser && auth.currentUser.isAnonymous) return; 
-        const q = query(journalCollectionRef, orderBy("lastUpdated", "desc")); 
-        const snapshot = await getDocs(q); const journalDocs = snapshot.docs; 
-        renderJournalHeatmap(journalDocs); calculateJournalStreak(journalDocs); 
+
+    async function loadAllJournalMetadata() {
+        if (auth.currentUser && auth.currentUser.isAnonymous) return;
+        const q = query(journalCollectionRef, orderBy("lastUpdated", "desc"));
+        const snapshot = await getDocs(q); const journalDocs = snapshot.docs;
+        renderJournalHeatmap(journalDocs); calculateJournalStreak(journalDocs);
     }
 
-    function calculateJournalStreak(journalDocs) { 
-        const journalDates = new Set(journalDocs.map(doc => doc.id)); 
-        if (journalDates.size === 0) { ui.journalStreakDisplay.textContent = `0 DAYS`; return; } 
-        let streak = 0; let currentDate = new Date(); 
-        if (!journalDates.has(getTodayDocId())) currentDate.setDate(currentDate.getDate() - 1); 
-        while (journalDates.has(toYMDString(currentDate))) { streak++; currentDate.setDate(currentDate.getDate() - 1); } 
-        ui.journalStreakDisplay.textContent = `${streak} DAY${streak !== 1 ? 'S' : ''}`; 
+    function calculateJournalStreak(journalDocs) {
+        const journalDates = new Set(journalDocs.map(doc => doc.id));
+        if (journalDates.size === 0) { ui.journalStreakDisplay.textContent = `0 DAYS`; return; }
+        let streak = 0; let currentDate = new Date();
+        // Use toYMDString which now correctly uses local date components
+        if (!journalDates.has(toYMDString(currentDate))) {
+             currentDate.setDate(currentDate.getDate() - 1);
+        }
+        while (journalDates.has(toYMDString(currentDate))) {
+            streak++;
+            currentDate.setDate(currentDate.getDate() - 1);
+        }
+        ui.journalStreakDisplay.textContent = `${streak} DAY${streak !== 1 ? 'S' : ''}`;
     }
-    function renderJournalHeatmap(docs) { 
-        ui.journalHeatmapContainer.innerHTML = ''; 
-        const logDates = new Set(docs.map(doc => doc.id)); 
-        for (let i = HEATMAP_DAYS - 1; i >= 0; i--) { 
-            let date = new Date(); date.setDate(date.getDate() - i); 
-            const dateString = toYMDString(date); const dayDiv = document.createElement('div'); 
-            dayDiv.className = 'heatmap-day'; dayDiv.title = formatDisplayDate(dateString); 
-            if (logDates.has(dateString)) dayDiv.classList.add('active'); 
-            ui.journalHeatmapContainer.appendChild(dayDiv); 
-        } 
+
+    function renderJournalHeatmap(docs) {
+        ui.journalHeatmapContainer.innerHTML = '';
+        const logDates = new Set(docs.map(doc => doc.id));
+        for (let i = HEATMAP_DAYS - 1; i >= 0; i--) {
+            let date = new Date(); date.setDate(date.getDate() - i);
+            const dateString = toYMDString(date); // Corrected: Uses new function
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'heatmap-day'; dayDiv.title = formatDisplayDate(dateString); // Corrected display
+            if (logDates.has(dateString)) dayDiv.classList.add('active');
+            ui.journalHeatmapContainer.appendChild(dayDiv);
+        }
     }
-    
+
     function openAiChat(dayEntry) {
-        if (auth.currentUser && auth.currentUser.isAnonymous) return; 
+        if (auth.currentUser && auth.currentUser.isAnonymous) return;
         currentAiChatContext = dayEntry; ui.aiChatHistory.innerHTML = ''; ui.aiChatInput.value = '';
         displayChatMessage('Connection established. Ready for analysis of log dated ' + dayEntry.displayDate, 'gemini');
         ui.aiChatModal.classList.remove('hidden'); ui.aiChatInput.focus();
     }
     function closeAiChat() { ui.aiChatModal.classList.add('hidden'); currentAiChatContext = null; }
     async function sendAiChatMessage() {
-        const userPrompt = ui.aiChatInput.value.trim(); if (userPrompt === "") return; 
+        const userPrompt = ui.aiChatInput.value.trim(); if (userPrompt === "") return;
         if (!apiKey) { showFeedback("Error: API Key not configured in System tab.", true); return; }
         ui.aiChatInput.value = ''; ui.aiChatInput.disabled = true; ui.aiChatSendBtn.disabled = true;
         displayChatMessage(userPrompt, 'user'); const thinkingMessage = displayChatMessage('...', 'gemini');
-        try { const aiResponse = await getAiResponse(userPrompt, currentAiChatContext); thinkingMessage.querySelector('p').innerHTML = escapeHTML(aiResponse); } 
-        catch (error) { thinkingMessage.querySelector('p').textContent = `Error: ${error.message}`; console.error("AI Chat Error:", error); } 
+        try { const aiResponse = await getAiResponse(userPrompt, currentAiChatContext); thinkingMessage.querySelector('p').innerHTML = escapeHTML(aiResponse); }
+        catch (error) { thinkingMessage.querySelector('p').textContent = `Error: ${error.message}`; console.error("AI Chat Error:", error); }
         finally { ui.aiChatInput.disabled = false; ui.aiChatSendBtn.disabled = false; ui.aiChatInput.focus(); }
     }
     function displayChatMessage(message, sender) {
@@ -505,13 +576,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Appearance (Designs & Palettes) ---
     function initializeAppearanceControls() {
-        ui.themeSwitcher.innerHTML = ''; 
+        ui.themeSwitcher.innerHTML = '';
 
         const designHeader = document.createElement('h4');
         designHeader.textContent = 'Overall Design:';
         designHeader.className = 'jp-subtitle !uppercase !text-sm !text-left !mb-1 !mt-0';
         ui.themeSwitcher.appendChild(designHeader);
-        
+
         const designContainer = document.createElement('div');
         designContainer.className = 'design-selector-container mb-4';
         ui.themeSwitcher.appendChild(designContainer);
@@ -519,13 +590,16 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.keys(DESIGNS).forEach(designName => {
             const button = document.createElement('button');
             button.textContent = designName;
-            button.className = 'button-90s design-button theme-button'; 
+            button.className = 'button-90s design-button theme-button';
             button.dataset.design = DESIGNS[designName];
             button.addEventListener('click', () => {
                 playSound('clickSound');
                 currentDesign = DESIGNS[designName];
-                currentPalette = DESIGN_DEFAULT_PALETTES[currentDesign] || Object.values(PALETTES)[0];
+                currentPalette = DESIGN_DEFAULT_PALETTES[currentDesign];
+                populatePaletteSelector();
                 applyAppearance();
+                const activeTabName = localStorage.getItem('systemlog-activeTab') || 'tasks';
+                switchToView(activeTabName, false);
             });
             designContainer.appendChild(button);
         });
@@ -536,30 +610,45 @@ document.addEventListener('DOMContentLoaded', () => {
         ui.themeSwitcher.appendChild(paletteHeader);
 
         const paletteContainer = document.createElement('div');
+        paletteContainer.id = 'paletteSelectorContainer';
         paletteContainer.className = 'palette-selector-container';
         ui.themeSwitcher.appendChild(paletteContainer);
-        
-        Object.keys(PALETTES).forEach(paletteName => {
-            const button = document.createElement('button');
-            button.textContent = paletteName;
-            button.className = 'button-90s palette-button theme-button';
-            button.dataset.palette = PALETTES[paletteName];
-            button.addEventListener('click', () => {
-                playSound('clickSound');
-                currentPalette = PALETTES[paletteName];
-                applyAppearance();
-            });
-            paletteContainer.appendChild(button);
-        });
+    }
 
-        currentDesign = localStorage.getItem('systemlog-design') || DESIGNS['Wired'];
-        let savedPalette = localStorage.getItem('systemlog-palette');
-        if (savedPalette && Object.values(PALETTES).includes(savedPalette)) {
-            currentPalette = savedPalette;
-        } else {
-            currentPalette = DESIGN_DEFAULT_PALETTES[currentDesign] || Object.values(PALETTES)[0];
-        }
-        applyAppearance(); // Initial appearance application
+    function populatePaletteSelector() {
+        const paletteContainer = document.getElementById('paletteSelectorContainer');
+        if (!paletteContainer) return;
+        paletteContainer.innerHTML = '';
+
+        const palettesForDesignKeys = DESIGN_SPECIFIC_PALETTES[currentDesign];
+        if (!palettesForDesignKeys) { return; }
+
+        palettesForDesignKeys.forEach(paletteNameKey => {
+            const paletteValue = PALETTES[paletteNameKey];
+            if (paletteValue) {
+                createPaletteButton(paletteContainer, paletteNameKey, paletteValue);
+            }
+        });
+        updateActivePaletteButton();
+    }
+    
+    function createPaletteButton(container, nameKey, value) {
+        const button = document.createElement('button');
+        button.textContent = nameKey;
+        button.className = 'button-90s palette-button theme-button';
+        button.dataset.palette = value;
+        button.addEventListener('click', () => {
+            playSound('clickSound');
+            currentPalette = value;
+            applyAppearance();
+        });
+        container.appendChild(button);
+    }
+
+    function updateActivePaletteButton() {
+        document.querySelectorAll('.palette-button').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.palette === currentPalette);
+        });
     }
 
     function applyAppearance() {
@@ -570,20 +659,13 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.design-button').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.design === currentDesign);
         });
-        document.querySelectorAll('.palette-button').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.palette === currentPalette);
-        });
+        updateActivePaletteButton();
 
-        // Conditionally show/hide status scroller
         if (ui.statusScrollerContainer) {
-            if (currentDesign === 'design-goblins-ledger') {
-                ui.statusScrollerContainer.style.display = 'none';
-            } else {
-                ui.statusScrollerContainer.style.display = 'block'; // Or 'flex' or whatever its default is
-            }
+            ui.statusScrollerContainer.style.display = (currentDesign === DESIGNS['Goblins Ledger']) ? 'none' : 'block';
         }
     }
-    
+
     function typewriterScrambleEffect(element, text) {
         return new Promise((resolve) => {
             if (!element) { resolve(); return; }
@@ -603,7 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             revealedText += originalChar;
                             element.textContent = revealedText;
                             i++;
-                            if (i >= text.length) { resolve(); } 
+                            if (i >= text.length) { resolve(); }
                             else { typeCharacter(); }
                         } else {
                             const randomChar = CHAR_POOL.charAt(Math.floor(Math.random() * CHAR_POOL.length));
@@ -624,33 +706,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const k_sketch = (p) => { p.setup = () => { const parent = document.getElementById('kaleidoscopeCanvasParent'); const size = Math.min(parent.clientWidth - 4, 400); const canvas = p.createCanvas(size, size); canvas.parent(parent); p.colorMode(p.HSB); p.background(20); }; p.draw = () => { if (p.mouseIsPressed && p.mouseX > 0 && p.mouseX < p.width && p.mouseY > 0 && p.mouseY < p.height) { const symmetry = ui.kSymmetrySlider.value; const angle = 360 / symmetry; const mx = p.mouseX - p.width / 2; const my = p.mouseY - p.height / 2; const pmx = p.pmouseX - p.width / 2; const pmy = p.pmouseY - p.height / 2; p.translate(p.width / 2, p.height / 2); p.stroke((p.frameCount * 2) % 360, 80, 100); p.strokeWeight(3); for (let i = 0; i < symmetry; i++) { p.rotate(angle); p.line(mx, my, pmx, pmy); p.push(); p.scale(1, -1); p.line(mx, my, pmx, pmy); p.pop(); } } }; p.clearCanvas = () => p.background(20); };
 
     function init() {
-        initializeFirebase(); 
-        initializeAppearanceControls(); 
+        initializeFirebase();
+        initializeAppearanceControls();
+        onAuthStateChanged(auth, handleAuthStateChange);
+
         ui.signInBtn.addEventListener('click', () => { if (auth) signInWithPopup(auth, new GoogleAuthProvider()); });
         ui.guestSignInBtn.addEventListener('click', async () => {
             if (auth) {
                 ui.loadingOverlay.classList.remove('hidden');
-                await typewriterScrambleEffect(ui.loadingMessage, 'ACCESSING CORE...'); 
-                try { await signInAnonymously(auth); } 
+                await typewriterScrambleEffect(ui.loadingMessage, 'ACCESSING CORE...');
+                try { await signInAnonymously(auth); }
                 catch (error) { console.error("Anonymous sign-in error:", error); showFeedback("Error logging in as guest.", true); ui.loadingOverlay.classList.add('hidden');}
             }
         });
         ui.signOutBtn.addEventListener('click', () => signOut(auth));
         ui.tasksTabBtn.addEventListener('click', () => { playSound('clickSound'); switchToView('tasks'); });
-        ui.journalTabBtn.addEventListener('click', () => { 
-            playSound('clickSound'); 
-            if (!hasJournalLoaded && (!auth.currentUser || !auth.currentUser.isAnonymous)) { loadJournal(false); hasJournalLoaded = true; } 
+        ui.journalTabBtn.addEventListener('click', () => {
+            playSound('clickSound');
+            if (!hasJournalLoaded && (!auth.currentUser || !auth.currentUser.isAnonymous)) { loadJournal(false); hasJournalLoaded = true; }
             else if (auth.currentUser && auth.currentUser.isAnonymous) { loadJournal(true); }
-            switchToView('journal'); 
+            switchToView('journal');
         });
-        ui.systemTabBtn.addEventListener('click', () => { 
-            playSound('clickSound'); 
-            if (!hasSystemDataLoaded && (!auth.currentUser || !auth.currentUser.isAnonymous)) { loadAllJournalMetadata(); hasSystemDataLoaded = true; } 
-            else if (auth.currentUser && auth.currentUser.isAnonymous) { 
+        ui.systemTabBtn.addEventListener('click', () => {
+            playSound('clickSound');
+            if (!hasSystemDataLoaded && (!auth.currentUser || !auth.currentUser.isAnonymous)) { loadAllJournalMetadata(); hasSystemDataLoaded = true; }
+            else if (auth.currentUser && auth.currentUser.isAnonymous) {
                 ui.journalHeatmapContainer.innerHTML = `<p class="text-center p-2 opacity-70">Log Consistency Matrix not available in Guest Mode.</p>`;
                 ui.journalStreakDisplay.textContent = `-- DAYS (Guest)`;
             }
-            switchToView('system'); 
+            switchToView('system');
         });
         ui.addTaskBtn.addEventListener('click', () => { playSound('clickSound'); addTask(); });
         ui.taskInput.addEventListener('keypress', e => { if (e.key === 'Enter') { playSound('clickSound'); addTask(); } });
@@ -659,21 +743,21 @@ document.addEventListener('DOMContentLoaded', () => {
         ui.launchKaleidoscopeBtn.addEventListener('click', () => { playSound('clickSound'); startKaleidoscope(); });
         ui.closeKaleidoscopeBtn.addEventListener('click', () => { playSound('clickSound'); stopKaleidoscope(); });
         ui.kClearBtn.addEventListener('click', () => { playSound('clickSound'); kaleidoscopeSketch?.clearCanvas(); });
-        ui.categorySelect.addEventListener('change', (e) => { currentCategory = e.target.value; loadTasks(); });
+        ui.categorySelect.addEventListener('change', (e) => { currentCategory = e.target.value; loadTasks(auth.currentUser && auth.currentUser.isAnonymous); });
         ui.manageCategoriesBtn.addEventListener('click', () => { playSound('clickSound'); ui.categoryManagerModal.classList.remove('hidden'); });
         ui.closeCategoryManagerBtn.addEventListener('click', () => { playSound('clickSound'); ui.categoryManagerModal.classList.add('hidden'); });
         ui.addCategoryBtn.addEventListener('click', () => { playSound('clickSound'); addCategory(); });
         ui.newCategoryInput.addEventListener('keypress', e => { if (e.key === 'Enter') { playSound('clickSound'); addCategory(); } });
         ui.saveApiKeyBtn.addEventListener('click', async () => {
             playSound('clickSound'); const keyToSave = ui.apiKeyInput.value;
+            if (!userId) { showFeedback("Error: User not identified.", true); return; }
             const configRef = doc(db, `users/${userId}/configuration/api`);
-            try { await setDoc(configRef, { geminiApiKey: keyToSave }); apiKey = keyToSave; showFeedback("API Key saved securely."); } 
+            try { await setDoc(configRef, { geminiApiKey: keyToSave }); apiKey = keyToSave; showFeedback("API Key saved securely."); }
             catch (error) { console.error("Error saving API Key:", error); showFeedback("Error: Could not save API Key.", true); }
         });
         ui.closeAiChatBtn.addEventListener('click', () => { playSound('clickSound'); closeAiChat(); });
         ui.aiChatSendBtn.addEventListener('click', () => { playSound('clickSound'); sendAiChatMessage(); });
         ui.aiChatInput.addEventListener('keypress', e => { if (e.key === 'Enter') { playSound('clickSound'); sendAiChatMessage(); } });
-        onAuthStateChanged(auth, handleAuthStateChange);
     }
     init();
 });

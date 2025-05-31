@@ -1,23 +1,15 @@
 /* style.css */
 /* --- Root Variables for Fallback --- */
 :root {
-    --font-main: 'VT323', monospace; 
+    --font-main: 'VT323', monospace;
     --scroller-speed: 40s;
-    /* Fallback colors if no design/palette is somehow applied */
-    --background-main: #111;
-    --text-primary: #eee;
-    --border-color: #555;
-    --container-bg: #222;
-    --input-bg: #333;
-    --input-bg-focus: #444;
-    --text-secondary: #0f0;
-    --text-dim: #888;
-    --accent-primary: #0f0;
-    --accent-secondary: #0ff;
-    --accent-danger: #f00;
+    --background-main: #111; --text-primary: #eee; --border-color: #555;
+    --container-bg: #222; --input-bg: #333; --input-bg-focus: #444;
+    --text-secondary: #0f0; --text-dim: #888;
+    --accent-primary: #0f0; --accent-secondary: #0ff; --accent-danger: #f00;
 }
 
-/* --- DESIGN: Wired (Cyberpunk) --- */
+/* --- DESIGN: Wired (Cyberpunk Base) --- */
 body.design-wired {
     --font-main: 'VT323', monospace;
     text-shadow: 0 0 2px var(--text-primary);
@@ -36,492 +28,318 @@ body.design-wired #categoryManagerModal .container-90s,
 body.design-wired #aiChatModal .container-90s {
     border-image: linear-gradient(to right, var(--accent-primary), var(--accent-secondary)) 1;
 }
+body.design-wired::before {
+    content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: -2;
+    background-image:
+        linear-gradient(var(--border-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
+    background-size: 50px 50px; opacity: 0.1;
+    animation: scrolling-grid 2s linear infinite;
+}
+body.design-wired::after {
+    content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.3) 0, rgba(0,0,0,0.4) 1px, rgba(0,0,0,0) 2px);
+    opacity: 0.4; z-index: 1000; pointer-events: none;
+}
+
 
 /* --- DESIGN: Mecha Manual --- */
 body.design-mecha-manual {
     --font-main: 'Share Tech Mono', monospace;
-    --mecha-border-highlight: rgba(255,255,255,0.15); 
-    --mecha-border-shadow: rgba(0,0,0,0.4);       
-    --mecha-panel-bg: rgba(0,0,0,0.1);             
-    --mecha-indicator-active: var(--text-secondary); 
-
+    --mecha-border-highlight: rgba(255,255,255,0.15);
+    --mecha-border-shadow: rgba(0,0,0,0.4);
+    --mecha-panel-bg: rgba(0,0,0,0.1);
+    --mecha-indicator-active: var(--text-secondary);
     text-shadow: none;
-    background-image: 
-        linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px), 
-        linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px), 
+    background-image:
+        linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px),
         url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiGAAAANlBMVEX8/vz5+fr09vj29vj4+Pj+/v36+vr39/ru7/Ds7vHy8/H9/f37+/v09fXw8fH7+/z19vfu7u4j7KxRAAAAB3RSTlMAEREiI5mZ7G2d/AAAAIZJREFUeF7t0kEKwCAMRFG+m7v/29kFFCqECi4U+fMv5i1ZzKy1AUY9NDvFmDEGBQY4y7hQyREO72MTALaYTwDYI9gC2EMwAbBJ8AFwS/AEYEtgA+CWwAfgmIAVsK/bA0gI9gS0BPYA3gn2BLYE9gS2BHYE9gTuBHsCewL/A0Y9NDvFmDEGBQY4y1g+dcg3Jb2cAAAAAElFTkSuQmCC');
-    background-size: 30px 30px, 30px 30px, 50px 50px; 
+    background-size: 30px 30px, 30px 30px, 50px 50px;
     background-repeat: repeat, repeat, repeat;
 }
-body.design-mecha-manual::before { 
-    opacity: 0.02; 
-    background-size: 50px 50px; 
-}
-body.design-mecha-manual::after { 
+body.design-mecha-manual::before { display: none; }
+body.design-mecha-manual::after {
+    content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: repeating-linear-gradient(0deg, transparent 0, transparent 2px, rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.15) 4px);
-    opacity: 0.2;
-    animation: scanline-effect 120s linear infinite; 
+    opacity: 0.2; z-index: 1000; pointer-events: none;
+    animation: scanline-effect 120s linear infinite;
 }
 body.design-mecha-manual .container-90s {
-    border-image: none;
-    border: 1px solid var(--border-color);
-    box-shadow: 
-        inset 0 0 15px rgba(0,0,0,0.4), 
-        0px 0px 0px 1px var(--mecha-border-shadow), 
-        1px 1px 0px 1px var(--mecha-border-highlight), 
-        3px 3px 5px rgba(0,0,0,0.3); 
-    border-radius: 3px; 
-    backdrop-filter: blur(1.5px); 
-    background-color: var(--container-bg); 
+    border-image: none; border: 1px solid var(--border-color);
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.4), 0px 0px 0px 1px var(--mecha-border-shadow), 1px 1px 0px 1px var(--mecha-border-highlight), 3px 3px 5px rgba(0,0,0,0.3);
+    border-radius: 3px; backdrop-filter: blur(1.5px); background-color: var(--container-bg);
 }
-body.design-mecha-manual h1, 
-body.design-mecha-manual .app-title {
-    color: var(--text-secondary);
-    font-size: 26px; 
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    font-weight: normal;
-    padding: 5px 0;
-    margin-bottom: 5px;
-    text-shadow: 0 0 5px var(--text-secondary);
-    border-bottom: 1px solid var(--border-color);
-    border-top: 1px solid var(--border-color);
-    background-color: rgba(0,0,0,0.1); 
+body.design-mecha-manual h1, body.design-mecha-manual .app-title {
+    color: var(--text-secondary); font-size: 26px; letter-spacing: 2px; text-transform: uppercase; font-weight: normal;
+    padding: 5px 0; margin-bottom: 5px; text-shadow: 0 0 5px var(--text-secondary);
+    border-bottom: 1px solid var(--border-color); border-top: 1px solid var(--border-color); background-color: rgba(0,0,0,0.1);
 }
-body.design-mecha-manual .app-subtitle { 
-    color: var(--text-primary); 
-    opacity: 0.6; 
-    font-size: 14px; 
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
+body.design-mecha-manual .app-subtitle { color: var(--text-primary); opacity: 0.6; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; }
 body.design-mecha-manual h2 {
-    color: var(--text-secondary);
-    font-size: 16px; 
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    padding: 5px 8px; 
-    margin-bottom: 15px;
-    margin-top: 20px;
-    border-bottom: none;
-    background-color: var(--input-bg); 
-    border: 1px solid var(--border-color);
-    border-left: 3px solid var(--text-secondary); 
-    font-weight: normal;
-    text-shadow: none;
+    color: var(--text-secondary); font-size: 16px; letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 5px 8px; margin-bottom: 15px; margin-top: 20px; border-bottom: none;
+    background-color: var(--input-bg); border: 1px solid var(--border-color); border-left: 3px solid var(--text-secondary);
+    font-weight: normal; text-shadow: none;
 }
-body.design-mecha-manual h3 { 
-    font-size: 14px; 
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    border-bottom-style: solid; 
-    border-bottom-width: 1px;
-    border-bottom-color: var(--border-color);
-    color: var(--text-dim); 
-    margin-top: 2rem; 
-    font-weight: normal;
-    text-shadow: none;
+body.design-mecha-manual h3 {
+    font-size: 14px; letter-spacing: 1px; text-transform: uppercase; border-bottom-style: solid;
+    border-bottom-width: 1px; border-bottom-color: var(--border-color); color: var(--text-dim);
+    margin-top: 2rem; font-weight: normal; text-shadow: none;
 }
-body.design-mecha-manual .jp-subtitle { 
-    font-size: 12px; 
-    text-transform: uppercase; 
-    letter-spacing: 0.5px;
-    color: var(--text-dim);
-    opacity: 0.9;
-    margin-bottom: 8px; 
+body.design-mecha-manual .jp-subtitle { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); opacity: 0.9; margin-bottom: 8px; }
+body.design-mecha-manual .input-90s {
+    border-radius: 0px; border: 1px solid var(--mecha-border-shadow); border-top: 1px solid var(--mecha-border-highlight);
+    border-left: 1px solid var(--mecha-border-highlight); font-size: 16px; padding: 10px 12px;
+    background-color: var(--input-bg); box-shadow: inset 1px 1px 2px rgba(0,0,0,0.3); caret-color: var(--text-secondary);
 }
-body.design-mecha-manual .input-90s { 
-    border-radius: 0px; 
-    border: 1px solid var(--mecha-border-shadow); 
-    border-top: 1px solid var(--mecha-border-highlight);
-    border-left: 1px solid var(--mecha-border-highlight);
-    font-size: 16px; 
-    padding: 10px 12px;
-    background-color: var(--input-bg);
-    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.3); 
-    caret-color: var(--text-secondary);
-}
-body.design-mecha-manual .input-90s:focus { 
-    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.3), 0 0 0 1px var(--text-secondary); 
-    border-color: var(--text-secondary);
-    background-color: var(--input-bg-focus);
+body.design-mecha-manual .input-90s:focus {
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.3), 0 0 0 1px var(--text-secondary);
+    border-color: var(--text-secondary); background-color: var(--input-bg-focus);
 }
 body.design-mecha-manual .button-90s {
-    border-radius: 2px; 
-    font-size: 14px; 
-    padding: 10px 18px;
-    letter-spacing: 1px;
-    font-weight: normal; 
-    text-transform: uppercase;
-    color: var(--text-primary);
-    background-color: var(--input-bg); 
-    border: 1px solid var(--mecha-border-shadow);
-    border-top-color: var(--mecha-border-highlight);
-    border-left-color: var(--mecha-border-highlight);
-    box-shadow: 1px 1px 0px var(--mecha-border-highlight), 
-                -1px -1px 0px var(--mecha-border-shadow),
-                2px 2px 3px rgba(0,0,0,0.3); 
+    border-radius: 2px; font-size: 14px; padding: 10px 18px; letter-spacing: 1px; font-weight: normal; text-transform: uppercase;
+    color: var(--text-primary); background-color: var(--input-bg); border: 1px solid var(--mecha-border-shadow);
+    border-top-color: var(--mecha-border-highlight); border-left-color: var(--mecha-border-highlight);
+    box-shadow: 1px 1px 0px var(--mecha-border-highlight), -1px -1px 0px var(--mecha-border-shadow), 2px 2px 3px rgba(0,0,0,0.3);
     transition: transform 0.05s ease-out, box-shadow 0.05s ease-out, background-color 0.1s;
 }
 body.design-mecha-manual .button-90s:hover {
-    background-color: var(--input-bg-focus); 
-    color: var(--text-secondary); 
-    border-color: var(--text-secondary);
-    border-top-color: var(--mecha-border-highlight); 
-    border-left-color: var(--mecha-border-highlight);
-    animation: none; 
-    box-shadow: 1px 1px 0px var(--mecha-border-highlight), 
-                -1px -1px 0px var(--mecha-border-shadow),
-                3px 3px 5px rgba(0,0,0,0.4); 
+    background-color: var(--input-bg-focus); color: var(--text-secondary); border-color: var(--text-secondary);
+    border-top-color: var(--mecha-border-highlight); border-left-color: var(--mecha-border-highlight); animation: none;
+    box-shadow: 1px 1px 0px var(--mecha-border-highlight), -1px -1px 0px var(--mecha-border-shadow), 3px 3px 5px rgba(0,0,0,0.4);
 }
-body.design-mecha-manual .button-90s:active { 
-    background-color: var(--input-bg);
-    border-color: var(--mecha-border-highlight); 
-    border-top-color: var(--mecha-border-shadow);
-    border-left-color: var(--mecha-border-shadow);
-    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5); 
-    transform: translateY(1px) translateX(1px);
+body.design-mecha-manual .button-90s:active {
+    background-color: var(--input-bg); border-color: var(--mecha-border-highlight);
+    border-top-color: var(--mecha-border-shadow); border-left-color: var(--mecha-border-shadow);
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5); transform: translateY(1px) translateX(1px);
 }
 body.design-mecha-manual .nav-tabs {
-    border-bottom: 2px solid var(--mecha-border-shadow); 
-    background-color: var(--mecha-panel-bg); 
-    padding: 3px 3px 0 3px; 
-    border-radius: 2px 2px 0 0;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+    border-bottom: 2px solid var(--mecha-border-shadow); background-color: var(--mecha-panel-bg);
+    padding: 3px 3px 0 3px; border-radius: 2px 2px 0 0; box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
 }
 body.design-mecha-manual .nav-tab {
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border: 1px solid var(--border-color);
-    border-bottom: none;
-    border-top-left-radius: 3px;
-    border-top-right-radius: 3px;
-    margin: 0 2px -1px 2px; 
-    padding: 8px 12px;
-    background-color: var(--input-bg); 
-    color: var(--text-dim);
-    box-shadow: inset 0 1px 1px rgba(0,0,0,0.2);
-    position: relative;
+    font-size: 14px; text-transform: uppercase; letter-spacing: 1px; border: 1px solid var(--border-color);
+    border-bottom: none; border-top-left-radius: 3px; border-top-right-radius: 3px;
+    margin: 0 2px -1px 2px; padding: 8px 12px; background-color: var(--input-bg);
+    color: var(--text-dim); box-shadow: inset 0 1px 1px rgba(0,0,0,0.2); position: relative;
     transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
 }
-body.design-mecha-manual .nav-tab.active { 
-    background-color: var(--container-bg); 
-    color: var(--mecha-indicator-active); 
-    border-color: var(--border-color);
-    box-shadow: inset 0px 2px 0px var(--mecha-indicator-active), 
-                0 0 8px var(--mecha-indicator-active); 
-    z-index: 2; 
+body.design-mecha-manual .nav-tab.active {
+    background-color: var(--container-bg); color: var(--mecha-indicator-active); border-color: var(--border-color);
+    box-shadow: inset 0px 2px 0px var(--mecha-indicator-active), 0 0 8px var(--mecha-indicator-active); z-index: 2;
 }
-body.design-mecha-manual .nav-tab:not(.active):hover { 
-    background-color: var(--input-bg-focus); 
-    color: var(--text-primary); 
-    border-color: var(--border-color);
+body.design-mecha-manual .nav-tab:not(.active):hover { background-color: var(--input-bg-focus); color: var(--text-primary); border-color: var(--border-color); }
+body.design-mecha-manual .task-status {
+    border: 1px solid var(--text-dim); width: 16px; height: 16px; background-color: var(--input-bg);
+    border-radius: 0; box-shadow: inset 1px 1px 2px rgba(0,0,0,0.4);
 }
-body.design-mecha-manual .task-status { 
-    border: 1px solid var(--text-dim); 
-    width: 16px; 
-    height: 16px; 
-    background-color: var(--input-bg); 
-    border-radius: 0; 
-    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.4);
+body.design-mecha-manual .task-item-90s.completed .task-status {
+    background-color: var(--accent-danger); border-color: var(--accent-danger);
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.4), 0 0 5px var(--accent-danger);
 }
-body.design-mecha-manual .task-item-90s.completed .task-status { 
-    background-color: var(--accent-danger); 
-    border-color: var(--accent-danger);
-    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.4), 0 0 5px var(--accent-danger); 
+body.design-mecha-manual .priority-toggle.active { color: var(--mecha-indicator-active); text-shadow: 0 0 5px var(--mecha-indicator-active); }
+body.design-mecha-manual #taskList, body.design-mecha-manual #journalList, body.design-mecha-manual #aiChatHistory {
+    background-color: var(--mecha-panel-bg); border: 1px solid var(--border-color);
+    border-radius: 0; padding: 10px; box-shadow: inset 0 0 8px rgba(0,0,0,0.3);
 }
-body.design-mecha-manual .priority-toggle.active { 
-    color: var(--mecha-indicator-active); 
-    text-shadow: 0 0 5px var(--mecha-indicator-active);
-}
-body.design-mecha-manual #taskList, 
-body.design-mecha-manual #journalList,
-body.design-mecha-manual #aiChatHistory { 
-    background-color: var(--mecha-panel-bg); 
-    border: 1px solid var(--border-color);
-    border-radius: 0; 
-    padding: 10px;
-    box-shadow: inset 0 0 8px rgba(0,0,0,0.3);
-}
-body.design-mecha-manual .task-item-90s,
-body.design-mecha-manual .journal-day-entry {
-    border-bottom: 1px solid var(--border-color); 
-    padding: 10px 5px;
-}
-body.design-mecha-manual .journal-day-header p {
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-body.design-mecha-manual .toggle-indicator {
-    color: var(--text-secondary);
-}
-body.design-mecha-manual .scroller-accent { 
-    color: var(--text-secondary); 
-    text-shadow: 0 0 5px var(--text-secondary); 
-    animation: none; 
-}
-body.design-mecha-manual .status-scroller-container { /* Corrected ID to class */
-    border-radius: 0;
-}
+body.design-mecha-manual .task-item-90s, body.design-mecha-manual .journal-day-entry { border-bottom: 1px solid var(--border-color); padding: 10px 5px; }
+body.design-mecha-manual .journal-day-header p { text-transform: uppercase; letter-spacing: 0.5px; }
+body.design-mecha-manual .toggle-indicator { color: var(--text-secondary); }
+body.design-mecha-manual .scroller-accent { color: var(--text-secondary); text-shadow: 0 0 5px var(--text-secondary); animation: none; }
+body.design-mecha-manual .status-scroller-container { border-radius: 0; }
 body.design-mecha-manual #kaleidoscopeModal .container-90s,
 body.design-mecha-manual #categoryManagerModal .container-90s,
 body.design-mecha-manual #aiChatModal .container-90s {
-    border-image: none; 
-    border: 2px solid var(--border-color); 
-    background-color: var(--container-bg);
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 0 3px var(--mecha-border-shadow);
-    border-radius: 4px;
+    border-image: none; border: 2px solid var(--border-color); background-color: var(--container-bg);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 0 3px var(--mecha-border-shadow); border-radius: 4px;
 }
-body.design-mecha-manual #kaleidoscopeModal h2,
-body.design-mecha-manual #categoryManagerModal h2,
-body.design-mecha-manual #aiChatModal h2 {
-    background-color: transparent; 
-    border-left: none;
-    text-align: center; 
+body.design-mecha-manual #kaleidoscopeModal h2, body.design-mecha-manual #categoryManagerModal h2, body.design-mecha-manual #aiChatModal h2 {
+    background-color: transparent; border-left: none; text-align: center;
 }
-body.design-mecha-manual #feedbackBox { 
-    background-color: var(--text-secondary); 
-    color: var(--background-main); 
-    border: 1px solid var(--text-secondary);
-    font-size: 14px; 
-    padding: 8px 15px; 
-    border-radius: 1px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+body.design-mecha-manual #feedbackBox {
+    background-color: var(--text-secondary); color: var(--background-main); border: 1px solid var(--text-secondary);
+    font-size: 14px; padding: 8px 15px; border-radius: 1px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
 body.design-mecha-manual .theme-button { font-size: 12px; padding: 6px 12px; }
-body.design-mecha-manual .design-button.active, 
-body.design-mecha-manual .palette-button.active { 
-    background-color: var(--text-secondary); 
-    color: var(--background-main); 
-    border-color: var(--text-secondary);
+body.design-mecha-manual .design-button.active, body.design-mecha-manual .palette-button.active {
+    background-color: var(--text-secondary); color: var(--background-main); border-color: var(--text-secondary);
     box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
 }
-
 
 /* --- DESIGN: Goblins Ledger --- */
 body.design-goblins-ledger {
     --font-fantasy: 'MedievalSharp', cursive;
-    --parchment-bg: #f3efde; 
-    --parchment-darker: #eaddc7; 
-    --ink-main: #4a3b31; 
-    --ink-secondary: #6d5447; 
-    --border-fantasy: #7a6252; 
-    --accent-fantasy-primary: #8c1717; 
-    --accent-fantasy-secondary: #b08d57; /* Muted gold */
-
     font-family: var(--font-fantasy);
-    background-color: var(--parchment-darker);
-    color: var(--ink-main);
-    text-shadow: none; 
-
-    background-image: 
+    background-color: var(--background-main); /* Corrected: Rely on palette */
+    color: var(--text-primary); /* Corrected: Rely on palette */
+    text-shadow: none;
+    background-image:
       radial-gradient(ellipse at center, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.1) 100%),
-      url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEsAAABLCAYAAAA4TnrqAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOxAAADsQBlSsOGwAAABl0RVh0U29mdHdhcmUAcGFpbnQubmV0IDQuMC4yMfEgaGUAAAFMSURBVHja7NsxSgNBFAbg9/cmhdoYERsbG9vY+1uIEQahlSBBNLEzFpYpUixtxN7GJo2FiZ/C3sXchX3+4A+H8L7b6xwMAAAAAAAAAAAAAAD4n5KkLMtz/YYpSXrvR9Fpmlar/c3bHkfccM/G9J9nhRB0yiyDqmlSWYY0TWJIAYQQ3nHQDRgAGAAKMACsCBAAjAAWAIEAcAJYACAAnAAWAIEA8AJYABAAnkSbpj03fV+3bQOApmkS8/q/wDDAAMAAoABjQIEA6ARwAlhYBAA+gFwAFgKACeACYAFgAJwAVgCAAHAOWAEAADgDLLYAAMC0TBIEQBqDUABoAgQB0DQGAaAFGARAAxjwBACaM8shgBBDgBFABBAAgQAwARwAIgEAQwAZgCAGAMAEAJghgAAAEMgIYAKYBAAAAAAA8G3gD+H1bH3/e+0LAAAAAElFTkSuQmCC'); /* Subtle parchment texture */
+      url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEsAAABLCAYAAAA4TnrqAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOxAAADsQBlSsOGwAAABl0RVh0U29mdHdhcmUAcGFpbnQubmV0IDQuMC4yMfEgaGUAAAFMSURBVHja7NsxSgNBFAbg9/cmhdoYERsbG9vY+1uIEQahlSBBNLEzFpYpUixtxN7GJo2FiZ/C3sXchX3+4A+H8L7b6xwMAAAAAAAAAAAAAAD4n5KkLMtz/YYpSXrvR9Fpmlar/c3bHkfccM/G9J9nhRB0yiyDqmlSWYY0TWJIAYQQ3nHQDRgAGAAKMACsCBAAjAAWAIEAcAJYACAAnAAWAIEA8AJYABAAnkSbpj03fV+3bQOApmkS8/q/wDDAAMAAoABjQIEA6ARwAlhYBAA+gFwAFgKACeACYAFgAJwAVgCAAHAOWAEAADgDLLYAAMC0TBIEQBqDUABoAgQB0DQGAaAFGARAAxjwBACaM8shgBBDgBFABBAAgQAwARwAIgEAQwAZgCAGAMAEAJghgAAAEMgIYAKYBAAAAAAA8G3gD+H1bH3/e+0LAAAAAElFTkSuQmCC');
     background-repeat: repeat, repeat;
     background-size: auto, 100px 100px;
     background-blend-mode: multiply, normal;
 }
-body.design-goblins-ledger::before, body.design-goblins-ledger::after {
-    display: none; 
-}
+body.design-goblins-ledger::before, body.design-goblins-ledger::after { display: none; }
 body.design-goblins-ledger .container-90s {
-    border-image: none; 
-    border: 3px solid var(--border-fantasy);
-    border-radius: 5px; 
-    background-color: var(--parchment-bg); 
-    box-shadow: 5px 5px 15px rgba(0,0,0,0.3); 
-    padding: 25px 30px; 
+    border-image: none;
+    border: 4px double var(--border-color); /* Changed to double border */
+    border-radius: 5px;
+    background-color: var(--container-bg);
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
+    padding: 25px 30px;
 }
-body.design-goblins-ledger h1, 
-body.design-goblins-ledger .app-title {
+body.design-goblins-ledger h1, body.design-goblins-ledger .app-title {
     font-family: var(--font-fantasy);
-    color: var(--ink-main);
-    font-size: 36px; 
-    text-shadow: 1px 1px 0px var(--parchment-darker); 
+    color: var(--text-primary);
+    font-size: 36px;
+    text-shadow: 1px 1px 0px var(--background-main); /* Shadow with background */
     margin-bottom: 10px;
-    text-transform: capitalize; 
-    border-bottom: 2px solid var(--border-fantasy);
+    text-transform: capitalize;
+    border-bottom: 2px solid var(--border-color);
     padding-bottom: 5px;
 }
-body.design-goblins-ledger .app-subtitle { 
+body.design-goblins-ledger .app-subtitle {
     font-family: var(--font-fantasy);
-    color: var(--ink-secondary); 
-    font-size: 16px; 
+    color: var(--text-secondary);
+    font-size: 16px;
     margin-bottom: 25px;
     font-style: italic;
 }
 body.design-goblins-ledger h2 {
     font-family: var(--font-fantasy);
-    color: var(--ink-main);
-    font-size: 24px; 
-    border-bottom: 1px solid var(--border-fantasy);
+    color: var(--text-primary);
+    font-size: 24px;
+    border-bottom: 1px solid var(--border-color);
     text-shadow: none;
     padding-bottom: 6px;
     margin-bottom: 18px;
     text-align: left;
     font-weight: normal;
 }
-body.design-goblins-ledger h3 { 
+body.design-goblins-ledger h3 {
     font-family: var(--font-fantasy);
-    font-size: 18px; 
-    color: var(--ink-secondary);
+    font-size: 18px;
+    color: var(--text-secondary);
     text-shadow: none;
-    border-bottom: 1px dashed var(--border-fantasy);
-    margin-top: 2rem; 
+    border-bottom: 1px dashed var(--border-color);
+    margin-top: 2rem;
     margin-bottom: 0.8rem;
     font-weight: normal;
 }
-body.design-goblins-ledger .jp-subtitle { 
+body.design-goblins-ledger .jp-subtitle {
     font-family: var(--font-fantasy);
-    font-size: 14px; 
-    color: var(--ink-secondary);
+    font-size: 14px;
+    color: var(--text-dim);
     opacity: 0.8;
     font-style: italic;
 }
-body.design-goblins-ledger .input-90s { 
+body.design-goblins-ledger .input-90s {
     font-family: var(--font-fantasy);
-    border-radius: 2px; 
-    border: 1px solid var(--border-fantasy); 
-    font-size: 17px; 
-    background-color: rgba(255,253,247,0.6); /* Lighter on parchment */
-    color: var(--ink-main);
+    border-radius: 2px;
+    border: 2px inset var(--border-color); /* Changed to inset */
+    font-size: 17px;
+    background-color: var(--input-bg);
+    color: var(--text-primary);
     padding: 10px;
     box-shadow: inset 1px 1px 2px rgba(0,0,0,0.15);
-    caret-color: var(--ink-main);
+    caret-color: var(--text-primary);
 }
-body.design-goblins-ledger .input-90s:focus { 
-    border-color: var(--ink-main);
-    background-color: rgba(255,253,247,0.8);
-    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.15), 0 0 4px var(--accent-fantasy-secondary); 
+body.design-goblins-ledger .input-90s:focus {
+    border-color: var(--text-primary);
+    background-color: var(--input-bg-focus);
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.15), 0 0 4px var(--accent-secondary);
 }
-body.design-goblins-ledger .input-90s::placeholder { color: var(--ink-secondary); opacity: 0.7; }
-
+body.design-goblins-ledger .input-90s::placeholder { color: var(--text-dim); opacity: 0.7; }
 body.design-goblins-ledger .button-90s {
     font-family: var(--font-fantasy);
-    border-radius: 3px; 
-    font-size: 16px; 
-    color: var(--parchment-bg);
-    background-color: var(--ink-secondary); 
-    border: 1px solid var(--ink-main);
+    border-radius: 3px;
+    font-size: 16px;
+    color: var(--container-bg);
+    background-color: var(--text-secondary);
+    border: 1px solid var(--text-primary);
     border-bottom-width: 2px;
     border-right-width: 2px;
     padding: 8px 18px;
     text-shadow: 1px 1px 0px rgba(0,0,0,0.2);
-    box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    box-shadow: 2px 2px 0px var(--text-primary), -1px -1px 0px var(--input-bg); /* Embossed */
     text-transform: capitalize;
 }
 body.design-goblins-ledger .button-90s:hover {
-    background-color: var(--accent-fantasy-primary); 
-    border-color: var(--ink-main);
-    color: var(--parchment-bg); 
+    background-color: var(--accent-primary);
+    border-color: var(--accent-secondary);
+    color: var(--container-bg);
     animation: none;
-    box-shadow: 2px 2px 3px rgba(0,0,0,0.3);
+    box-shadow: 2px 2px 3px rgba(0,0,0,0.3), -1px -1px 0px var(--input-bg);
 }
-body.design-goblins-ledger .button-90s:active { 
-    background-color: var(--ink-main);
-    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.4); 
+body.design-goblins-ledger .button-90s:active {
+    background-color: var(--accent-primary);
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.4);
     transform: translateY(1px);
 }
-body.design-goblins-ledger .nav-tabs {
-    border-bottom: 1px solid var(--border-fantasy); 
-    margin-bottom: 20px;
-    padding-left: 0; 
-}
+body.design-goblins-ledger .nav-tabs { border-bottom: 1px solid var(--border-color); margin-bottom: 20px; padding-left: 0; }
 body.design-goblins-ledger .nav-tab {
-    font-family: var(--font-fantasy);
-    font-size: 17px;
-    color: var(--ink-secondary);
-    border: 1px solid transparent;
-    border-bottom: 1px solid var(--border-fantasy);
-    padding: 6px 12px;
-    margin-right: 5px;
-    text-transform: capitalize;
-    position: relative;
-    background-color: var(--parchment-darker);
-    border-top-left-radius: 3px;
-    border-top-right-radius: 3px;
+    font-family: var(--font-fantasy); font-size: 17px; color: var(--text-secondary);
+    border: 1px solid transparent; border-bottom: 1px solid var(--border-color);
+    padding: 6px 12px; margin-right: 5px; text-transform: capitalize; position: relative;
+    background-color: var(--input-bg); border-top-left-radius: 3px; border-top-right-radius: 3px;
 }
-body.design-goblins-ledger .nav-tab.active { 
-    color: var(--ink-main); 
-    font-weight: normal; 
-    border-color: var(--border-fantasy);
-    border-bottom-color: var(--parchment-bg); /* Match container to "cut out" bottom border */
-    background-color: var(--parchment-bg); 
+body.design-goblins-ledger .nav-tab.active {
+    color: var(--text-primary); font-weight: normal; border-color: var(--border-color);
+    border-bottom-color: var(--container-bg); background-color: var(--container-bg);
 }
-body.design-goblins-ledger .nav-tab:hover:not(.active) { 
-    color: var(--ink-main); 
-    background-color: var(--parchment-bg);
-    border-color: var(--border-fantasy);
-    border-bottom-color: var(--border-fantasy);
+body.design-goblins-ledger .nav-tab:hover:not(.active) {
+    color: var(--text-primary); background-color: var(--container-bg);
+    border-color: var(--border-color); border-bottom-color: var(--border-color);
 }
-body.design-goblins-ledger .task-status { 
-    border: 1px solid var(--ink-secondary); 
-    background-color: transparent;
-    border-radius: 2px; 
-    width: 17px; height: 17px;
+body.design-goblins-ledger .task-status {
+    border: 1px solid var(--text-secondary); background-color: transparent;
+    border-radius: 2px; width: 17px; height: 17px;
 }
-body.design-goblins-ledger .task-item-90s.completed .task-status { 
-    background-color: var(--ink-secondary); 
-    border-color: var(--ink-main);
-}
+body.design-goblins-ledger .task-item-90s.completed .task-status { background-color: var(--text-secondary); border-color: var(--text-primary); }
 body.design-goblins-ledger .task-item-90s.completed .task-status::before {
-    content: '\\2713'; /* Checkmark */
-    color: var(--parchment-bg);
-    position: absolute;
-    left: 50%; top: 45%;
-    transform: translate(-50%, -50%);
-    font-size: 14px;
-    font-weight: bold;
+    content: '\\2713'; color: var(--container-bg); position: absolute;
+    left: 50%; top: 45%; transform: translate(-50%, -50%); font-size: 14px; font-weight: bold;
 }
-body.design-goblins-ledger .priority-toggle { font-size: 20px; color: var(--ink-secondary); }
-body.design-goblins-ledger .priority-toggle.active { color: var(--accent-fantasy-primary); }
-body.design-goblins-ledger .delete-btn-90s { color: var(--accent-fantasy-primary); font-size: 16px; }
-body.design-goblins-ledger .delete-btn-90s:hover { color: var(--ink-main); }
+body.design-goblins-ledger .priority-toggle { font-size: 20px; color: var(--text-secondary); }
+body.design-goblins-ledger .priority-toggle.active { color: var(--accent-primary); }
+body.design-goblins-ledger .delete-btn-90s { color: var(--accent-primary); font-size: 16px; }
+body.design-goblins-ledger .delete-btn-90s:hover { color: var(--text-primary); }
 
-body.design-goblins-ledger #taskList, 
-body.design-goblins-ledger #journalList,
-body.design-goblins-ledger #aiChatHistory { 
-    background-color: rgba(0,0,0,0.02); 
-    border: 1px dashed var(--border-fantasy);
-    border-radius: 2px;
-    padding: 12px;
+body.design-goblins-ledger #taskList, body.design-goblins-ledger #journalList, body.design-goblins-ledger #aiChatHistory {
+    background-color: rgba(0,0,0,0.02); border: 1px dashed var(--border-color);
+    border-radius: 2px; padding: 12px;
 }
-body.design-goblins-ledger .task-item-90s,
-body.design-goblins-ledger .journal-day-entry {
-    border-bottom: 1px dotted var(--border-fantasy); 
-    padding: 10px 0;
-}
+body.design-goblins-ledger .task-item-90s, body.design-goblins-ledger .journal-day-entry { border-bottom: 1px dotted var(--border-color); padding: 10px 0; }
 body.design-goblins-ledger .journal-day-header p { font-size: 18px; }
-body.design-goblins-ledger .toggle-indicator { color: var(--ink-secondary); font-size: 18px; }
-body.design-goblins-ledger #journalStreakDisplay { color: var(--ink-main); font-size: 20px; }
-body.design-goblins-ledger #journalHeatmapContainer { border: 1px solid var(--border-fantasy); background-color: var(--parchment-darker); }
-body.design-goblins-ledger .heatmap-day { background-color: var(--parchment-bg); border: 1px solid var(--border-fantasy); border-radius: 1px; }
-body.design-goblins-ledger .heatmap-day.active { background-color: var(--accent-fantasy-secondary); box-shadow: inset 0 0 2px var(--ink-main); }
-body.design-goblins-ledger .theme-switcher-container h4 { color: var(--ink-main); font-size: 18px; }
+body.design-goblins-ledger .toggle-indicator { color: var(--text-secondary); font-size: 18px; }
+body.design-goblins-ledger #journalStreakDisplay { color: var(--text-primary); font-size: 20px; }
+body.design-goblins-ledger #journalHeatmapContainer { border: 1px solid var(--border-color); background-color: var(--input-bg); }
+body.design-goblins-ledger .heatmap-day { background-color: var(--container-bg); border: 1px solid var(--border-color); border-radius: 1px; }
+body.design-goblins-ledger .heatmap-day.active { background-color: var(--accent-secondary); box-shadow: inset 0 0 2px var(--text-primary); }
+body.design-goblins-ledger .theme-switcher-container h4 { color: var(--text-primary); font-size: 18px; }
 body.design-goblins-ledger #kaleidoscopeModal .container-90s,
 body.design-goblins-ledger #categoryManagerModal .container-90s,
 body.design-goblins-ledger #aiChatModal .container-90s {
-    background-color: var(--parchment-darker);
-    border: 2px solid var(--ink-main);
+    background-color: var(--container-bg); border: 2px solid var(--text-primary);
     box-shadow: 3px 3px 8px rgba(0,0,0,0.4);
 }
-body.design-goblins-ledger #kaleidoscopeModal h2,
-body.design-goblins-ledger #categoryManagerModal h2,
-body.design-goblins-ledger #aiChatModal h2 {
-    color: var(--ink-main);
-    border-bottom-color: var(--border-fantasy);
+body.design-goblins-ledger #kaleidoscopeModal h2, body.design-goblins-ledger #categoryManagerModal h2, body.design-goblins-ledger #aiChatModal h2 {
+    color: var(--text-primary); border-bottom-color: var(--border-color);
 }
 body.design-goblins-ledger #kSymmetrySlider { filter: sepia(0.4) contrast(0.9) brightness(0.95); }
-body.design-goblins-ledger .status-scroller-container { display: none; } /* Hide scroller for this theme */
-body.design-goblins-ledger #feedbackBox { 
-    background-color: var(--ink-secondary); color: var(--parchment-bg); 
-    border: 1px solid var(--ink-main); border-radius: 2px;
+body.design-goblins-ledger .status-scroller-container { display: none; }
+body.design-goblins-ledger #feedbackBox {
+    background-color: var(--text-secondary); color: var(--container-bg);
+    border: 1px solid var(--text-primary); border-radius: 2px;
     font-size: 15px; padding: 8px 15px; box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
 }
 
 
 /* --- PALETTE Definitions (Colors Only) --- */
+/* Wired Design Palettes */
 body.palette-cyber-default {
     --background-main: #1a1a1d; --container-bg: rgba(26, 26, 29, 0.75);
     --input-bg: #2c2c31; --input-bg-focus: #3a3a41;
@@ -533,50 +351,124 @@ body.palette-lain {
     --background-main: #181818; --container-bg: rgba(10, 10, 10, 0.8);
     --input-bg: #222222; --input-bg-focus: #303030;
     --text-primary: #EAEAEA; --text-secondary: #B0B0B0; --text-dim: #666666;
-    --accent-primary: #D13030; --accent-secondary: #B0B0B0; --accent-danger: #D13030; 
+    --accent-primary: #D13030; --accent-secondary: #B0B0B0; --accent-danger: #D13030;
     --border-color: #383838;
 }
-body.palette-bebop {
-    --background-main: #0c142c; --container-bg: rgba(12, 20, 44, 0.8);
-    --input-bg: #1a233f; --input-bg-focus: #253050;
-    --text-primary: #ffcc00; --text-secondary: #4a90e2; --text-dim: #8a98b0;
-    --accent-primary: #e24a90; --accent-secondary: #4a90e2; --accent-danger: #d0021b; 
-    --border-color: #2a3a60;
+body.palette-bebop-jazz {
+    --background-main: #0A101E; --container-bg: rgba(16, 24, 40, 0.85);
+    --input-bg: #1C2A44; --input-bg-focus: #2A3F64;
+    --text-primary: #FFD700; --text-secondary: #E87B3E; --text-dim: #A0AEC0;
+    --accent-primary: #C70039; --accent-secondary: #00BFFF; --accent-danger: #D32F2F;
+    --border-color: #2C3E50;
 }
-body.palette-ghost {
-    --background-main: #1E2228; --container-bg: rgba(40, 45, 52, 0.8);
-    --input-bg: #2c313a; --input-bg-focus: #383e48;
-    --text-primary: #FF9900; --text-secondary: #66F6FF; --text-dim: #808a99;
-    --accent-primary: #FF9900; --accent-secondary: #66F6FF; --accent-danger: #FF2D55; 
-    --border-color: #576574;
+body.palette-ghost-protocol {
+    --background-main: #1C252C; --container-bg: rgba(35, 45, 55, 0.85);
+    --input-bg: #2D3741; --input-bg-focus: #3E4A59;
+    --text-primary: #A8DADC; --text-secondary: #457B9D; --text-dim: #718096;
+    --accent-primary: #E63946; --accent-secondary: #F1FAEE; --accent-danger: #D90429;
+    --border-color: #34495E;
 }
-body.palette-kaido {
-    --background-main: #fcf3d0; --container-bg: rgba(210, 180, 140, 0.8);
-    --input-bg: #e6d8b6; --input-bg-focus: #d2b48c; 
-    --text-primary: #4a3b31; --text-secondary: #005A9C; --text-dim: #7d6b5a; 
-    --accent-primary: #9e4242; --accent-secondary: #005A9C; --accent-danger: #c73e3e; 
-    --border-color: #a58e71;
+body.palette-neon-noir {
+    --background-main: #1A1229; --container-bg: rgba(30, 20, 50, 0.8);
+    --input-bg: #2A203D; --input-bg-focus: #3B2A54;
+    --text-primary: #DA00FF; --text-secondary: #00F0FF; --text-dim: #746A8A;
+    --accent-primary: #9F00FF; --accent-secondary: #39FF14; --accent-danger: #FF1D58;
+    --border-color: #2E1A47;
 }
-body.palette-mecha-amber { 
-    --background-main: #222831; --container-bg: rgba(40, 45, 55, 0.85);
-    --input-bg: #393E46; --input-bg-focus: #4A505A;
-    --text-primary: #EEEEEE; --text-secondary: #FFD369; --text-dim: #888B93;
-    --accent-primary: #E57373; --accent-secondary: #64B5F6; --accent-danger: #EF5350;
-    --border-color: #616A78;
+
+/* Mecha Manual Design Palettes */
+body.palette-mecha-hangar {
+    --background-main: #D1D5DB; --container-bg: rgba(229, 231, 235, 0.85);
+    --input-bg: #E5E7EB; --input-bg-focus: #F3F4F6;
+    --text-primary: #1F2937; --text-secondary: #F59E0B; --text-dim: #6B7280;
+    --accent-primary: #EF4444; --accent-secondary: #6B7280; --accent-danger: #DC2626;
+    --border-color: #4B5563;
 }
-body.palette-parchment-ink {
-    /* These will be primarily used by design-goblins-ledger, but defined here for consistency */
-    --background-main: #e0cfb0;         /* Aged paper */
-    --container-bg: #f3efde;             /* Lighter parchment for main content area */
-    --input-bg: #faf5e9;                 /* Even lighter for input fields */
-    --input-bg-focus: #ffffff;           /* Brightest white for focus */
-    --text-primary: #4a3b31;             /* Dark brown ink */
-    --text-secondary: #6d5447;           /* Medium brown ink */
-    --text-dim: #8c7868;                 /* Light brown/sepia for dim text */
-    --accent-primary: #8c1717;           /* Deep red like old wax or bloodstain */
-    --accent-secondary: #b08d57;         /* Muted old gold/brass */
-    --accent-danger: #7c0000;            /* Darker, more sinister red for danger */
-    --border-color: #7a6252;             /* Dark leather/wood brown for borders */
+body.palette-mecha-olive-drab {
+    --background-main: #EAE7DC; --container-bg: rgba(240, 238, 230, 0.85);
+    --input-bg: #D1CEC2; --input-bg-focus: #C1BFB4;
+    --text-primary: #3D403A; --text-secondary: #8C8C83; --text-dim: #A1A198;
+    --accent-primary: #D08C60; --accent-secondary: #C7C4B4; --accent-danger: #B85C30;
+    --border-color: #5A6351;
+}
+body.palette-mecha-heavy-industry {
+    --background-main: #2C3539; --container-bg: rgba(40, 50, 55, 0.88);
+    --input-bg: #384044; --input-bg-focus: #454F54;
+    --text-primary: #E0E0E0; --text-secondary: #FF9900; --text-dim: #97A0A5;
+    --accent-primary: #D32F2F; --accent-secondary: #B0BEC5; --accent-danger: #E53935;
+    --border-color: #546E7A;
+}
+body.palette-mecha-system-alert { /* Renamed from v2 */
+    --background-main: #2E0C0C; --container-bg: rgba(40, 20, 20, 0.8);
+    --input-bg: #4A2525; --input-bg-focus: #5A3030;
+    --text-primary: #BEBDBD; --text-secondary: #FF8C00; --text-dim: #7F7070;
+    --accent-primary: #FF4500; --accent-secondary: #A0A0A0; --accent-danger: #CC0000;
+    --border-color: #6B3030;
+}
+body.palette-mecha-digital-hazard { /* Renamed from v2 */
+    --background-main: #0F172A; --container-bg: rgba(20, 30, 50, 0.82);
+    --input-bg: #1E293B; --input-bg-focus: #334155;
+    --text-primary: #6EE7B7; --text-secondary: #FACC15; --text-dim: #94A3B8;
+    --accent-primary: #FACC15; --accent-secondary: #38BDF8; --accent-danger: #DC2626;
+    --border-color: #475569;
+}
+
+
+/* Goblins Ledger Design Palettes */
+body.palette-goblin-royal-decree {
+    --_parchment-bg: #FDF5E6; --_parchment-darker: #F5ECCE;
+    --_ink-main: #001F3F; --_ink-secondary: #B8860B; --_ink-dim: #704214;
+    --_accent-fantasy-primary: #8B0000; --_accent-fantasy-secondary: #DAA520; --_accent-fantasy-danger: #A40000;
+    --_border-fantasy: #704214;
+    --background-main: var(--_parchment-darker); --container-bg: var(--_parchment-bg);
+    --input-bg: rgba(253, 245, 230, 0.7); --input-bg-focus: rgba(253, 245, 230, 0.9);
+    --text-primary: var(--_ink-main); --text-secondary: var(--_ink-secondary); --text-dim: var(--_ink-dim);
+    --accent-primary: var(--_accent-fantasy-primary); --accent-secondary: var(--_accent-fantasy-secondary); --accent-danger: var(--_accent-fantasy-danger);
+    --border-color: var(--_border-fantasy);
+}
+body.palette-goblin-forest-map {
+    --_parchment-bg: #E8DDCB; --_parchment-darker: #D6C8B0;
+    --_ink-main: #3A2E27; --_ink-secondary: #225022; --_ink-dim: #5D4037;
+    --_accent-fantasy-primary: #800020; --_accent-fantasy-secondary: #A0522D; --_accent-fantasy-danger: #6E001A;
+    --_border-fantasy: #5D4037;
+    --background-main: var(--_parchment-darker); --container-bg: var(--_parchment-bg);
+    --input-bg: rgba(232, 221, 203, 0.7); --input-bg-focus: rgba(232, 221, 203, 0.9);
+    --text-primary: var(--_ink-main); --text-secondary: var(--_ink-secondary); --text-dim: var(--_ink-dim);
+    --accent-primary: var(--_accent-fantasy-primary); --accent-secondary: var(--_accent-fantasy-secondary); --accent-danger: var(--_accent-fantasy-danger);
+    --border-color: var(--_border-fantasy);
+}
+body.palette-goblin-ancient-tome { /* Reworked for better text diff */
+    --_parchment-bg: #C6B9A5; --_parchment-darker: #B4A894;
+    --_ink-main: #4A3B31; --_ink-secondary: #785C4A; --_ink-dim: #A8988A;
+    --_accent-fantasy-primary: #9C2B27; --_accent-fantasy-secondary: #B08D57; --_accent-fantasy-danger: #7D281F;
+    --_border-fantasy: #604E42;
+    --background-main: var(--_parchment-darker); --container-bg: var(--_parchment-bg);
+    --input-bg: rgba(198, 185, 165, 0.7); --input-bg-focus: rgba(198, 185, 165, 0.9);
+    --text-primary: var(--_ink-main); --text-secondary: var(--_ink-secondary); --text-dim: var(--_ink-dim);
+    --accent-primary: var(--_accent-fantasy-primary); --accent-secondary: var(--_accent-fantasy-secondary); --accent-danger: var(--_accent-fantasy-danger);
+    --border-color: var(--_border-fantasy);
+}
+body.palette-goblin-shield-scroll { /* Reworked for better text diff */
+    --_parchment-bg: #EAE6DA; --_parchment-darker: #DCD5C8;
+    --_ink-main: #2C3E50; --_ink-secondary: #5D6D7E; --_ink-dim: #ABB2B9;
+    --_accent-fantasy-primary: #C0C0C0; --_accent-fantasy-secondary: #4A708B; --_accent-fantasy-danger: #9B2C2C;
+    --_border-fantasy: #5A6673;
+    --background-main: var(--_parchment-darker); --container-bg: var(--_parchment-bg);
+    --input-bg: rgba(234, 230, 218, 0.7); --input-bg-focus: rgba(234, 230, 218, 0.9);
+    --text-primary: var(--_ink-main); --text-secondary: var(--_ink-secondary); --text-dim: var(--_ink-dim);
+    --accent-primary: var(--_accent-fantasy-primary); --accent-secondary: var(--_accent-fantasy-secondary); --accent-danger: var(--_accent-fantasy-danger);
+    --border-color: var(--_border-fantasy);
+}
+body.palette-goblin-herbalist-notes { /* Reworked for better text diff */
+    --_parchment-bg: #FAF8F0; --_parchment-darker: #F0EBE0;
+    --_ink-main: #223A1B; --_ink-secondary: #6B8E23; --_ink-dim: #A9B9A2;
+    --_accent-fantasy-primary: #8B4513; --_accent-fantasy-secondary: #E4D4A4; --_accent-fantasy-danger: #A0522D;
+    --_border-fantasy: #553E2F;
+    --background-main: var(--_parchment-darker); --container-bg: var(--_parchment-bg);
+    --input-bg: rgba(250, 248, 240, 0.7); --input-bg-focus: rgba(250, 248, 240, 0.9);
+    --text-primary: var(--_ink-main); --text-secondary: var(--_ink-secondary); --text-dim: var(--_ink-dim);
+    --accent-primary: var(--_accent-fantasy-primary); --accent-secondary: var(--_accent-fantasy-secondary); --accent-danger: var(--_accent-fantasy-danger);
+    --border-color: var(--_border-fantasy);
 }
 
 
@@ -597,7 +489,6 @@ body.palette-parchment-ink {
 @keyframes scanline-effect { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
 @keyframes crt-flicker { 0%, 100% { opacity: 0.9; } 5%, 15%, 25% { opacity: 0.95; } 10%, 20% { opacity: 0.85; } 30% { opacity: 0.9; } 80% { opacity: 0.92; } }
 
-/* ADDED for Goblins Ledger Title Fade */
 @keyframes simpleFadeIn {
     from { opacity: 0; transform: translateY(3px); }
     to { opacity: 1; transform: translateY(0); }
@@ -612,7 +503,7 @@ body {
     font-family: var(--font-main); background-color: var(--background-main);
     color: var(--text-primary); padding-top: 10px; overflow-x: hidden;
     animation: fadeIn 1s ease-in-out;
-    transition: background-color 0.3s, color 0.3s; 
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .container-90s {
@@ -620,9 +511,6 @@ body {
     padding: 20px; width: 95%; max-width: 650px;
     margin: 20px auto; position: relative; z-index: 10;
 }
-#appContainer { /* This animation applies to all themes */
-    /* animation: flickerIn 0.7s ease-in-out forwards;  Might be too much with theme specific load-ins */
-} 
 .hidden { display: none; }
 
 h1, .app-title { font-size: 32px; text-align: center; color: var(--text-primary); margin-bottom: 0px; text-transform: uppercase; }
@@ -673,9 +561,9 @@ h3 { font-size: 18px; text-align: left; margin-top: 1.5rem; margin-bottom: 0.5re
 #journalHeatmapContainer { display: grid; grid-template-columns: repeat(15, 1fr); gap: 4px; padding: 10px; border: 1px solid var(--border-color); }
 .heatmap-day { aspect-ratio: 1 / 1; background-color: var(--input-bg); }
 .heatmap-day.active { background-color: var(--accent-primary); }
-.theme-switcher-container { display: flex; flex-direction: column; gap: 10px; } 
+.theme-switcher-container { display: flex; flex-direction: column; gap: 10px; }
 .design-selector-container, .palette-selector-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-.theme-button { padding: 4px 8px; font-size: 14px; } 
+.theme-button { padding: 4px 8px; font-size: 14px; }
 .design-button.active, .palette-button.active { background-color: var(--text-primary); color: var(--background-main); border-color: var(--text-primary); }
 #kaleidoscopeModal { background-color: rgba(0,0,0,0.8); }
 #kaleidoscopeModal .container-90s { background-color: var(--background-main); }
@@ -703,22 +591,27 @@ h3 { font-size: 18px; text-align: left; margin-top: 1.5rem; margin-bottom: 0.5re
 
 /* Mobile Optimizations for text-shadows based on design+palette */
 @media (max-width: 768px) {
-    body.design-wired.palette-cyber-default h1, 
-    body.design-wired.palette-cyber-default .app-title, 
-    body.design-wired.palette-cyber-default h2, 
-    body.design-wired.palette-cyber-default h3, 
+    body.design-wired.palette-cyber-default h1,
+    body.design-wired.palette-cyber-default .app-title,
+    body.design-wired.palette-cyber-default h2,
+    body.design-wired.palette-cyber-default h3,
     body.design-wired.palette-cyber-default .scroller-accent,
-    body.design-wired.palette-bebop h1, 
-    body.design-wired.palette-bebop .app-title, 
-    body.design-wired.palette-bebop h2, 
-    body.design-wired.palette-bebop h3, 
-    body.design-wired.palette-bebop .scroller-accent,
-    body.design-wired.palette-ghost h1, 
-    body.design-wired.palette-ghost .app-title, 
-    body.design-wired.palette-ghost h2, 
-    body.design-wired.palette-ghost h3, 
-    body.design-wired.palette-ghost .scroller-accent {
+    body.design-wired.palette-bebop-jazz h1,
+    body.design-wired.palette-bebop-jazz .app-title,
+    body.design-wired.palette-bebop-jazz h2,
+    body.design-wired.palette-bebop-jazz h3,
+    body.design-wired.palette-bebop-jazz .scroller-accent,
+    body.design-wired.palette-ghost-protocol h1,
+    body.design-wired.palette-ghost-protocol .app-title,
+    body.design-wired.palette-ghost-protocol h2,
+    body.design-wired.palette-ghost-protocol h3,
+    body.design-wired.palette-ghost-protocol .scroller-accent,
+    body.design-wired.palette-neon-noir h1,
+    body.design-wired.palette-neon-noir .app-title,
+    body.design-wired.palette-neon-noir h2,
+    body.design-wired.palette-neon-noir h3,
+    body.design-wired.palette-neon-noir .scroller-accent
+    {
         text-shadow: none !important;
     }
-    /* Lain, Kaido, Mecha, Goblins Ledger already have text-shadow: none or specific minimal/different shadows in their design classes */
 }
