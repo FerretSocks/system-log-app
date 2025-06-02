@@ -1,15 +1,15 @@
 // public/js/journalManager.js
 import { db, collection, doc, addDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, updateDoc, arrayUnion, arrayRemove, limit, startAfter, getDocs, setDoc, getDoc } from './firebaseService.js';
-import { uiElements, showFeedback } from './uiManager.js'; // escapeHTML REMOVED from here
-import { getTodayDocId, formatDisplayDate, generateLogId, toYMDString, escapeHTML } from './utils.js'; // escapeHTML ADDED here
-import { playSound } from './soundManager.js';
+import { uiElements, showFeedback } from './uiManager.js'; 
+import { getTodayDocId, formatDisplayDate, generateLogId, toYMDString, escapeHTML } from './utils.js'; 
+// import { playSound } from './soundManager.js'; // playSound import removed
 import { isGuestMode, getGuestJournalEntries, addGuestJournalLog as addGuestLog, deleteGuestJournalLog as deleteGuestLog, deleteGuestJournalDay as deleteGuestDay, getUserId as getAuthUserId } from './guestManager.js';
 import { openAiChat } from './aiService.js';
 
 
 
 const JOURNAL_PAGE_SIZE = 15;
-const HEATMAP_DAYS = 90; // This might move to systemManager if System View owns the heatmap display
+const HEATMAP_DAYS = 90; 
 
 let journalCollectionRef = null;
 let unsubscribeJournal = null;
@@ -49,8 +49,8 @@ export async function addJournalLog() {
     const currentUserId = getAuthUserId();
 
     if (isGuestMode()) {
-        addGuestLog(logContent); // guestManager handles local storage and re-rendering
-        loadJournal(true); // Ensure UI is updated
+        addGuestLog(logContent); 
+        loadJournal(true); 
         uiElements.journalInput.value = "";
         showFeedback("Log committed to local storage.");
     } else {
@@ -94,7 +94,7 @@ export function loadJournal(isGuest) {
     uiElements.journalLoadMoreContainer.innerHTML = '';
 
     if (isGuest) {
-        const guestEntries = getGuestJournalEntries(); // Assumes this is sorted
+        const guestEntries = getGuestJournalEntries(); 
         uiElements.journalList.innerHTML = guestEntries.length === 0 ? `<p class="text-center p-2 opacity-70">No logs found.</p>` : "";
         guestEntries.forEach(entry => renderJournalDayEntryDOM(entry, true));
         if (uiElements.journalHeatmapContainer) uiElements.journalHeatmapContainer.innerHTML = `<p class="text-center p-2 opacity-70">Log Consistency Matrix not available in Guest Mode.</p>`;
@@ -106,7 +106,7 @@ export function loadJournal(isGuest) {
         }
         const q = query(journalCollectionRef, orderBy("lastUpdated", "desc"), limit(JOURNAL_PAGE_SIZE));
         unsubscribeJournal = onSnapshot(q, (snapshot) => {
-            if (lastVisibleJournalDoc === null) uiElements.journalList.innerHTML = ''; // Clear only on initial load of first page
+            if (lastVisibleJournalDoc === null) uiElements.journalList.innerHTML = ''; 
             if (snapshot.empty && lastVisibleJournalDoc === null) {
                 uiElements.journalList.innerHTML = `<p class="text-center p-2 opacity-70">No logs found.</p>`;
                 return;
@@ -120,7 +120,6 @@ export function loadJournal(isGuest) {
                 lastVisibleJournalDoc = null;
                 uiElements.journalLoadMoreContainer.innerHTML = '';
             }
-            // If systemManager is ready, it would call its own data loading for streak/heatmap
         }, (error) => {
             console.error("Journal loading error:", error);
             showFeedback("Error: Failed to load journal entries.", true);
@@ -166,7 +165,7 @@ async function loadMoreJournalEntries() {
     } catch (error) {
         console.error("Error loading more journal entries:", error);
         showFeedback("Failed to load more entries.", true);
-        if (loadMoreBtn) { // Reset button on error
+        if (loadMoreBtn) { 
             loadMoreBtn.textContent = 'Load More Archives';
             loadMoreBtn.disabled = false;
         }
@@ -198,7 +197,7 @@ function renderJournalDayEntryDOM(dayEntry, isGuest) {
                 e.stopPropagation();
                 if (isGuest) {
                     deleteGuestLog(dayEntry.id, log.id);
-                    loadJournal(true); // Reload guest journal
+                    loadJournal(true); 
                 } else {
                     deleteIndividualLog(dayEntry.id, log);
                 }
@@ -212,7 +211,7 @@ function renderJournalDayEntryDOM(dayEntry, isGuest) {
     const header = item.querySelector('.journal-day-header');
     header.addEventListener('click', (e) => {
         if (e.target.classList.contains('journal-control-btn')) return;
-        playSound('clickSound');
+        // playSound('clickSound'); // Removed
         item.classList.toggle('expanded');
         item.querySelector('.toggle-indicator').textContent = item.classList.contains('expanded') ? '[-]' : '[+]';
     });
@@ -220,17 +219,17 @@ function renderJournalDayEntryDOM(dayEntry, isGuest) {
     if (!isGuest) {
         item.querySelector('.chat').addEventListener('click', (e) => {
             e.stopPropagation();
-            playSound('clickSound');
-            openAiChat(dayEntry); // This will be defined in aiService.js
+            // playSound('clickSound'); // Removed
+            openAiChat(dayEntry); 
         });
     }
     item.querySelector('.delete').addEventListener('click', (e) => {
         e.stopPropagation();
-        playSound('clickSound');
+        // playSound('clickSound'); // Removed
         if (isGuest) {
             if (confirm(`Delete all logs for ${escapeHTML(dayEntry.displayDate)}?`)) {
                 deleteGuestDay(dayEntry.id);
-                loadJournal(true); // Reload guest journal
+                loadJournal(true); 
             }
         } else {
             deleteJournalDay(dayEntry.id, dayEntry.displayDate);
@@ -292,7 +291,7 @@ export async function getAllJournalMetadataForUser() {
     try {
         const q = query(journalCollectionRef, orderBy("lastUpdated", "desc"));
         const snapshot = await getDocs(q);
-        return snapshot.docs; // Returns array of DocumentSnapshot
+        return snapshot.docs; 
     } catch (error) {
         console.error("Error fetching all journal metadata:", error);
         showFeedback("Could not fetch all journal data for system stats.", true);

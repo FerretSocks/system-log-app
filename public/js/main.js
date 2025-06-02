@@ -5,7 +5,7 @@ import { auth, db } from './firebaseService.js';
 
 // UI and Core Logic Modules
 import { uiElements, switchToView, initializeAppearanceControls, getCurrentDesign, showFeedback, typewriterScrambleEffect, loadInitialAppearance } from './uiManager.js';
-import { playSound } from './soundManager.js';
+// import { playSound } from './soundManager.js'; // playSound import removed
 import { initializeAuth, handleSignIn, handleGuestSignIn, handleSignOut } from './auth.js';
 import { isGuestMode, getUserId as getAuthUserId } from './guestManager.js';
 import { loadUserSpecificData, clearUserSpecificData, saveApiKey, getApiKey, setApiKey } from './dataManager.js';
@@ -53,19 +53,19 @@ document.addEventListener('DOMContentLoaded', () => {
         // Authentication Buttons
         if (uiElements.signInBtn) {
             uiElements.signInBtn.addEventListener('click', () => {
-                playSound('clickSound');
+                // playSound('clickSound'); // Removed
                 handleSignIn();
             });
         }
         if (uiElements.guestSignInBtn) {
             uiElements.guestSignInBtn.addEventListener('click', () => {
-                playSound('clickSound');
+                // playSound('clickSound'); // Removed
                 handleGuestSignIn();
             });
         }
         if (uiElements.signOutBtn) {
             uiElements.signOutBtn.addEventListener('click', () => {
-                playSound('clickSound');
+                // playSound('clickSound'); // Removed
                 handleSignOut();
             });
         }
@@ -73,13 +73,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Tab Navigation
         if (uiElements.tasksTabBtn) {
             uiElements.tasksTabBtn.addEventListener('click', () => {
-                playSound('clickSound');
+                // playSound('clickSound'); // Removed
                 switchToView('tasks', getCurrentDesign());
             });
         }
         if (uiElements.journalTabBtn) {
             uiElements.journalTabBtn.addEventListener('click', () => {
-                playSound('clickSound');
+                // playSound('clickSound'); // Removed
                 if (!journalManager.getHasJournalLoaded() && !isGuestMode()) {
                     journalManager.loadJournal(false);
                 } else if (isGuestMode()) {
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (uiElements.systemTabBtn) {
             uiElements.systemTabBtn.addEventListener('click', () => {
-                playSound('clickSound');
+                // playSound('clickSound'); // Removed
                 if (!systemManager.getHasSystemDataLoaded() && !isGuestMode()) {
                     systemManager.loadSystemData(false);
                 } else if (isGuestMode()){
@@ -101,16 +101,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Task View & Category Manager Modal
-        if (uiElements.addTaskBtn) uiElements.addTaskBtn.addEventListener('click', () => { playSound('clickSound'); taskManager.addTask(); });
-        if (uiElements.taskInput) uiElements.taskInput.addEventListener('keypress', e => { if (e.key === 'Enter') { playSound('clickSound'); taskManager.addTask(); } });
+        if (uiElements.addTaskBtn) uiElements.addTaskBtn.addEventListener('click', () => { /* playSound('clickSound'); */ taskManager.addTask(); }); // Removed
+        if (uiElements.taskInput) uiElements.taskInput.addEventListener('keypress', e => { if (e.key === 'Enter') { /* playSound('clickSound'); */ taskManager.addTask(); } }); // Removed
         if (uiElements.categorySelect) uiElements.categorySelect.addEventListener('change', (e) => taskManager.handleCategoryChange(e.target.value));
         
         if (uiElements.manageCategoriesBtn) {
             uiElements.manageCategoriesBtn.addEventListener('click', () => { 
-                playSound('clickSound'); 
+                // playSound('clickSound'); // Removed
                 if(uiElements.categoryManagerModal) {
-                    uiElements.categoryManagerModal.classList.remove('hidden'); // Ensure display is not none
-                    // Add a tiny delay for the display change to take effect before adding animation class
+                    uiElements.categoryManagerModal.classList.remove('hidden');
                     requestAnimationFrame(() => {
                         uiElements.categoryManagerModal.classList.add('modal-visible');
                     });
@@ -119,17 +118,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (uiElements.closeCategoryManagerBtn) {
             uiElements.closeCategoryManagerBtn.addEventListener('click', () => { 
-                playSound('clickSound'); 
+                // playSound('clickSound'); // Removed
                 if(uiElements.categoryManagerModal) {
                     uiElements.categoryManagerModal.classList.remove('modal-visible');
                 }
             });
         }
-        if (uiElements.addCategoryBtn) uiElements.addCategoryBtn.addEventListener('click', () => { playSound('clickSound'); taskManager.addCategory(); });
-        if (uiElements.newCategoryInput) uiElements.newCategoryInput.addEventListener('keypress', e => { if (e.key === 'Enter') { playSound('clickSound'); taskManager.addCategory(); } });
+        if (uiElements.addCategoryBtn) uiElements.addCategoryBtn.addEventListener('click', () => { /* playSound('clickSound'); */ taskManager.addCategory(); }); // Removed
+        if (uiElements.newCategoryInput) uiElements.newCategoryInput.addEventListener('keypress', e => { if (e.key === 'Enter') { /* playSound('clickSound'); */ taskManager.addCategory(); } }); // Removed
         
         // Journal View
-        if (uiElements.addJournalBtn) uiElements.addJournalBtn.addEventListener('click', () => { playSound('clickSound'); journalManager.addJournalLog(); });
+        if (uiElements.addJournalBtn) uiElements.addJournalBtn.addEventListener('click', () => { /* playSound('clickSound'); */ journalManager.addJournalLog(); }); // Removed
         if (uiElements.journalSearch) {
             uiElements.journalSearch.addEventListener('input', debounce(() => {
                 journalManager.handleJournalSearch();
@@ -139,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // System View
         if (uiElements.saveApiKeyBtn) {
             uiElements.saveApiKeyBtn.addEventListener('click', async () => {
-                playSound('clickSound');
+                // playSound('clickSound'); // Removed
                 if (uiElements.apiKeyInput) {
                     await saveApiKey(uiElements.apiKeyInput.value);
                 }
@@ -147,9 +146,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // AI Chat Modal
-        if (uiElements.closeAiChatBtn) uiElements.closeAiChatBtn.addEventListener('click', () => { playSound('clickSound'); aiService.closeAiChat(); });
-        if (uiElements.aiChatSendBtn) uiElements.aiChatSendBtn.addEventListener('click', () => { playSound('clickSound'); aiService.sendAiChatMessage(); });
-        if (uiElements.aiChatInput) uiElements.aiChatInput.addEventListener('keypress', e => { if (e.key === 'Enter') { playSound('clickSound'); aiService.sendAiChatMessage(); e.preventDefault(); } });
+        if (uiElements.closeAiChatBtn) uiElements.closeAiChatBtn.addEventListener('click', () => { /* playSound('clickSound'); */ aiService.closeAiChat(); }); // Removed
+        if (uiElements.aiChatSendBtn) uiElements.aiChatSendBtn.addEventListener('click', () => { /* playSound('clickSound'); */ aiService.sendAiChatMessage(); }); // Removed
+        if (uiElements.aiChatInput) uiElements.aiChatInput.addEventListener('keypress', e => { if (e.key === 'Enter') { /* playSound('clickSound'); */ aiService.sendAiChatMessage(); e.preventDefault(); } }); // Removed
     }
 
     // Start the application

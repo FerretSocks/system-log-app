@@ -1,8 +1,8 @@
 // public/js/aiService.js
-import { uiElements, showFeedback } from './uiManager.js'; // escapeHTML REMOVED from here
-import { escapeHTML } from './utils.js'; // escapeHTML ADDED here
+import { uiElements, showFeedback } from './uiManager.js'; 
+import { escapeHTML } from './utils.js'; 
 import { getApiKey } from './dataManager.js';
-import { playSound } from './soundManager.js';
+// import { playSound } from './soundManager.js'; // playSound import removed
 import { isGuestMode } from './guestManager.js';
 
 
@@ -31,8 +31,7 @@ export function openAiChat(dayEntry) {
     displayChatMessage('Connection established. Ready for analysis of log dated ' + dayEntry.displayDate, 'gemini');
     
     if (uiElements.aiChatModal) {
-        uiElements.aiChatModal.classList.remove('hidden'); // Ensure display is not none
-        // Add a tiny delay for the display change to take effect before adding animation class
+        uiElements.aiChatModal.classList.remove('hidden'); 
         requestAnimationFrame(() => {
             uiElements.aiChatModal.classList.add('modal-visible');
         });

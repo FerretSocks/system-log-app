@@ -1,8 +1,8 @@
 // public/js/taskManager.js
 import { db, collection, doc, addDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, updateDoc, where, getDocs } from './firebaseService.js';
-import { uiElements, showFeedback } from './uiManager.js'; // escapeHTML REMOVED from here
-import { escapeHTML } from './utils.js'; // escapeHTML ADDED here
-import { playSound } from './soundManager.js';
+import { uiElements, showFeedback } from './uiManager.js'; 
+import { escapeHTML } from './utils.js'; 
+// import { playSound } from './soundManager.js'; // playSound import removed
 import { isGuestMode, getGuestTasks, addGuestTask, updateGuestTaskCompletion, updateGuestTaskPriority, deleteGuestTask, getUserId as getAuthUserId } from './guestManager.js';
 
 
@@ -10,8 +10,8 @@ let tasksCollectionRef = null;
 let taskCategoriesCollectionRef = null;
 let unsubscribeTasks = null;
 let unsubscribeCategories = null;
-let currentCategory = "all"; // Default category filter
-let localCategoriesCache = []; // Cache for categories to avoid frequent reads for dropdown
+let currentCategory = "all"; 
+let localCategoriesCache = []; 
 
 /**
  * Initializes Firestore references for a logged-in (non-guest) user.
@@ -33,7 +33,6 @@ export function initializeTaskReferences() {
  */
 export async function loadCategoriesAndTasks() {
     if (isGuestMode() || !taskCategoriesCollectionRef) {
-        // For guests, tasks are loaded directly without categories from Firestore
         loadTasks(true);
         if(uiElements.categorySelect) uiElements.categorySelect.innerHTML = '<option value="default">My Tasks</option>';
         if(uiElements.categorySelect) uiElements.categorySelect.disabled = true;
@@ -49,9 +48,7 @@ export async function loadCategoriesAndTasks() {
     try {
         const snapshot = await getDocs(taskCategoriesCollectionRef);
         if (snapshot.empty) {
-            // Add a "Default" category if none exist
             await addDoc(taskCategoriesCollectionRef, { name: "Default", createdAt: serverTimestamp() });
-            // The onSnapshot listener below will pick this up.
         }
 
         const q = query(taskCategoriesCollectionRef, orderBy("name"));
@@ -59,7 +56,7 @@ export async function loadCategoriesAndTasks() {
             localCategoriesCache = categorySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderCategoryDropdown(localCategoriesCache);
             renderCategoryManager(localCategoriesCache);
-            loadTasks(false); // Load tasks for the current category after categories are loaded/updated
+            loadTasks(false); 
         }, (error) => {
             console.error("Error loading categories:", error);
             showFeedback("Error: Could not load task lists.", true);
@@ -80,12 +77,11 @@ function renderCategoryDropdown(categories) {
         option.textContent = escapeHTML(cat.name);
         uiElements.categorySelect.appendChild(option);
     });
-    // Try to restore previously selected value, or default to 'all'
     if (categories.find(c => c.id === selectedValue)) {
         uiElements.categorySelect.value = selectedValue;
     } else {
         uiElements.categorySelect.value = 'all';
-        currentCategory = 'all'; // Reset if previous category is gone
+        currentCategory = 'all'; 
     }
 }
 
@@ -104,7 +100,7 @@ export function loadTasks(isGuest) {
     uiElements.taskList.innerHTML = `<p class="text-center p-2 opacity-70">Querying tasks...</p>`;
 
     if (isGuest) {
-        const guestTasks = getGuestTasks(); // Assumes getGuestTasks sorts by date
+        const guestTasks = getGuestTasks(); 
         uiElements.taskList.innerHTML = guestTasks.length === 0 ? `<p class="text-center p-2 opacity-70">No active tasks in this list.</p>` : "";
         guestTasks.forEach(task => renderTaskDOM(task, true));
     } else {
@@ -141,12 +137,12 @@ export async function addTask() {
     }
 
     if (isGuestMode()) {
-        addGuestTask(taskText); // guestManager handles UI update via loadTasks(true)
-        loadTasks(true); // Explicitly reload guest tasks
+        addGuestTask(taskText); 
+        loadTasks(true); 
         uiElements.taskInput.value = "";
         showFeedback("Task added to local storage.");
     } else {
-        if (currentCategory === "all" && uiElements.categorySelect.value === "all") { // Ensure a list is selected
+        if (currentCategory === "all" && uiElements.categorySelect.value === "all") { 
             showFeedback("Please select a specific list to add tasks to.", true);
             return;
         }
@@ -165,7 +161,6 @@ export async function addTask() {
                 category: categoryToAddTaskTo
             });
             uiElements.taskInput.value = "";
-            // Firestore onSnapshot will handle UI update
         } catch (error) {
             console.error("Error adding task: ", error);
             showFeedback("Error: Could not add task.", true);
@@ -187,7 +182,7 @@ function renderTaskDOM(task, isGuest) {
     item.querySelector('.task-status').addEventListener('click', () => {
         if (isGuest) {
             updateGuestTaskCompletion(task.id, !task.completed);
-            loadTasks(true); // Re-render guest tasks
+            loadTasks(true); 
         } else {
             updateDoc(doc(db, `users/${getAuthUserId()}/tasks`, task.id), { completed: !task.completed });
         }
@@ -196,17 +191,17 @@ function renderTaskDOM(task, isGuest) {
     item.querySelector('.priority-toggle').addEventListener('click', () => {
         if (isGuest) {
             updateGuestTaskPriority(task.id, !task.isPriority);
-            loadTasks(true); // Re-render guest tasks
+            loadTasks(true); 
         } else {
             updateDoc(doc(db, `users/${getAuthUserId()}/tasks`, task.id), { isPriority: !task.isPriority });
         }
     });
 
     item.querySelector('.delete-btn-90s').addEventListener('click', () => {
-        playSound('clickSound');
+        // playSound('clickSound'); // Removed
         if (isGuest) {
             deleteGuestTask(task.id);
-            loadTasks(true); // Re-render guest tasks
+            loadTasks(true); 
         } else {
             deleteDoc(doc(db, `users/${getAuthUserId()}/tasks`, task.id));
         }
@@ -240,7 +235,6 @@ export async function addCategory() {
         showFeedback("List name cannot be empty.", true);
         return;
     }
-    // Check if category already exists (case-insensitive)
     if (localCategoriesCache.some(cat => cat.name.toLowerCase() === categoryName.toLowerCase())) {
         showFeedback(`List "${escapeHTML(categoryName)}" already exists.`, true);
         return;
@@ -261,7 +255,6 @@ export async function deleteCategory(categoryId, categoryName) {
     try {
         await deleteDoc(doc(taskCategoriesCollectionRef, categoryId));
         showFeedback(`List "${escapeHTML(categoryName)}" deleted.`);
-        // If the deleted category was the current one, switch to 'All Tasks'
         if (currentCategory === categoryId) {
             handleCategoryChange('all');
             if (uiElements.categorySelect) uiElements.categorySelect.value = 'all';

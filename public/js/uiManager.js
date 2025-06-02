@@ -1,6 +1,6 @@
 // public/js/uiManager.js
 import { DESIGNS, PALETTES, DESIGN_SPECIFIC_PALETTES, DESIGN_DEFAULT_PALETTES, TYPEWRITER_SPEED, SCRAMBLE_CYCLES, CHAR_POOL } from './uiConstants.js';
-import { playSound } from './soundManager.js';
+// import { playSound } from './soundManager.js'; // playSound import removed
 
 export const uiElements = {
     loginContainer: document.getElementById('loginContainer'),
@@ -185,7 +185,7 @@ export function initializeAppearanceControls(onDesignChangeCallback) {
         button.className = 'button-90s design-button theme-button';
         button.dataset.design = DESIGNS[designName];
         button.addEventListener('click', () => {
-            playSound('clickSound');
+            // playSound('clickSound'); // Removed
             currentDesign = DESIGNS[designName];
             currentPalette = DESIGN_DEFAULT_PALETTES[currentDesign] || PALETTES[DESIGN_SPECIFIC_PALETTES[currentDesign][0]];
             populatePaletteSelector();
@@ -205,7 +205,7 @@ export function initializeAppearanceControls(onDesignChangeCallback) {
     paletteContainer.className = 'palette-selector-container';
     uiElements.themeSwitcher.appendChild(paletteContainer);
 
-    loadInitialAppearance(); // Load and apply saved or default appearance
+    loadInitialAppearance(); 
 }
 
 function populatePaletteSelector() {
@@ -234,7 +234,7 @@ function createPaletteButton(container, nameKey, value) {
     button.className = 'button-90s palette-button theme-button';
     button.dataset.palette = value;
     button.addEventListener('click', () => {
-        playSound('clickSound');
+        // playSound('clickSound'); // Removed
         currentPalette = value;
         applyAppearance();
     });
@@ -273,13 +273,12 @@ export function loadInitialAppearance() {
     
     let loadedPalette = localStorage.getItem('systemlog-palette');
     
-    // Ensure the loaded palette is valid for the current design
     const validPalettesForCurrentDesign = (DESIGN_SPECIFIC_PALETTES[currentDesign] || []).map(nameKey => PALETTES[nameKey]);
     if (!loadedPalette || !validPalettesForCurrentDesign.includes(loadedPalette)) {
         loadedPalette = defaultPaletteForDesign;
     }
     currentPalette = loadedPalette;
     
-    populatePaletteSelector(); // This needs to be called after currentDesign is set
+    populatePaletteSelector(); 
     applyAppearance();
 }

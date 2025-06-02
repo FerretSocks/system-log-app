@@ -1,7 +1,7 @@
 // public/js/systemManager.js
 import { uiElements, initializeAppearanceControls as initAppearance, getCurrentDesign as getUIDesign, typewriterScrambleEffect, showFeedback } from './uiManager.js';
 import { getAllJournalMetadataForUser } from './journalManager.js';
-import { playSound } from './soundManager.js';
+// import { playSound } from './soundManager.js'; // playSound import removed
 import { isGuestMode } from './guestManager.js';
 import { toYMDString, formatDisplayDate } from './utils.js';
 
@@ -15,19 +15,19 @@ export function initializeSystemPanel(onDesignChangeCallback) {
 
     if (uiElements.launchKaleidoscopeBtn) {
         uiElements.launchKaleidoscopeBtn.addEventListener('click', () => {
-            playSound('clickSound');
+            // playSound('clickSound'); // Removed
             startKaleidoscope();
         });
     }
     if (uiElements.closeKaleidoscopeBtn) {
         uiElements.closeKaleidoscopeBtn.addEventListener('click', () => {
-            playSound('clickSound');
+            // playSound('clickSound'); // Removed
             stopKaleidoscope();
         });
     }
     if (uiElements.kClearBtn) {
         uiElements.kClearBtn.addEventListener('click', () => {
-            playSound('clickSound');
+            // playSound('clickSound'); // Removed
             if (p5Instance && p5Instance.clearCanvas) {
                 p5Instance.clearCanvas();
             }
@@ -149,9 +149,7 @@ const k_sketch = (p) => {
 
 function startKaleidoscope() {
     if (!uiElements.kaleidoscopeModal) return;
-    // Ensure 'hidden' (display:none) is removed if it was there
     uiElements.kaleidoscopeModal.classList.remove('hidden');
-    // Add 'modal-visible' to trigger animation
     uiElements.kaleidoscopeModal.classList.add('modal-visible');
 
     if (!kaleidoscopeSketch) {
@@ -169,11 +167,8 @@ function startKaleidoscope() {
 
 function stopKaleidoscope() {
     if (!uiElements.kaleidoscopeModal) return;
-    // Remove 'modal-visible' to trigger hiding animation
     uiElements.kaleidoscopeModal.classList.remove('modal-visible');
-    // The CSS transition for visibility will eventually set it to hidden.
-    // No need to add 'hidden' class immediately unless you want to force display:none after animation.
-
+    
     if (p5Instance && p5Instance.noLoop) {
         p5Instance.noLoop();
     }
