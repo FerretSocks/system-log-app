@@ -50,8 +50,9 @@ export const uiElements = {
     aiChatInput: document.getElementById('aiChatInput'),
     aiChatSendBtn: document.getElementById('aiChatSendBtn'),
     closeAiChatBtn: document.getElementById('closeAiChatBtn'),
+    aiPersonalitySelect: document.getElementById('aiPersonalitySelect'), // Added AI Personality dropdown
     loadingOverlay: document.getElementById('loadingOverlay'),
-    loadingMessageText: document.getElementById('loadingMessageText'), // Updated ID
+    loadingMessageText: document.getElementById('loadingMessageText'),
     statusScrollerContainer: document.querySelector('.status-scroller-container')
 };
 
@@ -75,7 +76,7 @@ export function typewriterScrambleEffect(element, text) {
         }
         activeScrambleTimers.forEach(timer => clearInterval(timer));
         activeScrambleTimers = [];
-        element.textContent = ''; // Clear previous text
+        element.textContent = '';
         let revealedText = '';
         let i = 0;
 
@@ -87,46 +88,38 @@ export function typewriterScrambleEffect(element, text) {
                     if (scrambleCount >= SCRAMBLE_CYCLES) {
                         clearInterval(scrambleInterval);
                         revealedText += originalChar;
-                        element.textContent = revealedText; // Update with revealed text + current char
+                        element.textContent = revealedText;
                         i++;
-                        if (i >= text.length) { resolve(); } // Resolve promise when done
-                        else { typeCharacter(); } // Process next character
+                        if (i >= text.length) { resolve(); }
+                        else { typeCharacter(); }
                     } else {
                         const randomChar = CHAR_POOL.charAt(Math.floor(Math.random() * CHAR_POOL.length));
-                        element.textContent = revealedText + randomChar; // Show revealed text + scrambling char
+                        element.textContent = revealedText + randomChar;
                         scrambleCount++;
                     }
-                }, TYPEWRITER_SPEED / 2); // Adjust speed as needed
+                }, TYPEWRITER_SPEED / 2);
                 activeScrambleTimers.push(scrambleInterval);
             } else {
-                resolve(); // Resolve if text is empty or already processed
+                resolve();
             }
         };
         if (text && text.length > 0) { typeCharacter(); } else { resolve(); }
     });
 }
 
-/**
- * Shows the loading overlay with a specific message.
- * @param {string} message - The message to display.
- */
 export async function showLoadingOverlay(message = "LOADING...") {
     if (uiElements.loadingOverlay && uiElements.loadingMessageText) {
         uiElements.loadingOverlay.classList.remove('hidden');
-        // Use typewriter effect for the loading message
         await typewriterScrambleEffect(uiElements.loadingMessageText, message);
     } else {
         console.warn("Loading overlay elements not found.");
     }
 }
 
-/**
- * Hides the loading overlay.
- */
 export function hideLoadingOverlay() {
     if (uiElements.loadingOverlay && uiElements.loadingMessageText) {
         uiElements.loadingOverlay.classList.add('hidden');
-        uiElements.loadingMessageText.textContent = ''; // Clear the message
+        uiElements.loadingMessageText.textContent = '';
     }
 }
 
@@ -147,7 +140,7 @@ export function switchToView(viewName, currentDesignValue, isInitialLoad = false
 
         if (titleElement) {
             titleElement.classList.remove('fade-in-title');
-            void titleElement.offsetWidth; // Trigger reflow
+            void titleElement.offsetWidth;
 
             if (isInitialLoad || currentDesignValue === DESIGNS['Goblins Ledger']) {
                 titleElement.textContent = titles[viewName];
@@ -163,8 +156,40 @@ export function switchToView(viewName, currentDesignValue, isInitialLoad = false
     }
 }
 
-let currentDesign = DESIGNS['Wired']; // Default design
-let currentPalette = PALETTES['Cyber Default']; // Default palette for Wired
+let currentDesign = DESIGNS['Wired'];
+let currentPalette = PALETTES['Cyber Default'];
+
+/**
+ * Populates the AI personality selector dropdown.
+ * @param {object} personalities - The AI_PERSONALITIES object from aiConstants.js.
+ * @param {string} defaultKey - The key of the default personality to select.
+ */
+export function populateAiPersonalitiesDropdown(personalities, defaultKey) {
+    if (!uiElements.aiPersonalitySelect) {
+        console.warn("AI personality select dropdown not found in UI elements.");
+        return;
+    }
+    uiElements.aiPersonalitySelect.innerHTML = ''; // Clear existing options
+
+    for (const key in personalities) {
+        if (Object.hasOwnProperty.call(personalities, key)) {
+            const personality = personalities[key];
+            const option = document.createElement('option');
+            option.value = key; // Store the key (e.g., 'GEMMA_ANALYST')
+            option.textContent = personality.name; // Display friendly name
+            uiElements.aiPersonalitySelect.appendChild(option);
+        }
+    }
+
+    // Set the default selected personality
+    if (defaultKey && personalities[defaultKey]) {
+        uiElements.aiPersonalitySelect.value = defaultKey;
+    } else if (Object.keys(personalities).length > 0) {
+        // Fallback to the first personality if defaultKey is invalid or not provided
+        uiElements.aiPersonalitySelect.value = Object.keys(personalities)[0];
+    }
+}
+
 
 export function initializeAppearanceControls(onDesignChangeCallback) {
     if (!uiElements.themeSwitcher) return;
@@ -185,7 +210,6 @@ export function initializeAppearanceControls(onDesignChangeCallback) {
         button.className = 'button-90s design-button theme-button';
         button.dataset.design = DESIGNS[designName];
         button.addEventListener('click', () => {
-            // playSound('clickSound'); // Removed
             currentDesign = DESIGNS[designName];
             currentPalette = DESIGN_DEFAULT_PALETTES[currentDesign] || PALETTES[DESIGN_SPECIFIC_PALETTES[currentDesign][0]];
             populatePaletteSelector();
@@ -205,7 +229,7 @@ export function initializeAppearanceControls(onDesignChangeCallback) {
     paletteContainer.className = 'palette-selector-container';
     uiElements.themeSwitcher.appendChild(paletteContainer);
 
-    loadInitialAppearance(); 
+    loadInitialAppearance();
 }
 
 function populatePaletteSelector() {
@@ -234,7 +258,6 @@ function createPaletteButton(container, nameKey, value) {
     button.className = 'button-90s palette-button theme-button';
     button.dataset.palette = value;
     button.addEventListener('click', () => {
-        // playSound('clickSound'); // Removed
         currentPalette = value;
         applyAppearance();
     });
@@ -270,15 +293,15 @@ export function loadInitialAppearance() {
     currentDesign = localStorage.getItem('systemlog-design') || DESIGNS['Wired'];
     const palettesForDesignKeys = DESIGN_SPECIFIC_PALETTES[currentDesign] || Object.keys(PALETTES);
     const defaultPaletteForDesign = DESIGN_DEFAULT_PALETTES[currentDesign] || (palettesForDesignKeys.length > 0 ? PALETTES[palettesForDesignKeys[0]] : Object.values(PALETTES)[0]);
-    
+
     let loadedPalette = localStorage.getItem('systemlog-palette');
-    
+
     const validPalettesForCurrentDesign = (DESIGN_SPECIFIC_PALETTES[currentDesign] || []).map(nameKey => PALETTES[nameKey]);
     if (!loadedPalette || !validPalettesForCurrentDesign.includes(loadedPalette)) {
         loadedPalette = defaultPaletteForDesign;
     }
     currentPalette = loadedPalette;
-    
-    populatePaletteSelector(); 
+
+    populatePaletteSelector();
     applyAppearance();
 }

@@ -1,5 +1,5 @@
 // public/js/guestManager.js
-import { generateLogId, getTodayDocId, formatDisplayDate } from './utils.js'; // Assuming these are in utils.js
+import { generateLogId, getTodayDocId, formatDisplayDate } from './utils.js';
 
 let guestData = {
     tasks: [],
@@ -60,6 +60,7 @@ export function clearGuestData() {
 
 // --- Guest Task Management ---
 export function getGuestTasks() {
+    // Ensure tasks are sorted by creation date, most recent first
     return guestData.tasks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
@@ -100,16 +101,18 @@ export function deleteGuestTask(taskId) {
 
 // --- Guest Journal Management ---
 export function getGuestJournalEntries() {
+    // Ensure journal entries are sorted by lastUpdated, most recent first
     return guestData.journalEntries.sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime());
 }
 
-export function addGuestJournalLog(logContent) {
+export function addGuestJournalLog(logContent, mood = null) { // Added mood parameter with a default
     const todayId = getTodayDocId();
     let dayEntry = guestData.journalEntries.find(entry => entry.id === todayId);
     const newLog = {
         id: generateLogId(),
         time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        content: logContent
+        content: logContent,
+        mood: mood // Store the mood
     };
 
     if (dayEntry) {
@@ -119,7 +122,7 @@ export function addGuestJournalLog(logContent) {
         dayEntry = {
             id: todayId,
             logs: [newLog],
-            displayDate: formatDisplayDate(todayId), // Ensure this function is available
+            displayDate: formatDisplayDate(todayId),
             lastUpdated: new Date().toISOString()
         };
         guestData.journalEntries.unshift(dayEntry);
@@ -132,7 +135,7 @@ export function deleteGuestJournalLog(dayId, logId) {
     if (dayIndex > -1) {
         guestData.journalEntries[dayIndex].logs = guestData.journalEntries[dayIndex].logs.filter(l => l.id !== logId);
         if (guestData.journalEntries[dayIndex].logs.length === 0) {
-            guestData.journalEntries.splice(dayIndex, 1); // Remove day entry if no logs left
+            guestData.journalEntries.splice(dayIndex, 1);
         } else {
             guestData.journalEntries[dayIndex].lastUpdated = new Date().toISOString();
         }

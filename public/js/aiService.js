@@ -1,16 +1,18 @@
 // public/js/aiService.js
-import { uiElements, showFeedback } from './uiManager.js'; 
-import { escapeHTML } from './utils.js'; 
+import { uiElements, showFeedback } from './uiManager.js';
+import { escapeHTML } from './utils.js';
 import { getApiKey } from './dataManager.js';
-// import { playSound } from './soundManager.js'; // playSound import removed
 import { isGuestMode } from './guestManager.js';
-
+import { AI_PERSONALITIES, DEFAULT_AI_PERSONALITY_KEY } from './aiConstants.js'; // Import AI personalities
 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent";
-let currentAiChatContext = null;
+
+let currentAiChatContext = null; // Stores the journalDayEntry object
+let currentApiChatHistory = []; // Stores the conversation history for the Gemini API
 
 /**
  * Opens the AI chat modal and sets the context for the chat.
+ * Initializes the API chat history using the selected AI personality.
  * @param {object} dayEntry - The journal entry object to discuss.
  */
 export function openAiChat(dayEntry) {
@@ -25,13 +27,32 @@ export function openAiChat(dayEntry) {
     }
 
     currentAiChatContext = dayEntry;
+    currentApiChatHistory = []; // Reset API chat history
+
     if (uiElements.aiChatHistory) uiElements.aiChatHistory.innerHTML = '';
     if (uiElements.aiChatInput) uiElements.aiChatInput.value = '';
 
-    displayChatMessage('Connection established. Ready for analysis of log dated ' + dayEntry.displayDate, 'gemini');
-    
+    // Determine which AI personality to use
+    let selectedPersonalityKey = uiElements.aiPersonalitySelect ? uiElements.aiPersonalitySelect.value : DEFAULT_AI_PERSONALITY_KEY;
+    if (!AI_PERSONALITIES[selectedPersonalityKey]) {
+        console.warn(`Selected AI personality key "${selectedPersonalityKey}" not found. Falling back to default.`);
+        selectedPersonalityKey = DEFAULT_AI_PERSONALITY_KEY;
+    }
+    const selectedPersonality = AI_PERSONALITIES[selectedPersonalityKey];
+    const systemPremise = selectedPersonality.prompt; // Get the prompt from the selected personality
+
+    // Initial system message displayed to the user
+    displayChatMessage(`Connection established with ${selectedPersonality.name}. Ready for analysis of log dated ${dayEntry.displayDate}`, 'gemini');
+
+    const logsText = dayEntry.logs.map(log => `- ${log.time}: ${log.content}`).join('\n');
+    // Construct the initial context for the AI, including the selected system premise
+    const initialContextPrompt = `${systemPremise}
+JOURNAL CONTEXT: Date of Entry: ${dayEntry.displayDate} Logs:\n${logsText}\n---\nI have provided my journal entry above. Please begin our conversation based on this context.`;
+
+    currentApiChatHistory.push({ role: "user", parts: [{ text: initialContextPrompt }] });
+
     if (uiElements.aiChatModal) {
-        uiElements.aiChatModal.classList.remove('hidden'); 
+        uiElements.aiChatModal.classList.remove('hidden');
         requestAnimationFrame(() => {
             uiElements.aiChatModal.classList.add('modal-visible');
         });
@@ -40,17 +61,21 @@ export function openAiChat(dayEntry) {
 }
 
 /**
- * Closes the AI chat modal and clears the context.
+ * Closes the AI chat modal and clears the context and API history.
  */
 export function closeAiChat() {
     if (uiElements.aiChatModal) {
         uiElements.aiChatModal.classList.remove('modal-visible');
+        // Consider adding a delay if your modal has a transition effect
+        // setTimeout(() => { uiElements.aiChatModal.classList.add('hidden'); }, 300);
     }
     currentAiChatContext = null;
+    currentApiChatHistory = [];
 }
 
 /**
  * Sends the user's message to the AI and displays the response.
+ * Manages the conversation history for the API.
  */
 export async function sendAiChatMessage() {
     if (!uiElements.aiChatInput || !uiElements.aiChatSendBtn || !uiElements.aiChatHistory) return;
@@ -69,20 +94,25 @@ export async function sendAiChatMessage() {
     uiElements.aiChatSendBtn.disabled = true;
 
     displayChatMessage(userPrompt, 'user');
+    currentApiChatHistory.push({ role: "user", parts: [{ text: userPrompt }] });
+
     const thinkingMessage = displayChatMessage('...', 'gemini');
 
     try {
-        const aiResponse = await getAiResponse(userPrompt, currentAiChatContext);
+        const aiResponseText = await getAiResponseWithHistory();
         if (thinkingMessage && thinkingMessage.querySelector('p')) {
-            thinkingMessage.querySelector('p').innerHTML = escapeHTML(aiResponse);
+            thinkingMessage.querySelector('p').innerHTML = escapeHTML(aiResponseText);
         } else if (thinkingMessage) {
-            thinkingMessage.innerHTML = `<div class="sender">gemini</div><p>${escapeHTML(aiResponse)}</p>`;
+            thinkingMessage.innerHTML = `<div class="sender">gemini</div><p>${escapeHTML(aiResponseText)}</p>`;
         }
+        currentApiChatHistory.push({ role: "model", parts: [{ text: aiResponseText }] });
+
     } catch (error) {
+        const errorMessage = `Error: ${error.message}`;
         if (thinkingMessage && thinkingMessage.querySelector('p')) {
-            thinkingMessage.querySelector('p').textContent = `Error: ${error.message}`;
+            thinkingMessage.querySelector('p').textContent = errorMessage;
         } else if (thinkingMessage) {
-            thinkingMessage.innerHTML = `<div class="sender">gemini</div><p>Error: ${error.message}</p>`;
+            thinkingMessage.innerHTML = `<div class="sender">gemini</div><p>${errorMessage}</p>`;
         }
         console.error("AI Chat Error:", error);
         showFeedback(`AI Error: ${error.message}`, true);
@@ -98,7 +128,6 @@ export async function sendAiChatMessage() {
 
 function displayChatMessage(message, sender) {
     if (!uiElements.aiChatHistory) return null;
-
     const messageWrapper = document.createElement('div');
     messageWrapper.className = `ai-chat-message ${sender}`;
     messageWrapper.innerHTML = `<div class="sender">${escapeHTML(sender)}</div><p>${escapeHTML(message)}</p>`;
@@ -107,36 +136,29 @@ function displayChatMessage(message, sender) {
     return messageWrapper;
 }
 
-async function getAiResponse(userPrompt, journalEntry) {
+async function getAiResponseWithHistory() {
     const apiKey = getApiKey();
     if (!apiKey) {
         throw new Error("API Key not found. Please save your key in the System tab.");
     }
-    if (!journalEntry || !journalEntry.logs || !journalEntry.displayDate) {
-        throw new Error("Invalid journal entry context provided for AI chat.");
+    if (!currentApiChatHistory || currentApiChatHistory.length === 0) {
+        throw new Error("Cannot get AI response: chat history is empty.");
     }
-
-    const logsText = journalEntry.logs.map(log => `- ${log.time}: ${log.content}`).join('\n');
-    const fullPrompt = `SYSTEM PREMISE: You are Gemma, a helpful AI assistant integrated into a personal journaling app called "System Log". Your persona is that of a slightly retro, cyberpunk AI. You are analyzing a journal entry for your user, whom you refer to as "Master". Be helpful, insightful, and maintain the persona.
-JOURNAL CONTEXT: Date of Entry: ${journalEntry.displayDate} Logs:\n${logsText}\n---\nUSER QUERY: ${userPrompt}`;
 
     try {
         const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: fullPrompt }] }],
+                contents: currentApiChatHistory,
                 generationConfig: { temperature: 0.7, topK: 40 }
             })
         });
 
         if (!response.ok) {
             let errorData;
-            try {
-                errorData = await response.json();
-            } catch (e) {
-                throw new Error(`API request failed with status ${response.status}: ${response.statusText}`);
-            }
+            try { errorData = await response.json(); }
+            catch (e) { throw new Error(`API request failed with status ${response.status}: ${response.statusText}`); }
             console.error("API Error Response:", errorData);
             const apiErrorMessage = errorData?.error?.message || `API request failed with status ${response.status}.`;
             throw new Error(apiErrorMessage);
@@ -151,7 +173,7 @@ JOURNAL CONTEXT: Date of Entry: ${journalEntry.displayDate} Logs:\n${logsText}\n
         }
         return text;
     } catch (error) {
-        console.error("Error fetching AI response:", error);
+        console.error("Error fetching AI response with history:", error);
         throw error instanceof Error ? error : new Error("Network error or failed to fetch AI response.");
     }
 }

@@ -1,23 +1,23 @@
 // public/js/journalManager.js
 import { db, collection, doc, addDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, updateDoc, arrayUnion, arrayRemove, limit, startAfter, getDocs, setDoc, getDoc } from './firebaseService.js';
-import { uiElements, showFeedback } from './uiManager.js'; 
-import { getTodayDocId, formatDisplayDate, generateLogId, toYMDString, escapeHTML } from './utils.js'; 
+import { uiElements, showFeedback } from './uiManager.js';
+import { getTodayDocId, formatDisplayDate, generateLogId, escapeHTML } from './utils.js'; // Removed toYMDString as it's not directly used here, but available via utils.js
 // import { playSound } from './soundManager.js'; // playSound import removed
 import { isGuestMode, getGuestJournalEntries, addGuestJournalLog as addGuestLog, deleteGuestJournalLog as deleteGuestLog, deleteGuestJournalDay as deleteGuestDay, getUserId as getAuthUserId } from './guestManager.js';
 import { openAiChat } from './aiService.js';
 
-
-
 const JOURNAL_PAGE_SIZE = 15;
-const HEATMAP_DAYS = 90; 
+// const HEATMAP_DAYS = 90; // HEATMAP_DAYS is used in systemManager.js
 
 let journalCollectionRef = null;
 let unsubscribeJournal = null;
 let lastVisibleJournalDoc = null;
 let _hasJournalLoaded = false;
+let currentSelectedMood = null; // Variable to store the currently selected mood
 
 /**
  * Initializes Firestore references for a logged-in (non-guest) user.
+ * Also sets up event listeners for mood selector buttons.
  */
 export function initializeJournalReferences() {
     const userId = getAuthUserId();
@@ -26,6 +26,29 @@ export function initializeJournalReferences() {
     } else {
         journalCollectionRef = null;
     }
+    // Setup mood selector listeners once the journal UI is potentially active
+    // This is called when auth state changes, so DOM should be ready.
+    setupMoodSelectorListeners();
+}
+
+function setupMoodSelectorListeners() {
+    const moodButtons = document.querySelectorAll('#moodSelector .mood-button');
+    moodButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // playSound('clickSound'); // Removed
+            // Remove 'active' class from all mood buttons
+            moodButtons.forEach(btn => btn.classList.remove('active'));
+            // Add 'active' class to the clicked button
+            button.classList.add('active');
+            currentSelectedMood = button.dataset.mood;
+        });
+    });
+}
+
+function resetMoodSelector() {
+    const moodButtons = document.querySelectorAll('#moodSelector .mood-button');
+    moodButtons.forEach(btn => btn.classList.remove('active'));
+    currentSelectedMood = null;
 }
 
 export function setHasJournalLoaded(status) {
@@ -47,11 +70,13 @@ export async function addJournalLog() {
     }
 
     const currentUserId = getAuthUserId();
+    const moodToSave = currentSelectedMood; // Get the selected mood
 
     if (isGuestMode()) {
-        addGuestLog(logContent); 
-        loadJournal(true); 
+        addGuestLog(logContent, moodToSave); // Pass mood to guest function
+        loadJournal(true);
         uiElements.journalInput.value = "";
+        resetMoodSelector(); // Reset mood after adding
         showFeedback("Log committed to local storage.");
     } else {
         if (!currentUserId || !journalCollectionRef) {
@@ -63,7 +88,8 @@ export async function addJournalLog() {
         const newLog = {
             id: generateLogId(),
             time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-            content: logContent
+            content: logContent,
+            mood: moodToSave // Save the mood
         };
         try {
             const docSnap = await getDoc(journalDocRef);
@@ -73,6 +99,7 @@ export async function addJournalLog() {
                 await setDoc(journalDocRef, { logs: [newLog], displayDate: formatDisplayDate(todayId), lastUpdated: serverTimestamp() });
             }
             uiElements.journalInput.value = "";
+            resetMoodSelector(); // Reset mood after adding
             showFeedback("Log committed.");
         } catch (error) {
             console.error("Error adding journal log:", error);
@@ -94,7 +121,7 @@ export function loadJournal(isGuest) {
     uiElements.journalLoadMoreContainer.innerHTML = '';
 
     if (isGuest) {
-        const guestEntries = getGuestJournalEntries(); 
+        const guestEntries = getGuestJournalEntries();
         uiElements.journalList.innerHTML = guestEntries.length === 0 ? `<p class="text-center p-2 opacity-70">No logs found.</p>` : "";
         guestEntries.forEach(entry => renderJournalDayEntryDOM(entry, true));
         if (uiElements.journalHeatmapContainer) uiElements.journalHeatmapContainer.innerHTML = `<p class="text-center p-2 opacity-70">Log Consistency Matrix not available in Guest Mode.</p>`;
@@ -106,7 +133,7 @@ export function loadJournal(isGuest) {
         }
         const q = query(journalCollectionRef, orderBy("lastUpdated", "desc"), limit(JOURNAL_PAGE_SIZE));
         unsubscribeJournal = onSnapshot(q, (snapshot) => {
-            if (lastVisibleJournalDoc === null) uiElements.journalList.innerHTML = ''; 
+            if (lastVisibleJournalDoc === null) uiElements.journalList.innerHTML = '';
             if (snapshot.empty && lastVisibleJournalDoc === null) {
                 uiElements.journalList.innerHTML = `<p class="text-center p-2 opacity-70">No logs found.</p>`;
                 return;
@@ -165,7 +192,7 @@ async function loadMoreJournalEntries() {
     } catch (error) {
         console.error("Error loading more journal entries:", error);
         showFeedback("Failed to load more entries.", true);
-        if (loadMoreBtn) { 
+        if (loadMoreBtn) {
             loadMoreBtn.textContent = 'Load More Archives';
             loadMoreBtn.disabled = false;
         }
@@ -189,20 +216,32 @@ function renderJournalDayEntryDOM(dayEntry, isGuest) {
     const contentDiv = item.querySelector('.journal-day-content');
     const logsToProcess = dayEntry.logs || [];
     if (logsToProcess.length > 0) {
-        logsToProcess.slice().reverse().forEach(log => {
+        logsToProcess.slice().reverse().forEach((log, index) => {
             const logEl = document.createElement('div');
             logEl.className = 'flex justify-between items-start py-1';
-            logEl.innerHTML = `<div><span class="opacity-70">[${escapeHTML(log.time)}]</span> ${escapeHTML(log.content)}</div><button class="delete-log-btn text-sm opacity-70 hover:opacity-100">[del]</button>`;
+            
+            // Display mood icon if available
+            const moodIcon = log.mood ? `<span class="log-mood-icon">${escapeHTML(log.mood)}</span>` : '';
+            
+            logEl.innerHTML = `<div>${moodIcon}<span class="opacity-70">[${escapeHTML(log.time)}]</span> ${escapeHTML(log.content)}</div><button class="delete-log-btn text-sm opacity-70 hover:opacity-100">[del]</button>`;
+            
             logEl.querySelector('.delete-log-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (isGuest) {
                     deleteGuestLog(dayEntry.id, log.id);
-                    loadJournal(true); 
+                    loadJournal(true);
                 } else {
                     deleteIndividualLog(dayEntry.id, log);
                 }
             });
             contentDiv.appendChild(logEl);
+
+            // Add a divider after each log entry, except the last one
+            if (index < logsToProcess.length - 1) {
+                const divider = document.createElement('hr');
+                divider.className = 'log-divider';
+                contentDiv.appendChild(divider);
+            }
         });
     } else {
         contentDiv.innerHTML = `<p class="opacity-70 italic p-2">No logs for this day.</p>`;
@@ -217,11 +256,14 @@ function renderJournalDayEntryDOM(dayEntry, isGuest) {
     });
 
     if (!isGuest) {
-        item.querySelector('.chat').addEventListener('click', (e) => {
-            e.stopPropagation();
-            // playSound('clickSound'); // Removed
-            openAiChat(dayEntry); 
-        });
+        const chatButton = item.querySelector('.chat');
+        if(chatButton) { // Ensure button exists before adding listener
+            chatButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // playSound('clickSound'); // Removed
+                openAiChat(dayEntry);
+            });
+        }
     }
     item.querySelector('.delete').addEventListener('click', (e) => {
         e.stopPropagation();
@@ -229,7 +271,7 @@ function renderJournalDayEntryDOM(dayEntry, isGuest) {
         if (isGuest) {
             if (confirm(`Delete all logs for ${escapeHTML(dayEntry.displayDate)}?`)) {
                 deleteGuestDay(dayEntry.id);
-                loadJournal(true); 
+                loadJournal(true);
             }
         } else {
             deleteJournalDay(dayEntry.id, dayEntry.displayDate);
@@ -282,6 +324,7 @@ export function clearJournalData() {
     if (uiElements.journalLoadMoreContainer) uiElements.journalLoadMoreContainer.innerHTML = '';
     lastVisibleJournalDoc = null;
     _hasJournalLoaded = false;
+    resetMoodSelector(); // Also reset mood selector on clear
     console.log("Journal data cleared.");
 }
 
@@ -291,7 +334,7 @@ export async function getAllJournalMetadataForUser() {
     try {
         const q = query(journalCollectionRef, orderBy("lastUpdated", "desc"));
         const snapshot = await getDocs(q);
-        return snapshot.docs; 
+        return snapshot.docs;
     } catch (error) {
         console.error("Error fetching all journal metadata:", error);
         showFeedback("Could not fetch all journal data for system stats.", true);

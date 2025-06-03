@@ -790,6 +790,54 @@ body.design-goblins-ledger .status-scroller-container {
 .status-scroller-text { white-space: nowrap; display: inline-block; animation: scroll-text var(--scroller-speed) linear infinite; }
 .scroller-accent { color: var(--text-primary); text-shadow: 0 0 5px var(--text-primary); animation: text-glitch 1.5s linear infinite alternate; }
 
+/* --- Mood Selector Styles --- */
+.mood-selector-container {
+    /* Uses flex from Tailwind utility in HTML: justify-around items-center */
+    padding: 5px 0;
+}
+.mood-button {
+    background: none;
+    border: 2px solid transparent; /* For focus outline */
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 2rem; /* Adjust for emoji size */
+    transition: transform 0.1s ease-out, border-color 0.2s;
+    opacity: 0.6;
+    padding: 0.25rem; /* Tailwind: p-1 */
+    line-height: 1; /* Ensure emoji is centered vertically */
+}
+.mood-button:hover {
+    opacity: 1;
+    transform: scale(1.15);
+}
+.mood-button.active {
+    border-color: var(--accent-secondary); /* Or var(--text-primary) */
+    opacity: 1;
+    transform: scale(1.1);
+    box-shadow: 0 0 8px var(--accent-secondary);
+}
+.mood-button:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+/* Style for displaying mood icon in journal list */
+.log-mood-icon {
+    font-size: 1.25rem; /* Adjust size as needed */
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+/* Style for log entry divider */
+.log-divider {
+    border: 0;
+    height: 1px;
+    background-color: var(--border-color);
+    opacity: 0.3;
+    margin: 10px 0;
+}
+
+
 /* Mobile Optimizations for text-shadows based on design+palette */
 @media (max-width: 768px) {
     body.design-wired.palette-cyber-default h1,
