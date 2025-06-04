@@ -273,7 +273,7 @@ body.design-mecha-manual .container-90s {
     padding: 15px 20px;
 }
 body.design-mecha-manual h1, body.design-mecha-manual .app-title {
-    color: var(--text-secondary); font-size: 24px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: normal;
+    color: var(--text-secondary); font-size: 26px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: normal;
     padding: 8px 0; margin-bottom: 8px; text-shadow: 0 0 6px var(--text-secondary), 0 0 12px var(--text-secondary);
     border-bottom: 2px solid var(--border-color); border-top: 2px solid var(--border-color); background-color: rgba(0,0,0,0.15);
 }
@@ -322,23 +322,20 @@ body.design-mecha-manual .nav-tab.active {
 }
 
 /* ========================================================================== */
-/* --- DESIGN: Goblins Ledger (REWORKED FONTS & ONE PALETTE) --- */
+/* --- DESIGN: Goblins Ledger --- */
 /* ========================================================================== */
 body.design-goblins-ledger {
-    /* --- Core Font Variables --- */
-    --font-fantasy-heading: 'Uncial Antiqua', cursive; 
-    --font-fantasy-subheading: 'VT323', monospace;    
-    --font-ledger-text: 'VT323', monospace;          
+    --font-fantasy-heading: 'Uncial Antiqua', cursive;
+    --font-fantasy-subheading: 'VT323', monospace;
+    --font-ledger-text: 'VT323', monospace;
 
-    /* Default palette variables (based on Royal Decree for structure if no palette matched) */
+    /* Default palette values from Royal Decree for structural fallbacks if no palette is matched for this design */
     --_parchment-bg: #F5E8C0; --_parchment-darker: #E0D2B8;
-    --_ink-main: #3A2E27; --_ink-secondary: #6B4A39; --_ink-dim: #8C7B70;
-    --_ink-on-button: #FDF5E6;
-    --_accent-fantasy-primary: #800020; --_accent-fantasy-secondary: #B8860B; --_accent-fantasy-danger: #A00000;
+    --_ink-main: #4A2E0B; --_ink-secondary: #7A0000; --_ink-on-button: #FDF5E6; --_ink-dim: #8C7B70;
+    --_accent-fantasy-primary: #B8860B; --_accent-fantasy-secondary: #DAA520; --_accent-fantasy-danger: #A00000;
     --_border-fantasy: #5D4037; --_border-fantasy-light: #8D6E63;
 
-    /* Map to general theme CSS variables */
-    font-family: var(--font-ledger-text); 
+    font-family: var(--font-ledger-text);
     --background-main: var(--_parchment-darker);
     --container-bg: var(--_parchment-bg);
     --input-bg: color-mix(in srgb, var(--_parchment-bg) 85%, var(--_parchment-darker) 15%);
@@ -363,7 +360,6 @@ body.design-goblins-ledger {
     background-blend-mode: overlay, multiply, color-burn;
 }
 body.design-goblins-ledger::before, body.design-goblins-ledger::after { display: none; }
-
 body.design-goblins-ledger .container-90s {
     border-image: none;
     border: 1px solid color-mix(in srgb, var(--_border-fantasy) 60%, black);
@@ -395,13 +391,12 @@ body.design-goblins-ledger .container-90s::before {
     opacity: 0.6;
 }
 
-/* Font assignments using the new variables */
-body.design-goblins-ledger h1, body.design-goblins-ledger .app-title { font-family: var(--font-fantasy-heading); font-weight: normal; } 
+body.design-goblins-ledger h1, body.design-goblins-ledger .app-title { font-family: var(--font-fantasy-heading); font-weight: normal; }
 body.design-goblins-ledger h2, body.design-goblins-ledger h3,
 body.design-goblins-ledger .button-90s, body.design-goblins-ledger .nav-tab,
 body.design-goblins-ledger .jp-subtitle, body.design-goblins-ledger .app-subtitle,
 body.design-goblins-ledger #journalStreakDisplay, body.design-goblins-ledger .category-item-name
- { font-family: var(--font-fantasy-subheading); } 
+ { font-family: var(--font-fantasy-subheading); }
 
 body.design-goblins-ledger .input-90s, body.design-goblins-ledger .journal-textarea,
 body.design-goblins-ledger .task-text, body.design-goblins-ledger .journal-day-content,
@@ -411,7 +406,7 @@ body.design-goblins-ledger .journal-day-content .opacity-70 { font-family: var(-
 
 body.design-goblins-ledger h1, body.design-goblins-ledger .app-title {
     color: var(--text-primary);
-    font-size: 38px; 
+    font-size: 38px;
     text-shadow: 1px 1px 0px color-mix(in srgb, var(--_ink-main) 50%, black), 2px 2px 3px rgba(0,0,0,0.5);
     margin-bottom: 8px;
     border-bottom: 1px solid var(--_border-fantasy-light);
@@ -420,15 +415,15 @@ body.design-goblins-ledger h1, body.design-goblins-ledger .app-title {
 }
 body.design-goblins-ledger .app-subtitle {
     color: var(--text-secondary);
-    font-size: 16px; 
+    font-size: 16px;
     margin-bottom: 20px;
-    font-style: normal; 
+    font-style: normal;
     opacity: 0.9;
     letter-spacing: 0.5px;
 }
 body.design-goblins-ledger h2 {
     color: var(--text-primary);
-    font-size: 28px; 
+    font-size: 28px;
     border-bottom: 1px solid var(--_border-fantasy-light);
     text-shadow: 1px 1px 1px color-mix(in srgb, var(--_ink-main) 60%, black);
     padding-bottom: 8px;
@@ -437,7 +432,7 @@ body.design-goblins-ledger h2 {
     letter-spacing: 1px;
 }
 body.design-goblins-ledger h3 {
-    font-size: 22px; 
+    font-size: 22px;
     color: var(--text-secondary);
     text-shadow: 1px 1px 0px color-mix(in srgb, var(--_ink-secondary) 60%, black);
     border-bottom: 1px dashed var(--_border-fantasy-light);
@@ -446,7 +441,7 @@ body.design-goblins-ledger h3 {
     letter-spacing: 0.5px;
 }
 body.design-goblins-ledger .jp-subtitle {
-    font-size: 14px; 
+    font-size: 14px;
     color: var(--text-dim);
     opacity: 0.8;
     font-style: normal;
@@ -456,7 +451,7 @@ body.design-goblins-ledger .jp-subtitle {
 body.design-goblins-ledger .input-90s {
     border-radius: 2px;
     border: 1px solid color-mix(in srgb, var(--_border-fantasy) 80%, black);
-    font-size: 17px; 
+    font-size: 17px;
     background-color: var(--input-bg);
     color: var(--text-primary);
     padding: 10px 12px;
@@ -467,7 +462,7 @@ body.design-goblins-ledger .input-90s::placeholder { color: var(--text-dim); opa
 
 body.design-goblins-ledger .button-90s {
     border-radius: 3px;
-    font-size: 16px; 
+    font-size: 16px;
     color: var(--_ink-on-button);
     background-color: var(--_ink-secondary);
     border: 1px solid color-mix(in srgb, var(--_ink-secondary) 70%, black);
@@ -476,7 +471,7 @@ body.design-goblins-ledger .button-90s {
     padding: 9px 18px;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
     box-shadow: 2px 2px 0px color-mix(in srgb, var(--_ink-secondary) 50%, black), 3px 3px 4px rgba(0,0,0,0.3);
-    text-transform: uppercase; 
+    text-transform: uppercase;
     letter-spacing: 1px;
 }
 
@@ -486,7 +481,7 @@ body.design-goblins-ledger .nav-tabs {
     padding-left: 0;
 }
 body.design-goblins-ledger .nav-tab {
-    font-size: 18px; 
+    font-size: 18px;
     color: var(--text-secondary);
     border: 1px solid transparent;
     border-bottom: 2px solid var(--_border-fantasy);
@@ -498,27 +493,25 @@ body.design-goblins-ledger .nav-tab {
 }
 body.design-goblins-ledger .nav-tab.active {
     color: var(--text-primary);
-    font-weight: normal; 
+    font-weight: normal;
     border-color: var(--_border-fantasy);
     border-bottom-color: var(--container-bg);
     background-color: var(--container-bg);
     box-shadow: 0px -1px 3px rgba(0,0,0,0.05);
 }
 
-body.design-goblins-ledger hr { 
+body.design-goblins-ledger hr {
     border: 0;
     height: 3px;
-    background-image: url("data:image/svg+xml,%3Csvg width='100' height='3' viewBox='0 0 100 3' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 1.5H40L50 0L60 3L100 1.5' stroke='%235A3E2B' stroke-width='1'/%3E%3C/svg%3E"); 
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='3' viewBox='0 0 100 3' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 1.5H40L50 0L60 3L100 1.5' stroke='%235A3E2B' stroke-width='1'/%3E%3C/svg%3E");
     background-repeat: repeat-x;
     background-position: center;
     opacity: 0.7;
     margin: 2.5rem 0;
 }
-/* --- END OF DESIGN: Goblins Ledger --- */
 
 
-/* --- PALETTE Definitions --- */
-
+/* --- PALETTE Definitions (Colors Only) --- */
 /* Wired Design Palettes (MODIFIED SELECTORS) */
 body.design-wired.palette-cyber-default { 
     --background-main: #1a1a1d; --container-bg: rgba(26, 26, 29, 0.75);
@@ -681,16 +674,31 @@ body.design-goblins-ledger.palette-goblin-sylvan-script {
 }
 .task-item-90s { padding: 12px; margin-bottom: 8px; display: flex; align-items: center; border-bottom: 1px dashed var(--border-color); }
 
+/* Task actions styling for button grouping */
+.task-actions {
+    display: flex;
+    align-items: center;
+    margin-left: auto; /* Pushes the group to the right */
+}
+
+/* Ensure .task-text still grows */
+.task-text {
+    flex-grow: 1;
+    margin: 0 15px; /* This existing margin will now correctly space the text from the .task-actions group */
+    font-size: 18px;
+}
 body.design-goblins-ledger .task-text { font-size: 17px; letter-spacing: 0.5px; }
+
+
+.task-status { cursor: pointer; user-select: none; width: 16px; height: 16px; background-color: transparent; border: 1px solid var(--text-dim); flex-shrink: 0; position: relative; }
 body.design-goblins-ledger .task-status {
     border: 1px solid var(--text-secondary);
     background-color: transparent;
     border-radius: 2px; width: 17px; height: 17px;
 }
-body.design-goblins-ledger .task-item-90s.completed .task-status {
-    background-color: var(--text-secondary);
-    border-color: var(--text-primary);
-}
+
+.task-item-90s.completed .task-status { background-color: var(--accent-danger); border-color: var(--accent-danger); }
+body.design-goblins-ledger .task-item-90s.completed .task-status { background-color: var(--text-secondary); border-color: var(--text-primary); }
 body.design-goblins-ledger .task-item-90s.completed .task-status::before {
     content: '\\2713'; 
     color: var(--container-bg); 
@@ -699,8 +707,36 @@ body.design-goblins-ledger .task-item-90s.completed .task-status::before {
     transform: translate(-50%, -50%);
     font-size: 14px; font-weight: normal; 
 }
+
+.task-item-90s.completed .task-text { text-decoration: line-through; color: var(--text-dim); text-decoration-color: var(--accent-danger); }
+
+/* MODIFIED .priority-toggle styles */
+.priority-toggle {
+    cursor: pointer;
+    font-size: 24px;
+    color: var(--text-dim);
+    user-select: none;
+    transition: color 0.2s;
+    margin-left: 0; 
+    margin-right: 8px; 
+    flex-shrink: 0; 
+}
+.priority-toggle.active { color: var(--accent-primary); }
 body.design-goblins-ledger .priority-toggle { font-size: 20px; color: var(--text-secondary); }
 body.design-goblins-ledger .priority-toggle.active { color: var(--accent-primary); } 
+
+/* MODIFIED .delete-btn-90s styles */
+.delete-btn-90s {
+    background-color: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 4px 8px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-left: 0; 
+    flex-shrink: 0; 
+}
+.delete-btn-90s:hover { color: var(--accent-danger); }
 body.design-goblins-ledger .delete-btn-90s { color: var(--accent-danger); font-size: 16px; } 
 body.design-goblins-ledger .delete-btn-90s:hover { color: var(--text-primary); }
 
@@ -717,7 +753,6 @@ body.design-goblins-ledger .journal-control-btn { font-size: 15px; letter-spacin
 .journal-control-btn:hover { color: var(--accent-primary); text-decoration: underline; }
 .journal-control-btn.delete:hover { color: var(--accent-danger); }
 .delete-log-btn:hover { color: var(--accent-danger); }
-
 #journalStreakDisplay { text-align: center; font-size: 20px; margin-bottom: 1rem; color: var(--text-secondary); }
 body.design-goblins-ledger #journalStreakDisplay { color: var(--text-primary); font-size: 22px; letter-spacing: 1px; }
 #journalHeatmapContainer { display: grid; grid-template-columns: repeat(15, 1fr); gap: 4px; padding: 10px; border: 1px solid var(--border-color); }
