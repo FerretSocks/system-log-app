@@ -12,11 +12,11 @@ export const uiElements = {
     tasksView: document.getElementById('tasksView'),
     journalView: document.getElementById('journalView'),
     systemView: document.getElementById('systemView'),
-    workoutView: document.getElementById('workoutView'), // <-- NEW
+    workoutView: document.getElementById('workoutView'), 
     tasksTabBtn: document.getElementById('tasksTabBtn'),
     journalTabBtn: document.getElementById('journalTabBtn'),
     systemTabBtn: document.getElementById('systemTabBtn'),
-    workoutTabBtn: document.getElementById('workoutTabBtn'), // <-- NEW
+    workoutTabBtn: document.getElementById('workoutTabBtn'), 
     taskInput: document.getElementById('taskInput'),
     addTaskBtn: document.getElementById('addTaskBtn'),
     taskList: document.getElementById('taskList'),
@@ -34,7 +34,7 @@ export const uiElements = {
     tasksViewTitle: document.getElementById('tasksViewTitle'),
     journalViewTitle: document.getElementById('journalViewTitle'),
     systemViewTitle: document.getElementById('systemViewTitle'),
-    workoutViewTitle: document.getElementById('workoutViewTitle'), // <-- NEW
+    workoutViewTitle: document.getElementById('workoutViewTitle'), 
     feedbackBox: document.getElementById('feedbackBox'),
     themeSwitcher: document.getElementById('themeSwitcher'),
     journalStreakDisplay: document.getElementById('journalStreakDisplay'),
@@ -128,8 +128,8 @@ export function hideLoadingOverlay() {
 
 
 export function switchToView(viewName, currentDesignValue, isInitialLoad = false) {
-    const views = { tasks: uiElements.tasksView, journal: uiElements.journalView, system: uiElements.systemView, workout: uiElements.workoutView }; // <-- NEW
-    const tabs = { tasks: uiElements.tasksTabBtn, journal: uiElements.journalTabBtn, system: uiElements.systemTabBtn, workout: uiElements.workoutTabBtn }; // <-- NEW
+    const views = { tasks: uiElements.tasksView, journal: uiElements.journalView, system: uiElements.systemView, workout: uiElements.workoutView }; 
+    const tabs = { tasks: uiElements.tasksTabBtn, journal: uiElements.journalTabBtn, system: uiElements.systemTabBtn, workout: uiElements.workoutTabBtn }; 
 
     Object.values(views).forEach(v => v?.classList.add('hidden'));
     Object.values(tabs).forEach(t => t?.classList.remove('active'));
@@ -138,18 +138,16 @@ export function switchToView(viewName, currentDesignValue, isInitialLoad = false
         views[viewName].classList.remove('hidden');
         tabs[viewName].classList.add('active');
         localStorage.setItem('systemlog-activeTab', viewName);
-        const titles = { tasks: "Task Log", journal: "Daily Entry", system: "System Panel", workout: "Workout Log" }; // <-- NEW
+        const titles = { tasks: "Task Log", journal: "Daily Entry", system: "System Panel", workout: "Workout Log" }; 
         const titleElement = uiElements[`${viewName}ViewTitle`];
 
         if (titleElement) {
             titleElement.classList.remove('fade-in-title');
             void titleElement.offsetWidth;
-
-            if (isInitialLoad || currentDesignValue === DESIGNS['Goblins Ledger']) {
+            
+            // Simplified logic: Only use typewriter effect on non-initial loads.
+            if (isInitialLoad) {
                 titleElement.textContent = titles[viewName];
-                if (!isInitialLoad && currentDesignValue === DESIGNS['Goblins Ledger']) {
-                    titleElement.classList.add('fade-in-title');
-                }
             } else {
                 typewriterScrambleEffect(titleElement, titles[viewName]);
             }
@@ -159,8 +157,9 @@ export function switchToView(viewName, currentDesignValue, isInitialLoad = false
     }
 }
 
-let currentDesign = DESIGNS['Wired'];
-let currentPalette = PALETTES['Cyber Default'];
+// Set Mecha Manual as the new default
+let currentDesign = DESIGNS['Mecha Manual'];
+let currentPalette = PALETTES['Heavy Industry'];
 
 export function populateAiPersonalitiesDropdown(personalities, defaultKey) {
     if (!uiElements.aiPersonalitySelect) {
@@ -277,7 +276,8 @@ function applyAppearance() {
     updateActivePaletteButton();
 
     if (uiElements.statusScrollerContainer) {
-        uiElements.statusScrollerContainer.style.display = (currentDesign === DESIGNS['Goblins Ledger']) ? 'none' : 'block';
+        // Hide scroller for Mecha Manual now, not just Goblin
+        uiElements.statusScrollerContainer.style.display = (currentDesign === DESIGNS['Mecha Manual']) ? 'none' : 'block';
     }
 }
 
@@ -286,7 +286,9 @@ export function getCurrentDesign() {
 }
 
 export function loadInitialAppearance() {
-    currentDesign = localStorage.getItem('systemlog-design') || DESIGNS['Wired'];
+    // Set Mecha Manual as the new default fallback
+    currentDesign = localStorage.getItem('systemlog-design') || DESIGNS['Mecha Manual'];
+    
     const palettesForDesignKeys = DESIGN_SPECIFIC_PALETTES[currentDesign] || Object.keys(PALETTES);
     const defaultPaletteForDesign = DESIGN_DEFAULT_PALETTES[currentDesign] || (palettesForDesignKeys.length > 0 ? PALETTES[palettesForDesignKeys[0]] : Object.values(PALETTES)[0]);
 
