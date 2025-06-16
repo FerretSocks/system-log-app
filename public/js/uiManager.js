@@ -12,9 +12,11 @@ export const uiElements = {
     tasksView: document.getElementById('tasksView'),
     journalView: document.getElementById('journalView'),
     systemView: document.getElementById('systemView'),
+    workoutView: document.getElementById('workoutView'), // <-- NEW
     tasksTabBtn: document.getElementById('tasksTabBtn'),
     journalTabBtn: document.getElementById('journalTabBtn'),
     systemTabBtn: document.getElementById('systemTabBtn'),
+    workoutTabBtn: document.getElementById('workoutTabBtn'), // <-- NEW
     taskInput: document.getElementById('taskInput'),
     addTaskBtn: document.getElementById('addTaskBtn'),
     taskList: document.getElementById('taskList'),
@@ -32,6 +34,7 @@ export const uiElements = {
     tasksViewTitle: document.getElementById('tasksViewTitle'),
     journalViewTitle: document.getElementById('journalViewTitle'),
     systemViewTitle: document.getElementById('systemViewTitle'),
+    workoutViewTitle: document.getElementById('workoutViewTitle'), // <-- NEW
     feedbackBox: document.getElementById('feedbackBox'),
     themeSwitcher: document.getElementById('themeSwitcher'),
     journalStreakDisplay: document.getElementById('journalStreakDisplay'),
@@ -50,7 +53,7 @@ export const uiElements = {
     aiChatInput: document.getElementById('aiChatInput'),
     aiChatSendBtn: document.getElementById('aiChatSendBtn'),
     closeAiChatBtn: document.getElementById('closeAiChatBtn'),
-    aiPersonalitySelect: document.getElementById('aiPersonalitySelect'), // Added AI Personality dropdown
+    aiPersonalitySelect: document.getElementById('aiPersonalitySelect'), 
     loadingOverlay: document.getElementById('loadingOverlay'),
     loadingMessageText: document.getElementById('loadingMessageText'),
     statusScrollerContainer: document.querySelector('.status-scroller-container')
@@ -125,8 +128,8 @@ export function hideLoadingOverlay() {
 
 
 export function switchToView(viewName, currentDesignValue, isInitialLoad = false) {
-    const views = { tasks: uiElements.tasksView, journal: uiElements.journalView, system: uiElements.systemView };
-    const tabs = { tasks: uiElements.tasksTabBtn, journal: uiElements.journalTabBtn, system: uiElements.systemTabBtn };
+    const views = { tasks: uiElements.tasksView, journal: uiElements.journalView, system: uiElements.systemView, workout: uiElements.workoutView }; // <-- NEW
+    const tabs = { tasks: uiElements.tasksTabBtn, journal: uiElements.journalTabBtn, system: uiElements.systemTabBtn, workout: uiElements.workoutTabBtn }; // <-- NEW
 
     Object.values(views).forEach(v => v?.classList.add('hidden'));
     Object.values(tabs).forEach(t => t?.classList.remove('active'));
@@ -135,7 +138,7 @@ export function switchToView(viewName, currentDesignValue, isInitialLoad = false
         views[viewName].classList.remove('hidden');
         tabs[viewName].classList.add('active');
         localStorage.setItem('systemlog-activeTab', viewName);
-        const titles = { tasks: "Task Log", journal: "Daily Entry", system: "System Panel" };
+        const titles = { tasks: "Task Log", journal: "Daily Entry", system: "System Panel", workout: "Workout Log" }; // <-- NEW
         const titleElement = uiElements[`${viewName}ViewTitle`];
 
         if (titleElement) {
@@ -159,33 +162,26 @@ export function switchToView(viewName, currentDesignValue, isInitialLoad = false
 let currentDesign = DESIGNS['Wired'];
 let currentPalette = PALETTES['Cyber Default'];
 
-/**
- * Populates the AI personality selector dropdown.
- * @param {object} personalities - The AI_PERSONALITIES object from aiConstants.js.
- * @param {string} defaultKey - The key of the default personality to select.
- */
 export function populateAiPersonalitiesDropdown(personalities, defaultKey) {
     if (!uiElements.aiPersonalitySelect) {
         console.warn("AI personality select dropdown not found in UI elements.");
         return;
     }
-    uiElements.aiPersonalitySelect.innerHTML = ''; // Clear existing options
+    uiElements.aiPersonalitySelect.innerHTML = ''; 
 
     for (const key in personalities) {
         if (Object.hasOwnProperty.call(personalities, key)) {
             const personality = personalities[key];
             const option = document.createElement('option');
-            option.value = key; // Store the key (e.g., 'GEMMA_ANALYST')
-            option.textContent = personality.name; // Display friendly name
+            option.value = key; 
+            option.textContent = personality.name; 
             uiElements.aiPersonalitySelect.appendChild(option);
         }
     }
-
-    // Set the default selected personality
+    
     if (defaultKey && personalities[defaultKey]) {
         uiElements.aiPersonalitySelect.value = defaultKey;
     } else if (Object.keys(personalities).length > 0) {
-        // Fallback to the first personality if defaultKey is invalid or not provided
         uiElements.aiPersonalitySelect.value = Object.keys(personalities)[0];
     }
 }

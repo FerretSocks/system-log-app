@@ -663,8 +663,9 @@ body.design-goblins-ledger.palette-goblin-sylvan-script {
 #taskList,
 #journalList,
 #categoryList,
-#aiChatHistory {
-    min-height: 200px;
+#aiChatHistory,
+#workoutHistoryList {
+    min-height: 100px;
     max-height: 400px;
     overflow-y: auto;
     border: 1px solid var(--border-color);
@@ -825,55 +826,78 @@ body.design-goblins-ledger .status-scroller-container {
 .status-scroller-text { white-space: nowrap; display: inline-block; animation: scroll-text var(--scroller-speed) linear infinite; }
 .scroller-accent { color: var(--text-primary); text-shadow: 0 0 5px var(--text-primary); animation: text-glitch 1.5s linear infinite alternate; }
 
-/* --- Mood Selector Styles --- */
-.mood-selector-container {
-    /* Uses flex from Tailwind utility in HTML: justify-around items-center */
-    padding: 5px 0;
-}
+.mood-selector-container { padding: 5px 0; }
 .mood-button {
-    background: none;
-    border: 2px solid transparent; /* For focus outline */
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 2rem; /* Adjust for emoji size */
+    background: none; border: 2px solid transparent; border-radius: 50%;
+    cursor: pointer; font-size: 2rem;
     transition: transform 0.1s ease-out, border-color 0.2s;
-    opacity: 0.6;
-    padding: 0.25rem; /* Tailwind: p-1 */
-    line-height: 1; /* Ensure emoji is centered vertically */
+    opacity: 0.6; padding: 0.25rem; line-height: 1; 
 }
-.mood-button:hover {
-    opacity: 1;
-    transform: scale(1.15);
-}
+.mood-button:hover { opacity: 1; transform: scale(1.15); }
 .mood-button.active {
-    border-color: var(--accent-secondary); /* Or var(--text-primary) */
-    opacity: 1;
-    transform: scale(1.1);
+    border-color: var(--accent-secondary); opacity: 1; transform: scale(1.1);
     box-shadow: 0 0 8px var(--accent-secondary);
 }
-.mood-button:focus {
-    outline: none;
-    border-color: var(--accent-primary);
+.mood-button:focus { outline: none; border-color: var(--accent-primary); }
+.log-mood-icon { font-size: 1.25rem; margin-right: 8px; vertical-align: middle; }
+.log-divider { border: 0; height: 1px; background-color: var(--border-color); opacity: 0.3; margin: 10px 0; }
+
+
+/* --- NEW: Workout View Specific Styles --- */
+.workout-exercise-item {
+    padding: 12px 8px;
+    margin-bottom: 10px;
+    border-bottom: 1px dashed var(--border-color);
+    transition: background-color 0.2s ease-in-out;
+}
+.workout-exercise-item:hover {
+    background-color: color-mix(in srgb, var(--container-bg) 80%, var(--input-bg) 20%);
+}
+.exercise-name {
+    flex-grow: 1;
+    font-size: 18px;
+    color: var(--text-primary);
+}
+.exercise-details {
+    padding-left: 38px; /* Align with text, accounts for checkbox and margin */
+    margin-top: 8px;
+    display: grid;
+    gap: 8px;
+    grid-template-columns: 1fr 1fr; /* Two columns for details and input */
+    align-items: center;
+}
+.sets-reps {
+    font-size: 14px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+}
+.exercise-input {
+    font-size: 16px !important;
+    padding: 6px 8px !important; /* Smaller padding */
+}
+.task-status-workout {
+    /* Reusing task styles but can be customized */
+    cursor: pointer; user-select: none; width: 18px; height: 18px;
+    background-color: transparent; border: 1px solid var(--text-dim);
+    flex-shrink: 0; position: relative;
+}
+.workout-exercise-item.completed .task-status-workout {
+    background-color: var(--accent-secondary);
+    border-color: var(--accent-secondary);
+}
+.workout-exercise-item.completed .exercise-name {
+    text-decoration: line-through;
+    color: var(--text-dim);
+    text-decoration-color: var(--accent-secondary);
+}
+#workoutHistoryList .journal-day-content {
+    padding-top: 8px;
+}
+#workoutHistoryList .journal-control-btn.edit:hover {
+    color: var(--accent-secondary);
 }
 
-/* Style for displaying mood icon in journal list */
-.log-mood-icon {
-    font-size: 1.25rem; /* Adjust size as needed */
-    margin-right: 8px;
-    vertical-align: middle;
-}
 
-/* Style for log entry divider */
-.log-divider {
-    border: 0;
-    height: 1px;
-    background-color: var(--border-color);
-    opacity: 0.3;
-    margin: 10px 0;
-}
-
-
-/* Mobile Optimizations for text-shadows based on design+palette */
 @media (max-width: 768px) {
     body.design-wired.palette-cyber-default h1,
     body.design-wired.palette-cyber-default .app-title,

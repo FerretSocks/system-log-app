@@ -14,6 +14,7 @@ import { loadUserSpecificData, clearUserSpecificData, saveApiKey } from './dataM
 import * as taskManager from './taskManager.js';
 import * as journalManager from './journalManager.js';
 import * as systemManager from './systemManager.js';
+import * as workoutManager from './workoutManager.js'; // <-- NEW: Import workout manager
 import * as aiService from './aiService.js';
 import { AI_PERSONALITIES, DEFAULT_AI_PERSONALITY_KEY } from './aiConstants.js'; // Import AI constants
 import { debounce } from './utils.js';
@@ -21,18 +22,38 @@ import { debounce } from './utils.js';
 document.addEventListener('DOMContentLoaded', () => {
     async function onAuthStatusChanged(isLoggedIn) {
         if (isLoggedIn) {
-            const currentUserId = getAuthUserId(); // Make sure this function exists and works in guestManager
-            taskManager.initializeTaskReferences(currentUserId); // Pass userId if needed
-            journalManager.initializeJournalReferences(currentUserId); // Pass userId if needed
-            // systemManager.initializeSystemReferences(currentUserId); // If needed
-            await loadUserSpecificData(isGuestMode(), taskManager, journalManager, systemManager);
+            const currentUserId = getAuthUserId(); 
+            taskManager.initializeTaskReferences(currentUserId); 
+            journalManager.initializeJournalReferences(currentUserId); 
+            workoutManager.initializeWorkoutReferences(currentUserId);
+            await loadUserSpecificData(isGuestMode(), taskManager, journalManager, systemManager, workoutManager);
+            
+            // --- FIX: This block ensures the correct view's content is loaded on app start ---
+            const savedTab = localStorage.getItem('systemlog-activeTab') || 'tasks';
+            switchToView(savedTab, getCurrentDesign(), true);
+            if (savedTab === 'workout') {
+                workoutManager.loadWorkoutView();
+            }
+            if (savedTab === 'journal') {
+                 if (!journalManager.getHasJournalLoaded()) {
+                    journalManager.loadJournal(isGuestMode());
+                 }
+            }
+             if (savedTab === 'system') {
+                if (!systemManager.getHasSystemDataLoaded()){
+                    systemManager.loadSystemData(isGuestMode());
+                }
+            }
+            // --- END OF FIX ---
+
         } else {
             // Clear data for all managers
             taskManager.clearTaskData();
             journalManager.clearJournalData();
             systemManager.clearSystemData();
+            workoutManager.clearWorkoutData(); 
             // Clear general user-specific data (like API key from memory)
-            clearUserSpecificData(taskManager, journalManager, systemManager); // Pass managers if they need specific clearing beyond their own methods
+            clearUserSpecificData(taskManager, journalManager, systemManager);
         }
     }
 
@@ -43,10 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initApp() {
         // Initialize UI components first
-        systemManager.initializeSystemPanel(handleDesignChange); // This calls initializeAppearanceControls
+        systemManager.initializeSystemPanel(handleDesignChange); 
         
-        // Populate AI Personalities Dropdown
-        // Ensure uiElements.aiPersonalitySelect is available before calling this
         if (uiElements.aiPersonalitySelect) {
             populateAiPersonalitiesDropdown(AI_PERSONALITIES, DEFAULT_AI_PERSONALITY_KEY);
         } else {
@@ -59,8 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupEventListeners() {
-        console.log("setupEventListeners called");
-
         if (uiElements.signInBtn) uiElements.signInBtn.addEventListener('click', () => { handleSignIn(); });
         if (uiElements.guestSignInBtn) uiElements.guestSignInBtn.addEventListener('click', () => { handleGuestSignIn(); });
         if (uiElements.signOutBtn) uiElements.signOutBtn.addEventListener('click', () => { handleSignOut(); });
@@ -69,11 +86,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (uiElements.journalTabBtn) {
             uiElements.journalTabBtn.addEventListener('click', () => {
                 if (!journalManager.getHasJournalLoaded() && !isGuestMode()) {
-                    journalManager.loadJournal(false); // For authenticated users
-                } else if (isGuestMode() && !journalManager.getHasJournalLoaded()) { // Also check if loaded for guest
-                    journalManager.loadJournal(true); // For guests
+                    journalManager.loadJournal(false); 
+                } else if (isGuestMode() && !journalManager.getHasJournalLoaded()) {
+                    journalManager.loadJournal(true);
                 }
                 switchToView('journal', getCurrentDesign());
+            });
+        }
+        if (uiElements.workoutTabBtn) {
+            uiElements.workoutTabBtn.addEventListener('click', () => {
+                if (!workoutManager.getHasWorkoutLoaded()) {
+                    workoutManager.loadWorkoutView();
+                }
+                switchToView('workout', getCurrentDesign());
             });
         }
         if (uiElements.systemTabBtn) {

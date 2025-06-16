@@ -13,6 +13,8 @@
 </head>
 <body>
 
+    <audio id="clickSound" src="/assets/click.wav" data-volume="0.1"></audio>
+
     <div id="loadingOverlay" class="hidden fixed inset-0 flex flex-col items-center justify-center z-[9999] bg-background-main">
     <div class="loading-indicator mb-4"> <span class="dot"></span>
         <span class="dot"></span>
@@ -46,6 +48,7 @@
             <nav class="nav-tabs">
                 <button id="tasksTabBtn" class="nav-tab button-90s active">Tasks</button>
                 <button id="journalTabBtn" class="nav-tab button-90s">Journal</button>
+                <button id="workoutTabBtn" class="nav-tab button-90s">Workout</button>
                 <button id="systemTabBtn" class="nav-tab button-90s">System</button>
             </nav>
 
@@ -83,6 +86,18 @@
                     <input type="search" id="journalSearch" placeholder="Search..." class="input-90s mb-4">
                     <div id="journalList"></div>
                     <div id="journalLoadMoreContainer" class="text-center mt-4"></div>
+                </div>
+
+                <div id="workoutView" class="hidden">
+                    <h2 id="workoutViewTitle"></h2>
+                    <p class="jp-subtitle">トレーニング記録</p>
+                    <div id="workoutSelectorContainer"></div>
+                    <div id="workoutDisplayContainer"></div>
+                    <hr class="my-6 border-dashed border-border-color opacity-50">
+                    <div id="workoutHistoryContainer">
+                        <h3 class="mb-2">Workout History</h3>
+                        <div id="workoutHistoryList"></div>
+                    </div>
                 </div>
 
                 <div id="systemView" class="hidden">
