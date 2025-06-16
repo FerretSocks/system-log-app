@@ -1,5 +1,5 @@
 // public/js/journalManager.js
-import { db, collection, doc, addDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, updateDoc, arrayUnion, arrayRemove, limit, startAfter, getDocs, setDoc, getDoc } from './firebaseService.js';
+import { db, collection, doc, addDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, updateDoc, arrayUnion, arrayRemove, limit, startAfter, getDocs, setDoc, getDoc, deleteField } from './firebaseService.js';
 import { uiElements, showFeedback } from './uiManager.js';
 import { getTodayDocId, formatDisplayDate, generateLogId, escapeHTML } from './utils.js';
 import { isGuestMode, getGuestJournalEntries, addGuestJournalLog as addGuestLog, deleteGuestJournalLog as deleteGuestLog, deleteGuestJournalDay as deleteGuestDay, getUserId as getAuthUserId } from './guestManager.js';
@@ -8,26 +8,19 @@ import { openAiChat } from './aiService.js';
 const JOURNAL_PAGE_SIZE = 15;
 
 let journalCollectionRef = null;
-let vitaminCollectionRef = null; 
 let unsubscribeJournal = null;
 let lastVisibleJournalDoc = null;
 let _hasJournalLoaded = false;
 let currentSelectedMood = null;
-let cachedVitaminDates = new Set(); // Cache vitamin dates to prevent re-fetching
 
 export function initializeJournalReferences() {
     const userId = getAuthUserId();
     if (userId && !isGuestMode()) {
         journalCollectionRef = collection(db, `users/${userId}/journalEntries`);
-        vitaminCollectionRef = collection(db, `users/${userId}/vitaminTracker`); 
     } else {
         journalCollectionRef = null;
-        vitaminCollectionRef = null;
     }
     setupMoodSelectorListeners();
-    if (uiElements.vitaminStatusTracker) {
-        uiElements.vitaminStatusTracker.addEventListener('click', toggleVitaminStatus);
-    }
 }
 
 function setupMoodSelectorListeners() {
@@ -101,18 +94,51 @@ export async function addJournalLog() {
     }
 }
 
-export async function loadJournal(isGuest) {
+export async function logVitaminsTaken() {
+    if (isGuestMode()) {
+        showFeedback("This feature is not available in guest mode.", true);
+        return;
+    }
+    const currentUserId = getAuthUserId();
+    if (!currentUserId || !journalCollectionRef) {
+        showFeedback("Error: User not identified.", true);
+        return;
+    }
+    const todayId = getTodayDocId();
+    const journalDocRef = doc(journalCollectionRef, todayId);
+
+    try {
+        const docSnap = await getDoc(journalDocRef);
+        const currentlyTaken = docSnap.exists() && docSnap.data().vitaminsTaken === true;
+        
+        // This makes it a toggle. If it's true, we remove the field. If false/non-existent, we set it to true.
+        const updateData = {
+            vitaminsTaken: currentlyTaken ? deleteField() : true,
+            lastUpdated: serverTimestamp(),
+            displayDate: formatDisplayDate(todayId)
+        };
+        
+        await setDoc(journalDocRef, updateData, { merge: true });
+
+        showFeedback(currentlyTaken ? "Vitamin log removed for today." : "Vitamins logged for today!", false);
+    } catch (error) {
+        console.error("Error logging vitamins:", error);
+        showFeedback("Error: Could not save vitamin log.", true);
+    }
+}
+
+export function loadJournal(isGuest) {
     if (unsubscribeJournal) unsubscribeJournal();
-    if (!uiElements.journalList) return;
+    lastVisibleJournalDoc = null;
+    if (!uiElements.journalList || !uiElements.journalLoadMoreContainer) return;
 
     uiElements.journalList.innerHTML = `<p class="text-center p-2 opacity-70">Accessing archives...</p>`;
-    
-    await checkVitaminStatusForToday();
+    uiElements.journalLoadMoreContainer.innerHTML = '';
 
     if (isGuest) {
         const guestEntries = getGuestJournalEntries();
         uiElements.journalList.innerHTML = guestEntries.length === 0 ? `<p class="text-center p-2 opacity-70">No logs found.</p>` : "";
-        guestEntries.forEach(entry => renderJournalDayEntryDOM(entry, true, new Set()));
+        guestEntries.forEach(entry => renderJournalDayEntryDOM(entry, true));
         if (uiElements.journalHeatmapContainer) uiElements.journalHeatmapContainer.innerHTML = `<p class="text-center p-2 opacity-70">Log Consistency Matrix not available in Guest Mode.</p>`;
         if (uiElements.journalStreakDisplay) uiElements.journalStreakDisplay.textContent = `-- DAYS (Guest)`;
     } else {
@@ -120,19 +146,29 @@ export async function loadJournal(isGuest) {
             uiElements.journalList.innerHTML = `<p class="text-center p-2 opacity-70">Journal service not available.</p>`;
             return;
         }
-
-        const vitaminDocs = await getVitaminData();
-        cachedVitaminDates = new Set(vitaminDocs.map(doc => doc.id));
-        
-        const q = query(journalCollectionRef, orderBy("lastUpdated", "desc"));
+        const q = query(journalCollectionRef, orderBy("lastUpdated", "desc"), limit(JOURNAL_PAGE_SIZE));
         unsubscribeJournal = onSnapshot(q, (snapshot) => {
-            uiElements.journalList.innerHTML = "";
-             if (snapshot.empty) {
+            if (lastVisibleJournalDoc === null) uiElements.journalList.innerHTML = '';
+            
+            // Check today's vitamin status to update the button
+            const todayId = getTodayDocId();
+            const todayDoc = snapshot.docs.find(d => d.id === todayId);
+            const vitaminsTakenToday = todayDoc?.data()?.vitaminsTaken === true;
+            updateVitaminButtonState(vitaminsTakenToday);
+
+            if (snapshot.empty && lastVisibleJournalDoc === null) {
                 uiElements.journalList.innerHTML = `<p class="text-center p-2 opacity-70">No logs found.</p>`;
                 return;
             }
-            snapshot.docs.forEach(doc => renderJournalDayEntryDOM({ id: doc.id, ...doc.data() }, false, cachedVitaminDates));
+            snapshot.docs.forEach(doc => renderJournalDayEntryDOM({ id: doc.id, ...doc.data() }, false));
 
+            if (snapshot.docs.length >= JOURNAL_PAGE_SIZE) {
+                lastVisibleJournalDoc = snapshot.docs[snapshot.docs.length - 1];
+                renderLoadMoreButton();
+            } else {
+                lastVisibleJournalDoc = null;
+                uiElements.journalLoadMoreContainer.innerHTML = '';
+            }
         }, (error) => {
             console.error("Journal loading error:", error);
             showFeedback("Error: Failed to load journal entries.", true);
@@ -142,129 +178,78 @@ export async function loadJournal(isGuest) {
     _hasJournalLoaded = true;
 }
 
-
-// --- Vitamin Tracker Logic ---
-
-async function getVitaminData() {
-    if (isGuestMode() || !vitaminCollectionRef) return [];
-    try {
-        const snapshot = await getDocs(vitaminCollectionRef);
-        return snapshot.docs;
-    } catch (error) {
-        console.error("Error fetching vitamin data:", error);
-        return [];
+function renderLoadMoreButton() {
+    if (!uiElements.journalLoadMoreContainer) return;
+    uiElements.journalLoadMoreContainer.innerHTML = `<button id="journalLoadMoreBtn" class="button-90s">Load More Archives</button>`;
+    const loadMoreBtn = document.getElementById('journalLoadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', loadMoreJournalEntries);
     }
 }
 
-async function checkVitaminStatusForToday() {
-    if (isGuestMode() || !vitaminCollectionRef) {
-        updateVitaminStatusUI(false, true);
-        return;
-    }
-    const todayId = getTodayDocId();
-    const vitaminDocRef = doc(vitaminCollectionRef, todayId);
-    try {
-        const docSnap = await getDoc(vitaminDocRef);
-        updateVitaminStatusUI(docSnap.exists());
-    } catch (error) {
-        console.error("Error checking vitamin status:", error);
-        updateVitaminStatusUI(false);
-    }
-}
+async function loadMoreJournalEntries() {
+    if (!lastVisibleJournalDoc || isGuestMode() || !journalCollectionRef) return;
 
-async function toggleVitaminStatus() {
-    if (isGuestMode()) {
-        showFeedback("Vitamin tracker is not available in guest mode.", true);
-        return;
+    const loadMoreBtn = document.getElementById('journalLoadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.textContent = 'Loading...';
+        loadMoreBtn.disabled = true;
     }
-    const todayId = getTodayDocId();
-    const vitaminDocRef = doc(vitaminCollectionRef, todayId);
 
     try {
-        const docSnap = await getDoc(vitaminDocRef);
-        if (docSnap.exists()) {
-            await deleteDoc(vitaminDocRef);
-            updateVitaminStatusUI(false);
-            updateJournalEntryIcon(todayId, false);
-            cachedVitaminDates.delete(todayId);
-            showFeedback("Vitamin status for today has been reset.");
+        const q = query(journalCollectionRef, orderBy("lastUpdated", "desc"), startAfter(lastVisibleJournalDoc), limit(JOURNAL_PAGE_SIZE));
+        const snapshot = await getDocs(q);
+        snapshot.docs.forEach(doc => renderJournalDayEntryDOM({ id: doc.id, ...doc.data() }, false));
+
+        if (snapshot.docs.length < JOURNAL_PAGE_SIZE) {
+            lastVisibleJournalDoc = null;
+            if (uiElements.journalLoadMoreContainer) uiElements.journalLoadMoreContainer.innerHTML = '';
         } else {
-            await setDoc(vitaminDocRef, { takenAt: serverTimestamp() });
-            updateVitaminStatusUI(true);
-            updateJournalEntryIcon(todayId, true);
-            cachedVitaminDates.add(todayId);
-            showFeedback("Vitamins for today marked as taken!");
+            lastVisibleJournalDoc = snapshot.docs[snapshot.docs.length - 1];
+            if (loadMoreBtn) {
+                loadMoreBtn.textContent = 'Load More Archives';
+                loadMoreBtn.disabled = false;
+            }
         }
     } catch (error) {
-        console.error("Error toggling vitamin status:", error);
-        showFeedback("Could not update vitamin status.", true);
+        console.error("Error loading more journal entries:", error);
+        showFeedback("Failed to load more entries.", true);
+        if (loadMoreBtn) {
+            loadMoreBtn.textContent = 'Load More Archives';
+            loadMoreBtn.disabled = false;
+        }
     }
 }
 
-function updateVitaminStatusUI(hasTaken, isGuest = false) {
-    if (!uiElements.vitaminStatusTracker || !uiElements.vitaminText) return;
-    if (isGuest) {
-        uiElements.vitaminStatusTracker.classList.add('not-taken');
-        uiElements.vitaminStatusTracker.classList.remove('taken');
-        uiElements.vitaminText.textContent = "Tracker disabled in guest mode";
-        return;
-    }
-    if (hasTaken) {
-        uiElements.vitaminStatusTracker.classList.add('taken');
-        uiElements.vitaminStatusTracker.classList.remove('not-taken');
-        uiElements.vitaminText.textContent = "Vitamins taken for today!";
-    } else {
-        uiElements.vitaminStatusTracker.classList.add('not-taken');
-        uiElements.vitaminStatusTracker.classList.remove('taken');
-        uiElements.vitaminText.textContent = "Vitamins not taken";
-    }
-}
-
-function updateJournalEntryIcon(entryDateId, hasTaken) {
-    const entryElement = document.querySelector(`.journal-day-entry[data-id="${entryDateId}"]`);
-    if (!entryElement) return;
-
-    const headerText = entryElement.querySelector('.journal-day-header p');
-    let icon = headerText.querySelector('.journal-vitamin-icon');
-
-    if (hasTaken && !icon) {
-        icon = document.createElement('span');
-        icon.className = 'journal-vitamin-icon';
-        icon.textContent = '💊';
-        headerText.appendChild(icon);
-    } else if (!hasTaken && icon) {
-        icon.remove();
-    }
-}
-
-
-// --- Journal Rendering & Management ---
-
-function renderJournalDayEntryDOM(dayEntry, isGuest, vitaminDates) {
+function renderJournalDayEntryDOM(dayEntry, isGuest) {
     if (!uiElements.journalList) return;
     const item = document.createElement('div');
     item.className = 'journal-day-entry border-b border-dashed border-border-color pb-4 mb-4';
-    item.dataset.id = dayEntry.id;
-
-    const vitaminIcon = vitaminDates.has(dayEntry.id) ? '<span class="journal-vitamin-icon">💊</span>' : '';
+    
+    const vitaminIndicator = dayEntry.vitaminsTaken ? '💊' : '';
 
     item.innerHTML = `
         <div class="journal-day-header">
-            <p class="font-bold flex-grow"><span class="toggle-indicator mr-2">[+]</span>${escapeHTML(dayEntry.displayDate)}${vitaminIcon}</p>
+            <span class="vitamin-indicator">${vitaminIndicator}</span>
+            <p class="font-bold flex-grow"><span class="toggle-indicator mr-2">[+]</span>${escapeHTML(dayEntry.displayDate)}</p>
             <div class="journal-day-controls">
                 <span class="journal-control-btn chat ${isGuest ? 'hidden' : ''}">[chat]</span>
                 <span class="journal-control-btn delete">[delete]</span>
             </div>
         </div>
-        <div class="journal-day-content"></div>`;
+        <div class="journal-day-content hidden"></div>`;
+
     const contentDiv = item.querySelector('.journal-day-content');
     const logsToProcess = dayEntry.logs || [];
     if (logsToProcess.length > 0) {
         logsToProcess.slice().reverse().forEach((log, index) => {
             const logEl = document.createElement('div');
             logEl.className = 'flex justify-between items-start py-1';
+            
             const moodIcon = log.mood ? `<span class="log-mood-icon">${escapeHTML(log.mood)}</span>` : '';
+            
             logEl.innerHTML = `<div>${moodIcon}<span class="opacity-70">[${escapeHTML(log.time)}]</span> ${escapeHTML(log.content)}</div><button class="delete-log-btn text-sm opacity-70 hover:opacity-100">[del]</button>`;
+            
             logEl.querySelector('.delete-log-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (isGuest) {
@@ -275,6 +260,7 @@ function renderJournalDayEntryDOM(dayEntry, isGuest, vitaminDates) {
                 }
             });
             contentDiv.appendChild(logEl);
+
             if (index < logsToProcess.length - 1) {
                 const divider = document.createElement('hr');
                 divider.className = 'log-divider';
@@ -282,17 +268,22 @@ function renderJournalDayEntryDOM(dayEntry, isGuest, vitaminDates) {
             }
         });
     } else {
-        contentDiv.innerHTML = `<p class="opacity-70 italic p-2">No logs for this day.</p>`;
+        // If there are no logs but vitamins were taken, we can show a placeholder or nothing
+        if (!dayEntry.vitaminsTaken) {
+             contentDiv.innerHTML = `<p class="opacity-70 italic p-2">No logs for this day.</p>`;
+        }
     }
+
     const header = item.querySelector('.journal-day-header');
     header.addEventListener('click', (e) => {
-        if (e.target.classList.contains('journal-control-btn')) return;
+        if (e.target.closest('.journal-control-btn')) return;
         item.classList.toggle('expanded');
         item.querySelector('.toggle-indicator').textContent = item.classList.contains('expanded') ? '[-]' : '[+]';
     });
+
     if (!isGuest) {
         const chatButton = item.querySelector('.chat');
-        if(chatButton) {
+        if(chatButton) { 
             chatButton.addEventListener('click', (e) => {
                 e.stopPropagation();
                 openAiChat(dayEntry);
@@ -312,6 +303,20 @@ function renderJournalDayEntryDOM(dayEntry, isGuest, vitaminDates) {
     });
     uiElements.journalList.appendChild(item);
 }
+
+// --- NEW FUNCTION to update the button's appearance ---
+function updateVitaminButtonState(isTaken) {
+    if(uiElements.vitaminTrackerBtn) {
+        if (isTaken) {
+            uiElements.vitaminTrackerBtn.classList.add('active'); // Assumes an 'active' style exists
+            uiElements.vitaminTrackerBtn.textContent = "Vitamins Logged";
+        } else {
+            uiElements.vitaminTrackerBtn.classList.remove('active');
+            uiElements.vitaminTrackerBtn.textContent = "Vitamins Taken";
+        }
+    }
+}
+
 
 async function deleteIndividualLog(dayDocId, logToRemove) {
     if (!confirm(`Delete log entry?`)) return;
@@ -354,8 +359,6 @@ export function clearJournalData() {
     lastVisibleJournalDoc = null;
     _hasJournalLoaded = false;
     resetMoodSelector();
-    updateVitaminStatusUI(false); 
-    cachedVitaminDates.clear();
     console.log("Journal data cleared.");
 }
 

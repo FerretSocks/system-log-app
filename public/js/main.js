@@ -14,7 +14,7 @@ import { loadUserSpecificData, clearUserSpecificData, saveApiKey } from './dataM
 import * as taskManager from './taskManager.js';
 import * as journalManager from './journalManager.js';
 import * as systemManager from './systemManager.js';
-import * as workoutManager from './workoutManager.js'; // <-- NEW: Import workout manager
+import * as workoutManager from './workoutManager.js'; 
 import * as aiService from './aiService.js';
 import { AI_PERSONALITIES, DEFAULT_AI_PERSONALITY_KEY } from './aiConstants.js'; // Import AI constants
 import { debounce } from './utils.js';
@@ -28,7 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
             workoutManager.initializeWorkoutReferences(currentUserId);
             await loadUserSpecificData(isGuestMode(), taskManager, journalManager, systemManager, workoutManager);
             
-            // --- FIX: This block ensures the correct view's content is loaded on app start ---
             const savedTab = localStorage.getItem('systemlog-activeTab') || 'tasks';
             switchToView(savedTab, getCurrentDesign(), true);
             if (savedTab === 'workout') {
@@ -44,26 +43,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     systemManager.loadSystemData(isGuestMode());
                 }
             }
-            // --- END OF FIX ---
 
         } else {
-            // Clear data for all managers
             taskManager.clearTaskData();
             journalManager.clearJournalData();
             systemManager.clearSystemData();
             workoutManager.clearWorkoutData(); 
-            // Clear general user-specific data (like API key from memory)
             clearUserSpecificData(taskManager, journalManager, systemManager);
         }
     }
 
     function handleDesignChange() {
         const activeTab = localStorage.getItem('systemlog-activeTab') || 'tasks';
-        switchToView(activeTab, getCurrentDesign(), false); // Pass currentDesign
+        switchToView(activeTab, getCurrentDesign(), false); 
     }
 
     function initApp() {
-        // Initialize UI components first
         systemManager.initializeSystemPanel(handleDesignChange); 
         
         if (uiElements.aiPersonalitySelect) {
@@ -133,6 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (uiElements.newCategoryInput) uiElements.newCategoryInput.addEventListener('keypress', e => { if (e.key === 'Enter') { taskManager.addCategory(); } });
         
         if (uiElements.addJournalBtn) uiElements.addJournalBtn.addEventListener('click', () => { journalManager.addJournalLog(); });
+        if (uiElements.vitaminTrackerBtn) uiElements.vitaminTrackerBtn.addEventListener('click', () => { journalManager.logVitaminsTaken(); }); // <-- NEW
         if (uiElements.journalSearch) {
             uiElements.journalSearch.addEventListener('input', debounce(() => journalManager.handleJournalSearch(), 300));
         }

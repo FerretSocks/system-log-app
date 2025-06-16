@@ -22,6 +22,7 @@ export const uiElements = {
     taskList: document.getElementById('taskList'),
     journalInput: document.getElementById('journalInput'),
     addJournalBtn: document.getElementById('addJournalBtn'),
+    vitaminTrackerBtn: document.getElementById('vitaminTrackerBtn'), // <-- NEW
     journalList: document.getElementById('journalList'),
     journalLoadMoreContainer: document.getElementById('journalLoadMoreContainer'),
     launchKaleidoscopeBtn: document.getElementById('launchKaleidoscopeBtn'),
@@ -145,7 +146,6 @@ export function switchToView(viewName, currentDesignValue, isInitialLoad = false
             titleElement.classList.remove('fade-in-title');
             void titleElement.offsetWidth;
             
-            // Simplified logic: Only use typewriter effect on non-initial loads.
             if (isInitialLoad) {
                 titleElement.textContent = titles[viewName];
             } else {
@@ -157,7 +157,6 @@ export function switchToView(viewName, currentDesignValue, isInitialLoad = false
     }
 }
 
-// Set Mecha Manual as the new default
 let currentDesign = DESIGNS['Mecha Manual'];
 let currentPalette = PALETTES['Heavy Industry'];
 
@@ -276,7 +275,6 @@ function applyAppearance() {
     updateActivePaletteButton();
 
     if (uiElements.statusScrollerContainer) {
-        // Hide scroller for Mecha Manual now, not just Goblin
         uiElements.statusScrollerContainer.style.display = (currentDesign === DESIGNS['Mecha Manual']) ? 'none' : 'block';
     }
 }
@@ -286,7 +284,6 @@ export function getCurrentDesign() {
 }
 
 export function loadInitialAppearance() {
-    // Set Mecha Manual as the new default fallback
     currentDesign = localStorage.getItem('systemlog-design') || DESIGNS['Mecha Manual'];
     
     const palettesForDesignKeys = DESIGN_SPECIFIC_PALETTES[currentDesign] || Object.keys(PALETTES);
