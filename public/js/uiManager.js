@@ -12,11 +12,11 @@ export const uiElements = {
     tasksView: document.getElementById('tasksView'),
     journalView: document.getElementById('journalView'),
     systemView: document.getElementById('systemView'),
-    workoutView: document.getElementById('workoutView'), 
+    workoutView: document.getElementById('workoutView'),
     tasksTabBtn: document.getElementById('tasksTabBtn'),
     journalTabBtn: document.getElementById('journalTabBtn'),
     systemTabBtn: document.getElementById('systemTabBtn'),
-    workoutTabBtn: document.getElementById('workoutTabBtn'), 
+    workoutTabBtn: document.getElementById('workoutTabBtn'),
     taskInput: document.getElementById('taskInput'),
     addTaskBtn: document.getElementById('addTaskBtn'),
     taskList: document.getElementById('taskList'),
@@ -35,7 +35,7 @@ export const uiElements = {
     tasksViewTitle: document.getElementById('tasksViewTitle'),
     journalViewTitle: document.getElementById('journalViewTitle'),
     systemViewTitle: document.getElementById('systemViewTitle'),
-    workoutViewTitle: document.getElementById('workoutViewTitle'), 
+    workoutViewTitle: document.getElementById('workoutViewTitle'),
     feedbackBox: document.getElementById('feedbackBox'),
     themeSwitcher: document.getElementById('themeSwitcher'),
     journalStreakDisplay: document.getElementById('journalStreakDisplay'),
@@ -54,10 +54,11 @@ export const uiElements = {
     aiChatInput: document.getElementById('aiChatInput'),
     aiChatSendBtn: document.getElementById('aiChatSendBtn'),
     closeAiChatBtn: document.getElementById('closeAiChatBtn'),
-    aiPersonalitySelect: document.getElementById('aiPersonalitySelect'), 
+    aiPersonalitySelect: document.getElementById('aiPersonalitySelect'),
     loadingOverlay: document.getElementById('loadingOverlay'),
     loadingMessageText: document.getElementById('loadingMessageText'),
-    statusScrollerContainer: document.querySelector('.status-scroller-container')
+    statusScrollerContainer: document.querySelector('.status-scroller-container'),
+    workoutNotesInput: document.getElementById('workoutNotesInput') // NEW: Workout notes input
 };
 
 let feedbackTimeout;
@@ -129,8 +130,8 @@ export function hideLoadingOverlay() {
 
 
 export function switchToView(viewName, currentDesignValue, isInitialLoad = false) {
-    const views = { tasks: uiElements.tasksView, journal: uiElements.journalView, system: uiElements.systemView, workout: uiElements.workoutView }; 
-    const tabs = { tasks: uiElements.tasksTabBtn, journal: uiElements.journalTabBtn, system: uiElements.systemTabBtn, workout: uiElements.workoutTabBtn }; 
+    const views = { tasks: uiElements.tasksView, journal: uiElements.journalView, system: uiElements.systemView, workout: uiElements.workoutView };
+    const tabs = { tasks: uiElements.tasksTabBtn, journal: uiElements.journalTabBtn, system: uiElements.systemTabBtn, workout: uiElements.workoutTabBtn };
 
     Object.values(views).forEach(v => v?.classList.add('hidden'));
     Object.values(tabs).forEach(t => t?.classList.remove('active'));
@@ -139,13 +140,13 @@ export function switchToView(viewName, currentDesignValue, isInitialLoad = false
         views[viewName].classList.remove('hidden');
         tabs[viewName].classList.add('active');
         localStorage.setItem('systemlog-activeTab', viewName);
-        const titles = { tasks: "Task Log", journal: "Daily Entry", system: "System Panel", workout: "Workout Log" }; 
+        const titles = { tasks: "Task Log", journal: "Daily Entry", system: "System Panel", workout: "Workout Log" };
         const titleElement = uiElements[`${viewName}ViewTitle`];
 
         if (titleElement) {
             titleElement.classList.remove('fade-in-title');
             void titleElement.offsetWidth;
-            
+
             if (isInitialLoad) {
                 titleElement.textContent = titles[viewName];
             } else {
@@ -165,18 +166,18 @@ export function populateAiPersonalitiesDropdown(personalities, defaultKey) {
         console.warn("AI personality select dropdown not found in UI elements.");
         return;
     }
-    uiElements.aiPersonalitySelect.innerHTML = ''; 
+    uiElements.aiPersonalitySelect.innerHTML = '';
 
     for (const key in personalities) {
         if (Object.hasOwnProperty.call(personalities, key)) {
             const personality = personalities[key];
             const option = document.createElement('option');
-            option.value = key; 
-            option.textContent = personality.name; 
+            option.value = key;
+            option.textContent = personality.name;
             uiElements.aiPersonalitySelect.appendChild(option);
         }
     }
-    
+
     if (defaultKey && personalities[defaultKey]) {
         uiElements.aiPersonalitySelect.value = defaultKey;
     } else if (Object.keys(personalities).length > 0) {
@@ -204,6 +205,7 @@ export function initializeAppearanceControls(onDesignChangeCallback) {
         button.className = 'button-90s design-button theme-button';
         button.dataset.design = DESIGNS[designName];
         button.addEventListener('click', () => {
+            // playSound('clickSound'); // Re-enable if sound manager imported
             currentDesign = DESIGNS[designName];
             currentPalette = DESIGN_DEFAULT_PALETTES[currentDesign] || PALETTES[DESIGN_SPECIFIC_PALETTES[currentDesign][0]];
             populatePaletteSelector();
@@ -252,6 +254,7 @@ function createPaletteButton(container, nameKey, value) {
     button.className = 'button-90s palette-button theme-button';
     button.dataset.palette = value;
     button.addEventListener('click', () => {
+        // playSound('clickSound'); // Re-enable if sound manager imported
         currentPalette = value;
         applyAppearance();
     });
@@ -264,7 +267,7 @@ function updateActivePaletteButton() {
     });
 }
 
-function applyAppearance() {
+export function applyAppearance() {
     document.body.className = `${currentDesign} ${currentPalette}`;
     localStorage.setItem('systemlog-design', currentDesign);
     localStorage.setItem('systemlog-palette', currentPalette);
@@ -285,7 +288,7 @@ export function getCurrentDesign() {
 
 export function loadInitialAppearance() {
     currentDesign = localStorage.getItem('systemlog-design') || DESIGNS['Mecha Manual'];
-    
+
     const palettesForDesignKeys = DESIGN_SPECIFIC_PALETTES[currentDesign] || Object.keys(PALETTES);
     const defaultPaletteForDesign = DESIGN_DEFAULT_PALETTES[currentDesign] || (palettesForDesignKeys.length > 0 ? PALETTES[palettesForDesignKeys[0]] : Object.values(PALETTES)[0]);
 

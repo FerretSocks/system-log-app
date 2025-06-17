@@ -320,35 +320,35 @@ body.design-mecha-manual .nav-tab.active {
 }
 
 /* --- PALETTE Definitions (Colors Only) --- */
-body.design-wired.palette-cyber-default { 
+body.design-wired.palette-cyber-default {
     --background-main: #1a1a1d; --container-bg: rgba(26, 26, 29, 0.75);
     --input-bg: #2c2c31; --input-bg-focus: #3a3a41;
     --text-primary: #00ffc3; --text-secondary: #00c3ff; --text-dim: #7a7f8a;
     --accent-primary: #c300ff; --accent-secondary: #00c3ff; --accent-danger: #ff0055;
     --border-color: #555a69;
 }
-body.design-wired.palette-lain { 
+body.design-wired.palette-lain {
     --background-main: #181818; --container-bg: rgba(10, 10, 10, 0.8);
     --input-bg: #222222; --input-bg-focus: #303030;
     --text-primary: #EAEAEA; --text-secondary: #B0B0B0; --text-dim: #666666;
     --accent-primary: #D13030; --accent-secondary: #B0B0B0; --accent-danger: #D13030;
     --border-color: #383838;
 }
-body.design-wired.palette-bebop-jazz { 
+body.design-wired.palette-bebop-jazz {
     --background-main: #0A101E; --container-bg: rgba(16, 24, 40, 0.85);
     --input-bg: #1C2A44; --input-bg-focus: #2A3F64;
     --text-primary: #FFD700; --text-secondary: #E87B3E; --text-dim: #A0AEC0;
     --accent-primary: #C70039; --accent-secondary: #00BFFF; --accent-danger: #D32F2F;
     --border-color: #2C3E50;
 }
-body.design-wired.palette-ghost-protocol { 
+body.design-wired.palette-ghost-protocol {
     --background-main: #1C252C; --container-bg: rgba(35, 45, 55, 0.85);
     --input-bg: #2D3741; --input-bg-focus: #3E4A59;
     --text-primary: #A8DADC; --text-secondary: #457B9D; --text-dim: #718096;
     --accent-primary: #E63946; --accent-secondary: #F1FAEE; --accent-danger: #D90429;
     --border-color: #34495E;
 }
-body.design-wired.palette-neon-noir { 
+body.design-wired.palette-neon-noir {
     --background-main: #1A1229; --container-bg: rgba(30, 20, 50, 0.8);
     --input-bg: #2A203D; --input-bg-focus: #3B2A54;
     --text-primary: #DA00FF; --text-secondary: #00F0FF; --text-dim: #746A8A;
@@ -357,35 +357,35 @@ body.design-wired.palette-neon-noir {
 }
 
 /* Mecha Manual Design Palettes (MODIFIED SELECTORS) */
-body.design-mecha-manual.palette-mecha-hangar { 
+body.design-mecha-manual.palette-mecha-hangar {
     --background-main: #D1D5DB; --container-bg: rgba(229, 231, 235, 0.85);
     --input-bg: #E5E7EB; --input-bg-focus: #F3F4F6;
     --text-primary: #1F2937; --text-secondary: #F59E0B; --text-dim: #6B7280;
     --accent-primary: #EF4444; --accent-secondary: #6B7280; --accent-danger: #DC2626;
     --border-color: #4B5563;
 }
-body.design-mecha-manual.palette-mecha-olive-drab { 
+body.design-mecha-manual.palette-mecha-olive-drab {
     --background-main: #EAE7DC; --container-bg: rgba(240, 238, 230, 0.85);
     --input-bg: #D1CEC2; --input-bg-focus: #C1BFB4;
     --text-primary: #3D403A; --text-secondary: #8C8C83; --text-dim: #A1A198;
     --accent-primary: #D08C60; --accent-secondary: #C7C4B4; --accent-danger: #B85C30;
     --border-color: #5A6351;
 }
-body.design-mecha-manual.palette-mecha-heavy-industry { 
+body.design-mecha-manual.palette-mecha-heavy-industry {
     --background-main: #2C3539; --container-bg: rgba(40, 50, 55, 0.88);
     --input-bg: #384044; --input-bg-focus: #454F54;
     --text-primary: #E0E0E0; --text-secondary: #FF9900; --text-dim: #97A0A5;
     --accent-primary: #D32F2F; --accent-secondary: #B0BEC5; --accent-danger: #E53935;
     --border-color: #546E7A;
 }
-body.design-mecha-manual.palette-mecha-system-alert { 
+body.design-mecha-manual.palette-mecha-system-alert {
     --background-main: #2E0C0C; --container-bg: rgba(40, 20, 20, 0.8);
     --input-bg: #4A2525; --input-bg-focus: #5A3030;
     --text-primary: #BEBDBD; --text-secondary: #FF8C00; --text-dim: #7F7070;
     --accent-primary: #FF4500; --accent-secondary: #A0A0A0; --accent-danger: #CC0000;
     --border-color: #6B3030;
 }
-body.design-mecha-manual.palette-mecha-digital-hazard { 
+body.design-mecha-manual.palette-mecha-digital-hazard {
     --background-main: #0F172A; --container-bg: rgba(20, 30, 50, 0.82);
     --input-bg: #1E293B; --input-bg-focus: #334155;
     --text-primary: #6EE7B7; --text-secondary: #FACC15; --text-dim: #94A3B8;
@@ -406,7 +406,7 @@ body.design-mecha-manual.palette-mecha-digital-hazard {
     overflow-y: auto;
     border: 1px solid var(--border-color);
     padding: 10px;
-    background-color: var(--input-bg); 
+    background-color: var(--input-bg);
     margin-bottom: 20px;
 }
 .task-item-90s { padding: 12px; margin-bottom: 8px; display: flex; align-items: center; border-bottom: 1px dashed var(--border-color); }
@@ -414,12 +414,12 @@ body.design-mecha-manual.palette-mecha-digital-hazard {
 .task-actions {
     display: flex;
     align-items: center;
-    margin-left: auto; 
+    margin-left: auto;
 }
 
 .task-text {
     flex-grow: 1;
-    margin: 0 15px; 
+    margin: 0 15px;
     font-size: 18px;
 }
 
@@ -435,9 +435,9 @@ body.design-mecha-manual.palette-mecha-digital-hazard {
     color: var(--text-dim);
     user-select: none;
     transition: color 0.2s;
-    margin-left: 0; 
-    margin-right: 8px; 
-    flex-shrink: 0; 
+    margin-left: 0;
+    margin-right: 8px;
+    flex-shrink: 0;
 }
 .priority-toggle.active { color: var(--accent-primary); }
 
@@ -448,8 +448,8 @@ body.design-mecha-manual.palette-mecha-digital-hazard {
     padding: 4px 8px;
     font-size: 16px;
     cursor: pointer;
-    margin-left: 0; 
-    flex-shrink: 0; 
+    margin-left: 0;
+    flex-shrink: 0;
 }
 .delete-btn-90s:hover { color: var(--accent-danger); }
 
@@ -510,7 +510,7 @@ body.design-mecha-manual.palette-mecha-digital-hazard {
     background: none; border: 2px solid transparent; border-radius: 50%;
     cursor: pointer; font-size: 2rem;
     transition: transform 0.1s ease-out, border-color 0.2s;
-    opacity: 0.6; padding: 0.25rem; line-height: 1; 
+    opacity: 0.6; padding: 0.25rem; line-height: 1;
 }
 .mood-button:hover { opacity: 1; transform: scale(1.15); }
 .mood-button.active {
@@ -521,8 +521,53 @@ body.design-mecha-manual.palette-mecha-digital-hazard {
 .log-mood-icon { font-size: 1.25rem; margin-right: 8px; vertical-align: middle; }
 .log-divider { border: 0; height: 1px; background-color: var(--border-color); opacity: 0.3; margin: 10px 0; }
 
+/* --- Workout View Specific Styles --- */
+.workout-select-btn { /* Styles for the workout selection buttons */
+    /* Inherits from button-90s but can add specific overrides */
+    margin-bottom: 10px; /* Spacing between selection buttons */
+}
+
+.workout-active-display {
+    border: 1px solid var(--border-color);
+    background-color: var(--container-bg);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.stretches-header {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 4px;
+}
+
+.stretches-list {
+    list-style: none; /* Remove default bullet points */
+    padding-left: 0;
+    margin-bottom: 1rem;
+}
+
+.stretches-list li {
+    font-family: var(--font-main);
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    padding: 4px 0;
+    position: relative;
+    padding-left: 1.5rem; /* Space for custom bullet */
+}
+
+.stretches-list li::before {
+    content: '▪ '; /* Custom bullet point */
+    color: var(--accent-primary);
+    position: absolute;
+    left: 0;
+}
+
 .workout-exercise-item {
-    padding: 12px 8px;
+    padding: 12px 0;
     margin-bottom: 10px;
     border-bottom: 1px dashed var(--border-color);
     transition: background-color 0.2s ease-in-out;
@@ -530,35 +575,87 @@ body.design-mecha-manual.palette-mecha-digital-hazard {
 .workout-exercise-item:hover {
     background-color: color-mix(in srgb, var(--container-bg) 80%, var(--input-bg) 20%);
 }
+
 .exercise-name {
     flex-grow: 1;
     font-size: 18px;
     color: var(--text-primary);
+    margin-right: 10px; /* Space between name and expected reps */
 }
-.exercise-details {
-    padding-left: 38px;
-    margin-top: 8px;
-    display: grid;
-    gap: 8px;
-    grid-template-columns: 1fr 1fr; 
-    align-items: center;
-}
-.sets-reps {
-    font-size: 14px;
+
+.exercise-expected-reps {
+    font-family: var(--font-main);
+    font-size: 0.9em;
     color: var(--text-dim);
+    text-transform: uppercase;
     letter-spacing: 0.5px;
+    flex-shrink: 0;
 }
-.exercise-input {
-    font-size: 16px !important;
+
+.exercise-sets-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Space between set rows */
+    padding-left: 38px; /* Align with checkbox spacing */
+    margin-top: 8px;
+}
+
+.exercise-set-row {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between label and inputs */
+}
+
+.exercise-set-row .set-label {
+    font-family: var(--font-main);
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    min-width: 60px; /* Ensure labels align */
+    flex-shrink: 0;
+}
+
+.exercise-set-row .input-90s {
+    flex-grow: 1;
+    width: auto; /* Allow inputs to grow */
+    max-width: 120px; /* Limit input width for numbers */
+    font-size: 16px !important; /* Override general input-90s size if needed */
     padding: 6px 8px !important;
 }
-.task-status-workout {
-    cursor: pointer; user-select: none; width: 18px; height: 18px;
-    background-color: transparent; border: 1px solid var(--text-dim);
-    flex-shrink: 0; position: relative;
+
+.exercise-set-row .exercise-weight-input {
+    max-width: 90px; /* Smaller for weight */
 }
+.exercise-set-row .exercise-reps-input {
+    max-width: 80px; /* Smaller for reps */
+}
+.exercise-set-row .exercise-notes-input {
+    max-width: none; /* Allow notes to take more space */
+}
+
+.add-set-btn {
+    font-size: 12px !important;
+    padding: 4px 8px !important;
+    margin-top: 10px;
+    align-self: flex-end; /* Align to the right */
+}
+
+.delete-set-btn {
+    font-size: 12px !important;
+    padding: 4px 8px !important;
+    background-color: var(--accent-danger);
+    border-color: var(--accent-danger);
+    color: var(--background-main);
+    margin-left: 8px; /* Space from inputs */
+    flex-shrink: 0;
+}
+
+.delete-set-btn:hover {
+    background-color: color-mix(in srgb, var(--accent-danger) 80%, black);
+    border-color: color-mix(in srgb, var(--accent-danger) 80%, black);
+}
+
 .workout-exercise-item.completed .task-status-workout {
-    background-color: var(--accent-secondary);
+    background-color: var(--accent-secondary); /* Different color for workout completion */
     border-color: var(--accent-secondary);
 }
 .workout-exercise-item.completed .exercise-name {
@@ -566,10 +663,75 @@ body.design-mecha-manual.palette-mecha-digital-hazard {
     color: var(--text-dim);
     text-decoration-color: var(--accent-secondary);
 }
-#workoutHistoryList .journal-control-btn.edit:hover {
-    color: var(--accent-secondary);
+.workout-exercise-item.completed .exercise-set-row .input-90s {
+    opacity: 0.7;
+    background-color: color-mix(in srgb, var(--input-bg) 80%, var(--background-main) 20%);
+    border-color: var(--text-dim);
 }
 
+#workoutNotesInput {
+    min-height: 80px; /* Adjust height for workout notes */
+    margin-top: 0.5rem; /* Space below heading */
+}
+
+/* History Items - Reusing journal-day-entry style, adding specific details */
+.exercise-history-item {
+    padding: 8px 0;
+    border-bottom: 1px dotted var(--border-color);
+    margin-bottom: 5px;
+}
+.exercise-history-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+.exercise-history-name {
+    font-family: var(--font-main);
+    font-size: 1rem;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+    display: block;
+}
+.exercise-history-item.completed .exercise-history-name {
+    text-decoration: line-through;
+    color: var(--text-dim);
+    text-decoration-color: var(--accent-secondary);
+}
+.exercise-history-sets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-family: var(--font-main);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    padding-left: 20px; /* Indent history sets */
+}
+.exercise-history-sets span {
+    background-color: color-mix(in srgb, var(--input-bg) 50%, transparent);
+    padding: 2px 6px;
+    border-radius: 2px;
+    border: 1px solid var(--border-color);
+}
+.workout-history-notes {
+    margin-top: 1rem;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 1rem;
+}
+.workout-history-notes h4 {
+    font-family: var(--font-main);
+    font-size: 1rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+.workout-history-notes p {
+    font-family: var(--font-main);
+    font-size: 1rem;
+    color: var(--text-primary);
+    white-space: pre-wrap; /* Preserve line breaks */
+    word-break: break-word;
+}
+
+/* Vitamin indicator for Journal (existing but ensuring placement) */
 .vitamin-indicator {
     display: inline-flex;
     width: 2rem; /* Fixed width */
@@ -601,5 +763,43 @@ body.design-mecha-manual.palette-mecha-digital-hazard {
     body.design-wired.palette-neon-noir .scroller-accent
     {
         text-shadow: none !important;
+    }
+
+    .workout-exercise-item .flex.items.center {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .workout-exercise-item .exercise-expected-reps {
+        margin-left: 38px; /* Align under name */
+        margin-top: 5px;
+    }
+    .exercise-sets-container {
+        padding-left: 15px; /* Less indent on mobile */
+    }
+    .exercise-set-row {
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    .exercise-set-row .set-label {
+        min-width: unset;
+        width: 100%;
+        margin-bottom: 4px;
+    }
+    .exercise-set-row .input-90s {
+        max-width: 48% !important; /* Allow two inputs per row */
+        flex-grow: 0;
+    }
+    .exercise-set-row .exercise-notes-input {
+        width: 100%;
+        max-width: 100% !important;
+    }
+    .add-set-btn {
+        width: 100%;
+        align-self: center;
+    }
+    .delete-set-btn {
+        margin-left: 0;
+        margin-top: 5px; /* Give it some space */
+        width: 100%;
     }
 }

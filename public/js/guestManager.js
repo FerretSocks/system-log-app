@@ -3,7 +3,8 @@ import { generateLogId, getTodayDocId, formatDisplayDate } from './utils.js';
 
 let guestData = {
     tasks: [],
-    journalEntries: []
+    journalEntries: [],
+    workoutLogs: [] // NEW: Added workoutLogs array for guest data
 };
 let _isGuestMode = false;
 let _currentUserId = null; // This will store Firebase UID or a guest identifier
@@ -31,10 +32,12 @@ export function loadGuestDataFromLocalStorage() {
         if (storedTasks) guestData.tasks = JSON.parse(storedTasks);
         const storedJournal = localStorage.getItem('guestJournal');
         if (storedJournal) guestData.journalEntries = JSON.parse(storedJournal);
+        const storedWorkouts = localStorage.getItem('guestWorkouts'); // NEW: Load guest workouts
+        if (storedWorkouts) guestData.workoutLogs = JSON.parse(storedWorkouts); // NEW: Parse guest workouts
         console.log("Guest data loaded from local storage.");
     } catch (e) {
         console.error("Error loading guest data from local storage:", e);
-        guestData = { tasks: [], journalEntries: [] }; // Reset on error
+        guestData = { tasks: [], journalEntries: [], workoutLogs: [] }; // Reset on error
     }
 }
 
@@ -43,6 +46,7 @@ export function saveGuestDataToLocalStorage() {
     try {
         localStorage.setItem('guestTasks', JSON.stringify(guestData.tasks));
         localStorage.setItem('guestJournal', JSON.stringify(guestData.journalEntries));
+        localStorage.setItem('guestWorkouts', JSON.stringify(guestData.workoutLogs)); // NEW: Save guest workouts
         console.log("Guest data saved to local storage.");
     } catch (e) {
         console.error("Error saving guest data to local storage:", e);
@@ -50,10 +54,11 @@ export function saveGuestDataToLocalStorage() {
 }
 
 export function clearGuestData() {
-    guestData = { tasks: [], journalEntries: [] };
+    guestData = { tasks: [], journalEntries: [], workoutLogs: [] }; // NEW: Clear workoutLogs
     if (typeof localStorage !== 'undefined') {
         localStorage.removeItem('guestTasks');
         localStorage.removeItem('guestJournal');
+        localStorage.removeItem('guestWorkouts'); // NEW: Remove guest workouts
     }
     console.log("Guest data cleared.");
 }
@@ -145,5 +150,40 @@ export function deleteGuestJournalLog(dayId, logId) {
 
 export function deleteGuestJournalDay(dayId) {
     guestData.journalEntries = guestData.journalEntries.filter(entry => entry.id !== dayId);
+    saveGuestDataToLocalStorage();
+}
+
+// --- NEW: Guest Workout Management ---
+export function getGuestWorkoutLogs() {
+    // Workouts are stored by their doc ID (date string), which also serves as a good sort key
+    return guestData.workoutLogs.sort((a, b) => {
+        const dateA = new Date(a.id);
+        const dateB = new Date(b.id);
+        return dateB.getTime() - dateA.getTime(); // Most recent first
+    });
+}
+
+export function saveGuestWorkoutLog(workoutData) {
+    const todayId = workoutData.id || getTodayDocId(); // Use provided ID or today's
+    const existingIndex = guestData.workoutLogs.findIndex(log => log.id === todayId);
+
+    // Create a mutable copy of workoutData for guest storage
+    const newGuestWorkout = { ...workoutData };
+    newGuestWorkout.id = todayId; // Ensure ID is correct for guest storage
+    newGuestWorkout.completedAt = new Date().toISOString(); // Use ISO string for guest timestamp
+
+    if (existingIndex > -1) {
+        // Update existing workout log for today
+        guestData.workoutLogs[existingIndex] = newGuestWorkout;
+    } else {
+        // Add new workout log
+        guestData.workoutLogs.push(newGuestWorkout);
+    }
+    saveGuestDataToLocalStorage();
+    return newGuestWorkout;
+}
+
+export function deleteGuestWorkoutLog(workoutId) {
+    guestData.workoutLogs = guestData.workoutLogs.filter(log => log.id !== workoutId);
     saveGuestDataToLocalStorage();
 }

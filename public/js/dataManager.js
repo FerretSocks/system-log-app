@@ -8,8 +8,7 @@ let userSpecificDataLoaded = false;
 
 export async function loadUserConfig() {
     const currentUserId = getUserId();
-    // Line 11 where the error occurred is below, now `isGuestMode` will be defined
-    if (!currentUserId || isGuestMode()) { 
+    if (!currentUserId || isGuestMode()) {
         console.log("Guest mode or no user ID, skipping user config load for API key.");
         setApiKey(null);
         if (uiElements.apiKeyInput) uiElements.apiKeyInput.value = '';
@@ -67,34 +66,38 @@ export function setApiKey(key) {
     apiKey = key;
 }
 
-export async function loadUserSpecificData(isCurrentlyGuest, taskMgr, journalMgr, systemMgr) {
+export async function loadUserSpecificData(isCurrentlyGuest, taskMgr, journalMgr, systemMgr, workoutMgr) { // Added workoutMgr
     console.log(`Loading data for ${isCurrentlyGuest ? 'guest' : 'authenticated user'}`);
-    userSpecificDataLoaded = false; 
+    userSpecificDataLoaded = false;
 
     if (isCurrentlyGuest) {
         taskMgr.loadTasks(true);
         journalMgr.loadJournal(true);
-        systemMgr.loadSystemData(true); 
+        systemMgr.loadSystemData(true);
+        workoutMgr.loadWorkoutView(); // NEW: Load workouts for guest mode
+        workoutMgr.initializeWorkoutReferences(getUserId()); // NEW: Initialize workout refs for guest mode
     } else {
         // For authenticated users, loadUserConfig is already called by authStateObserver in auth.js
         // We proceed to load other user-specific data.
         taskMgr.initializeTaskReferences(); // Initialize with current (non-guest) userId
         journalMgr.initializeJournalReferences(); // Initialize with current (non-guest) userId
-        // systemManager.initializeSystemReferences(); // If needed in future
+        workoutMgr.initializeWorkoutReferences(getUserId()); // Initialize workout refs for authenticated user
 
         await taskMgr.loadCategoriesAndTasks(); // This loads categories then tasks for authenticated user
-        journalMgr.loadJournal(false); 
+        journalMgr.loadJournal(false);
         journalMgr.setHasJournalLoaded(true); // Mark as loaded
-        systemMgr.loadSystemData(false); 
+        systemMgr.loadSystemData(false);
         systemMgr.setHasSystemDataLoaded(true); // Mark as loaded
+        workoutMgr.loadWorkoutView(); // Load workouts for authenticated mode
     }
     userSpecificDataLoaded = true;
 }
 
-export function clearUserSpecificData(taskMgr, journalMgr, systemMgr) {
+export function clearUserSpecificData(taskMgr, journalMgr, systemMgr, workoutMgr) { // Added workoutMgr
     if (taskMgr) taskMgr.clearTaskData();
     if (journalMgr) journalMgr.clearJournalData();
     if (systemMgr) systemMgr.clearSystemData();
+    if (workoutMgr) workoutMgr.clearWorkoutData(); // NEW: Clear workout data
     setApiKey(null);
     if (uiElements.apiKeyInput) uiElements.apiKeyInput.value = ''; // Clear API key field
     userSpecificDataLoaded = false;

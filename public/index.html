@@ -7,7 +7,7 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script> 
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -95,8 +95,9 @@
                 <div id="workoutView" class="hidden">
                     <h2 id="workoutViewTitle"></h2>
                     <p class="jp-subtitle">トレーニング記録</p>
-                    <div id="workoutSelectorContainer"></div>
-                    <div id="workoutDisplayContainer"></div>
+                    <div id="workoutSelectorContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"></div>
+                    <div id="workoutDisplayContainer">
+                        </div>
                     <hr class="my-6 border-dashed border-border-color opacity-50">
                     <div id="workoutHistoryContainer">
                         <h3 class="mb-2">Workout History</h3>
@@ -128,7 +129,7 @@
             </main>
         </div>
     </div>
-    
+
     <div id="kaleidoscopeModal" class="modal-base hidden fixed inset-0 flex items-center justify-center z-50">
         <div class="container-90s w-11/12 max-w-lg">
             <h2>Kaleidoscope</h2>
