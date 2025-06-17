@@ -46,7 +46,14 @@ body {
 
 h1, .app-title { font-size: 32px; text-align: center; color: var(--text-primary); margin-bottom: 0px; text-transform: uppercase; }
 .app-subtitle { font-size: 18px; text-align: center; color: var(--text-dim); margin-bottom: 15px; }
-h2 { font-size: 24px; text-align: left; border-bottom: 1px solid var(--accent-primary); padding-bottom: 5px; min-height: 32px; }
+
+h2 {
+    font-size: 24px; text-align: left;
+    border-bottom: 1px solid var(--accent-primary);
+    padding-bottom: 5px; min-height: 32px;
+    position: relative; /* For cursor positioning */
+}
+
 h3 { font-size: 18px; text-align: left; margin-top: 1.5rem; margin-bottom: 0.5rem; text-transform: uppercase; color: var(--text-secondary); }
 .jp-subtitle { color: var(--text-dim); font-size: 14px; margin-top: 4px; margin-bottom: 12px; opacity: 0.8; }
 
@@ -67,43 +74,44 @@ h3 { font-size: 18px; text-align: left; margin-top: 1.5rem; margin-bottom: 0.5re
 }
 .input-90s::placeholder { color: var(--text-dim); }
 
-/* Base Button Style with Enhanced Hover/Active and Shine */
+/* --- ENHANCED 3D BUTTONS (IDEA 4) --- */
 .button-90s {
-    background-color: transparent; border: 1px solid var(--border-color);
-    padding: 10px 15px; font-family: var(--font-main); /* Theme will override */
+    color: var(--text-primary);
+    background: var(--input-bg);
+    border: 2px solid var(--border-color);
+    border-top-color: color-mix(in srgb, var(--border-color) 60%, white);
+    border-left-color: color-mix(in srgb, var(--border-color) 60%, white);
+    border-bottom-color: color-mix(in srgb, var(--border-color) 60%, black);
+    border-right-color: color-mix(in srgb, var(--border-color) 60%, black);
+    padding: 10px 15px; font-family: var(--font-main);
     font-size: 18px;
-    color: var(--text-dim); cursor: pointer; text-shadow: none;
-    transition: all var(--animation-speed-fast) ease-in-out, transform var(--animation-speed-fast) ease-out;
+    cursor: pointer; text-shadow: none;
+    transition: all var(--animation-speed-fast) ease-out;
     text-transform: uppercase;
     position: relative;
     overflow: hidden;
 }
-.button-90s::after { /* Shine pseudo-element */
-    content: ''; position: absolute; top: 0; left: 0;
-    width: 50%; height: 100%;
-    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.0) 20%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0.0) 80%, rgba(255,255,255,0) 100%);
-    transform: translateX(-150%) skewX(-20deg);
-    transition: none; pointer-events: none;
-    mix-blend-mode: screen;
-}
 .button-90s:hover {
-    background-color: var(--accent-primary); border-color: var(--accent-primary);
-    color: var(--background-main); text-shadow: none;
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-.button-90s:hover::after {
-    animation: shine 0.75s ease-out;
-    transform: translateX(250%) skewX(-20deg);
-    transition: transform 0.75s ease-out;
+    background: var(--input-bg-focus);
+    color: var(--accent-secondary);
+    border-top-color: var(--accent-secondary);
+    border-left-color: var(--accent-secondary);
 }
 .button-90s:active {
-    transform: translateY(0px) scale(0.98);
-    background-color: color-mix(in srgb, var(--accent-primary) 80%, black);
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    transform: translateY(2px);
+    border-top-color: color-mix(in srgb, var(--border-color) 60%, black);
+    border-left-color: color-mix(in srgb, var(--border-color) 60%, black);
+    border-bottom-color: color-mix(in srgb, var(--border-color) 60%, white);
+    border-right-color: color-mix(in srgb, var(--border-color) 60%, white);
 }
-.button-90s:disabled { cursor: not-allowed; opacity: 0.5; transform: none; box-shadow: none; }
-.button-90s:disabled:hover::after { animation: none; transform: translateX(-150%) skewX(-20deg); }
+.button-90s:disabled {
+    cursor: not-allowed; opacity: 0.5;
+    transform: none;
+    background: var(--input-bg);
+    color: var(--text-dim);
+    border-color: var(--border-color);
+}
+
 
 .subtle-link-90s { background: none; border: none; font-family: var(--font-main); font-size: 14px; color: var(--text-dim); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; transition: color 0.2s, text-shadow 0.2s; padding: 5px 10px; margin: 0; display: inline-block; }
 .subtle-link-90s:hover { color: var(--accent-secondary); text-shadow: 0 0 5px var(--accent-secondary); text-decoration: none; }
@@ -145,6 +153,21 @@ h3 { font-size: 18px; text-align: left; margin-top: 1.5rem; margin-bottom: 0.5re
 @keyframes shine { 0% { transform: translateX(-100%) skewX(-20deg); } 100% { transform: translateX(200%) skewX(-20deg); } }
 @keyframes loadingDots { 0%, 80%, 100% { transform: scale(0); opacity: 0.5; } 40% { transform: scale(1.0); opacity: 1; } }
 @keyframes glow-pulse { 0%, 100% { text-shadow: 0 0 8px var(--text-primary), 0 0 16px var(--accent-primary); } 50% { text-shadow: 0 0 12px var(--text-primary), 0 0 24px var(--accent-primary), 0 0 36px var(--text-primary); } }
+@keyframes subtle-glow-pulse {
+    0% { box-shadow: 0 0 15px rgba(0, 255, 195, 0.1), inset 0 0 10px rgba(0, 255, 195, 0.05); }
+    50% { box-shadow: 0 0 25px rgba(0, 195, 255, 0.2), inset 0 0 15px rgba(0, 195, 255, 0.1); }
+    100% { box-shadow: 0 0 15px rgba(0, 255, 195, 0.1), inset 0 0 10px rgba(0, 255, 195, 0.05); }
+}
+/* NEW: Keyframe for shimmering title (Idea 1) */
+@keyframes shimmer {
+    0% { background-position: -500% 0; }
+    100% { background-position: 500% 0; }
+}
+/* NEW: Keyframe for blinking caret (Idea 2) */
+@keyframes blink-caret {
+    from, to { opacity: 1; }
+    50% { opacity: 0; }
+}
 
 
 /* --- Loading Overlay Enhancements --- */
@@ -196,18 +219,39 @@ body.design-wired {
 body.design-wired .container-90s {
     border-image: linear-gradient(to right, var(--accent-primary), var(--accent-secondary)) 1;
     backdrop-filter: blur(5px);
-    box-shadow: 0 0 15px var(--accent-primary), inset 0 0 10px rgba(0, 255, 195, 0.1);
+    animation: subtle-glow-pulse 8s ease-in-out infinite;
 }
 body.design-wired h1, body.design-wired .app-title { text-shadow: 0 0 8px var(--accent-primary), 0 0 15px var(--accent-primary); }
-body.design-wired h2, body.design-wired h3 { text-shadow: 0 0 4px var(--accent-secondary), 0 0 8px var(--accent-secondary); }
+body.design-wired h2 {
+    /* NEW: Shimmering Title Effect (Idea 1) */
+    background: linear-gradient(90deg, var(--text-secondary), var(--text-primary), var(--text-secondary));
+    background-size: 200% auto;
+    color: transparent;
+    background-clip: text;
+    -webkit-background-clip: text;
+    animation: shimmer 5s linear infinite;
+    text-shadow: none; /* Override base text-shadow for this effect */
+}
+body.design-wired h2.typing-done::after {
+    /* NEW: Blinking Caret (Idea 2) */
+    content: '_';
+    opacity: 1;
+    animation: blink-caret 1.2s step-end infinite;
+    margin-left: 5px; /* Space between text and caret */
+    color: var(--text-primary); /* Use a solid color for the caret */
+    text-shadow: 0 0 5px var(--text-primary); /* Give caret a glow */
+}
+body.design-wired h3 { text-shadow: 0 0 4px var(--accent-secondary), 0 0 8px var(--accent-secondary); }
 body.design-wired .button-90s:hover { animation: text-glitch 0.3s linear; }
-body.design-wired .nav-tab:hover:not(.active) { animation: text-glitch 0.3s linear; }
+body.design-wired .nav-tab:not(.active):hover { animation: text-glitch 0.3s linear; }
 body.design-wired .scroller-accent { text-shadow: 0 0 5px var(--text-primary); animation: text-glitch 1.5s linear infinite alternate; }
 body.design-wired #kaleidoscopeModal .container-90s,
 body.design-wired #categoryManagerModal .container-90s,
-body.design-wired #aiChatModal .container-90s {
+body.design-wired #aiChatModal .container-90s,
+body.design-wired #addExerciseModal .container-90s {
     border-image: linear-gradient(to right, var(--accent-primary), var(--accent-secondary)) 1;
     box-shadow: 0 0 25px var(--accent-secondary), inset 0 0 15px rgba(0, 195, 255, 0.2);
+    animation: none;
 }
 body.design-wired::before {
     content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -216,12 +260,6 @@ body.design-wired::before {
         linear-gradient(var(--border-color) 0.5px, transparent 0.5px),
         linear-gradient(90deg, var(--border-color) 0.5px, transparent 0.5px);
     background-size: 60px 60px; opacity: 0.1; animation: scrolling-grid 4s linear infinite;
-}
-body.design-wired::after {
-    content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.3) 0, rgba(0,0,0,0.4) 1px, rgba(0,0,0,0) 2px);
-    opacity: 0.4; z-index: 1000; pointer-events: none;
-    animation: crt-flicker 3s infinite alternate;
 }
 body.design-wired .input-90s:focus {
     box-shadow: 0 0 10px var(--accent-primary), inset 0 0 5px var(--accent-primary), 0 0 0 1px var(--accent-primary);
@@ -402,7 +440,8 @@ body.palette-mecha-digital-hazard {
 #journalList,
 #categoryList,
 #aiChatHistory,
-#workoutHistoryList {
+#workoutHistoryList,
+.add-exercise-list { /* Added .add-exercise-list */
     min-height: 100px;
     max-height: 400px;
     overflow-y: auto;
@@ -410,6 +449,25 @@ body.palette-mecha-digital-hazard {
     padding: 10px;
     background-color: var(--input-bg);
     margin-bottom: 20px;
+}
+/* New styles for the exercise list */
+.add-exercise-list {
+    max-height: 250px;
+    margin-bottom: 0;
+}
+.exercise-list-item {
+    padding: 12px 10px;
+    cursor: pointer;
+    font-size: 18px;
+    border-bottom: 1px dashed var(--border-color);
+    transition: background-color 0.2s, color 0.2s;
+}
+.exercise-list-item:last-child {
+    border-bottom: none;
+}
+.exercise-list-item:hover {
+    background-color: var(--accent-primary);
+    color: var(--background-main);
 }
 .task-item-90s { padding: 12px; margin-bottom: 8px; display: flex; align-items: center; border-bottom: 1px dashed var(--border-color); }
 
@@ -477,7 +535,9 @@ body.palette-mecha-digital-hazard {
 
 #kaleidoscopeModal .container-90s,
 #categoryManagerModal .container-90s,
-#aiChatModal .container-90s { background-color: var(--background-main); }
+#aiChatModal .container-90s,
+#addExerciseModal .container-90s { background-color: var(--background-main); }
+
 
 #kaleidoscopeCanvasParent { display: flex; justify-content: center; border: 1px solid var(--border-color); }
 

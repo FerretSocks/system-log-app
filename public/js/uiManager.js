@@ -58,7 +58,6 @@ export const uiElements = {
     loadingMessageText: document.getElementById('loadingMessageText'),
     statusScrollerContainer: document.querySelector('.status-scroller-container'),
     
-    // **FIX**: Added all workout-related elements to the central cache
     workoutSelectorContainer: document.getElementById('workoutSelectorContainer'),
     workoutDisplayContainer: document.getElementById('workoutDisplayContainer'),
     workoutHistoryList: document.getElementById('workoutHistoryList'),
@@ -83,6 +82,8 @@ export function typewriterScrambleEffect(element, text) {
             resolve();
             return;
         }
+        // Remove class from previous animation before starting a new one
+        element.classList.remove('typing-done');
         activeScrambleTimers.forEach(timer => clearInterval(timer));
         activeScrambleTimers = [];
         element.textContent = '';
@@ -99,7 +100,11 @@ export function typewriterScrambleEffect(element, text) {
                         revealedText += originalChar;
                         element.textContent = revealedText;
                         i++;
-                        if (i >= text.length) { resolve(); }
+                        if (i >= text.length) {
+                            // Typing is finished, add the class for the blinking cursor
+                            element.classList.add('typing-done');
+                            resolve();
+                        }
                         else { typeCharacter(); }
                     } else {
                         const randomChar = CHAR_POOL.charAt(Math.floor(Math.random() * CHAR_POOL.length));
@@ -109,6 +114,7 @@ export function typewriterScrambleEffect(element, text) {
                 }, TYPEWRITER_SPEED / 2);
                 activeScrambleTimers.push(scrambleInterval);
             } else {
+                element.classList.add('typing-done');
                 resolve();
             }
         };
@@ -151,10 +157,12 @@ export function switchToView(viewName, currentDesignValue, isInitialLoad = false
 
         if (titleElement) {
             titleElement.classList.remove('fade-in-title');
+            titleElement.classList.remove('typing-done'); // Important: Remove old class
             void titleElement.offsetWidth;
 
             if (isInitialLoad) {
                 titleElement.textContent = titles[viewName];
+                titleElement.classList.add('typing-done'); // Add class immediately on load
             } else {
                 typewriterScrambleEffect(titleElement, titles[viewName]);
             }

@@ -30,6 +30,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const savedTab = localStorage.getItem('systemlog-activeTab') || 'tasks';
             switchToView(savedTab, getCurrentDesign(), true);
 
+            // Trigger boot-up animation for Mecha theme
+            if (getCurrentDesign() === 'design-mecha-manual' && uiElements.appContainer) {
+                uiElements.appContainer.classList.add('booting-up');
+                // Remove the class after the animation finishes to prevent re-triggering
+                setTimeout(() => {
+                    uiElements.appContainer.classList.remove('booting-up');
+                }, 1500); // Duration should be longer than the animation sequence
+            }
+
             // Conditionally load content for the active tab after login
             if (savedTab === 'journal' && !journalManager.getHasJournalLoaded()) {
                 journalManager.loadJournal(isGuestMode());
@@ -87,9 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (uiElements.workoutTabBtn) {
             uiElements.workoutTabBtn.addEventListener('click', () => {
-                // **FIXED LOGIC**: Switch to the view first.
                 switchToView('workout', getCurrentDesign());
-                // Then, load the content into the now-visible container if it hasn't been loaded before.
                 if (!workoutManager.getHasWorkoutLoaded()) {
                     workoutManager.loadWorkoutView();
                 }

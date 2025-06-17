@@ -1,7 +1,7 @@
 // public/js/workoutManager.js
 import { db, doc, setDoc, serverTimestamp, collection, query, orderBy, onSnapshot, deleteDoc } from './firebaseService.js';
 import { uiElements, showFeedback } from './uiManager.js';
-import { getTodayDocId, formatDisplayDate, escapeHTML } from './utils.js';
+import { getTodayDocId, formatDisplayDate, escapeHTML, debounce } from './utils.js';
 import { isGuestMode, getUserId, getGuestWorkoutLogs, saveGuestWorkoutLog as saveGuestWorkout, deleteGuestWorkoutLog as deleteGuestWorkout } from './guestManager.js';
 
 let _hasWorkoutLoaded = false;
@@ -11,7 +11,7 @@ let unsubscribeHistory = null;
 // --- DATA STRUCTURES ---
 
 const EXERCISE_LIBRARY = {
-    'cardio': [
+    cardio: [
         { id: 'elliptical', name: 'Elliptical', type: 'cardio' },
         { id: 'stair-machine', name: 'Stair Machine', type: 'cardio' },
         { id: 'treadmill', name: 'Treadmill', type: 'cardio' },
@@ -21,91 +21,101 @@ const EXERCISE_LIBRARY = {
         { id: 'ski-erg', name: 'SkiErg', type: 'cardio' },
         { id: 'boxing', name: 'Boxing Bag', type: 'cardio' }
     ],
-    'weights': [
+    chest: [
         { id: 'dumbbell-chest-press', name: 'Dumbbell Chest Press', type: 'weight' },
-        { id: 'dumbbell-bicep-curl', name: 'Dumbbell Bicep Curl', type: 'weight' },
-        { id: 'dumbbell-shoulder-press', name: 'Dumbbell Shoulder Press', type: 'weight' },
-        { id: 'dumbbell-front-raise', name: 'Dumbbell Front Raise', type: 'weight' },
+        { id: 'chest-press-machine', name: 'Chest Press Machine (Guided)', type: 'weight' },
+        { id: 'chest-fly-machine', name: 'Chest Fly Machine', type: 'weight' },
+        { id: 'assisted-dips', name: 'Assisted Dips', type: 'weight' }
+    ],
+    back: [
+        { id: 'lat-pulldown', name: 'Lat Pulldown', type: 'weight' },
+        { id: 'seated-cable-row', name: 'Seated Cable Row', type: 'weight' },
+        { id: 't-bar-row', name: 'T-Bar Row Machine', type: 'weight' },
         { id: 'reverse-fly', name: 'Reverse Fly', type: 'weight' },
+        { id: 'assisted-pull-ups', name: 'Assisted Pull-ups', type: 'weight' }
+    ],
+    legs: [
         { id: 'leg-press', name: 'Leg Press', type: 'weight' },
         { id: 'squat-rack', name: 'Squat Rack', type: 'weight' },
         { id: 'seated-leg-extensions', name: 'Seated Leg Extensions', type: 'weight' },
         { id: 'lying-leg-curls', name: 'Lying Leg Curls', type: 'weight' },
-        { id: 'standing-calf-raises', name: 'Standing Calf Raises', type: 'weight' },
-        { id: 'chest-press-machine', name: 'Chest Press Machine (Guided)', type: 'weight' },
-        { id: 'lat-pulldown', name: 'Lat Pulldown', type: 'weight' },
-        { id: 'seated-cable-row', name: 'Seated Cable Row', type: 'weight' },
-        { id: 'chest-fly-machine', name: 'Chest Fly Machine', type: 'weight' },
-        { id: 'rotary-torso-machine', name: 'Rotary Torso Machine', type: 'weight' },
-        { id: 'seated-ab-crunch-machine', name: 'Seated Ab Crunch Machine', type: 'weight' },
-        { id: 't-bar-row', name: 'T-Bar Row Machine', type: 'weight' },
-        { id: 'seated-shoulder-press-machine', name: 'Seated Shoulder Press Machine', type: 'weight' },
+        { id: 'standing-calf-raises', name: 'Standing Calf Raises', type: 'weight' }
+    ],
+    arms: [
+        { id: 'dumbbell-bicep-curl', name: 'Dumbbell Bicep Curl', type: 'weight' },
         { id: 'seated-bicep-curl-machine', name: 'Seated Bicep Curl Machine', type: 'weight' },
         { id: 'seated-tricep-extension-machine', name: 'Seated Tricep Extension Machine', type: 'weight' },
-        { id: 'rope-pulldown', name: 'Rope Pulldown', type: 'weight' },
-        { id: 'assisted-pull-ups', name: 'Assisted Pull-ups', type: 'weight' },
-        { id: 'assisted-dips', name: 'Assisted Dips', type: 'weight' }
+        { id: 'rope-pulldown', name: 'Rope Pulldown', type: 'weight' }
+    ],
+    shoulders: [
+        { id: 'dumbbell-shoulder-press', name: 'Dumbbell Shoulder Press', type: 'weight' },
+        { id: 'dumbbell-front-raise', name: 'Dumbbell Front Raise', type: 'weight' },
+        { id: 'seated-shoulder-press-machine', name: 'Seated Shoulder Press Machine', type: 'weight' }
+    ],
+    core: [
+        { id: 'rotary-torso-machine', name: 'Rotary Torso Machine', type: 'weight' },
+        { id: 'seated-ab-crunch-machine', name: 'Seated Ab Crunch Machine', type: 'weight' },
+        { id: 'plank', name: 'Plank', type: 'bodyweight' }
     ]
 };
 
-// **FIX**: Restored full workout plans with stretches from the user's document.
 const WORKOUT_PLANS = {
     'leg-day': {
         title: "Leg Day",
-        preStretches: ["Leg Swings", "Walking High Knees", "Bodyweight Squats"], // 
-        coolDownStretches: ["Standing Quad Stretch", "Seated Hamstring Stretch", "Standing Calf Stretch"], // 
+        preStretches: ["Leg Swings", "Walking High Knees", "Bodyweight Squats"],
+        coolDownStretches: ["Standing Quad Stretch", "Seated Hamstring Stretch", "Standing Calf Stretch"],
         exercises: [
-            { id: 'squat-rack', sets: [{ reps: "10", notes: "light weight" }, { reps: "8-12" }, { reps: "8-12" }, { reps: "8-12" }] }, // 
-            { id: 'leg-press', sets: [{ reps: "10-12" }, { reps: "10-12" }, { reps: "10-12" }] }, // 
-            { id: 'lying-leg-curls', sets: [{ reps: "10-15" }, { reps: "10-15" }, { reps: "10-15" }] }, // 
-            { id: 'seated-leg-extensions', sets: [{ reps: "10-15" }, { reps: "10-15" }, { reps: "10-15" }] }, // 
-            { id: 'standing-calf-raises', sets: [{ reps: "12-15" }, { reps: "12-15" }, { reps: "12-15" }] } // 
+            { id: 'squat-rack', sets: [{ reps: "10", notes: "light weight" }, { reps: "8-12" }, { reps: "8-12" }, { reps: "8-12" }] },
+            { id: 'leg-press', sets: [{ reps: "10-12" }, { reps: "10-12" }, { reps: "10-12" }] },
+            { id: 'lying-leg-curls', sets: [{ reps: "10-15" }, { reps: "10-15" }, { reps: "10-15" }] },
+            { id: 'seated-leg-extensions', sets: [{ reps: "10-15" }, { reps: "10-15" }, { reps: "10-15" }] },
+            { id: 'standing-calf-raises', sets: [{ reps: "12-15" }, { reps: "12-15" }, { reps: "12-15" }] }
         ]
     },
     'push-day': {
         title: "Push Day",
-        preStretches: ["Arm Circles", "Torso Twists", "Cat-Cow Stretch"], // 
-        coolDownStretches: ["Doorway Chest Stretch", "Cross-Body Shoulder Stretch", "Overhead Tricep Stretch"], // 
+        preStretches: ["Arm Circles", "Torso Twists", "Cat-Cow Stretch"],
+        coolDownStretches: ["Doorway Chest Stretch", "Cross-Body Shoulder Stretch", "Overhead Tricep Stretch"],
         exercises: [
-            { id: 'dumbbell-chest-press', sets: [{ reps: "8-12" }, { reps: "8-12" }, { reps: "8-12" }] }, // 
-            { id: 'seated-shoulder-press-machine', sets: [{ reps: "8-12" }, { reps: "8-12" }, { reps: "8-12" }] }, // 
-            { id: 'chest-fly-machine', sets: [{ reps: "10-15" }, { reps: "10-15" }, { reps: "10-15" }] }, // 
-            { id: 'seated-tricep-extension-machine', sets: [{ reps: "10-15" }, { reps: "10-15" }, { reps: "10-15" }] }, // 
-            { id: 'assisted-dips', sets: [{ reps: "to failure" }, { reps: "to failure" }, { reps: "to failure" }] } // 
+            { id: 'dumbbell-chest-press', sets: [{ reps: "8-12" }, { reps: "8-12" }, { reps: "8-12" }] },
+            { id: 'seated-shoulder-press-machine', sets: [{ reps: "8-12" }, { reps: "8-12" }, { reps: "8-12" }] },
+            { id: 'chest-fly-machine', sets: [{ reps: "10-15" }, { reps: "10-15" }, { reps: "10-15" }] },
+            { id: 'seated-tricep-extension-machine', sets: [{ reps: "10-15" }, { reps: "10-15" }, { reps: "10-15" }] },
+            { id: 'assisted-dips', sets: [{ reps: "to failure" }, { reps: "to failure" }, { reps: "to failure" }] }
         ]
     },
     'pull-day': {
         title: "Pull Day",
-        preStretches: ["Band Pull-Aparts", "Scapular Retractions", "Arm Swings"], // 
-        coolDownStretches: ["Lat Stretch", "Bicep Wall Stretch"], // 
+        preStretches: ["Band Pull-Aparts", "Scapular Retractions", "Arm Swings"],
+        coolDownStretches: ["Lat Stretch", "Bicep Wall Stretch"],
         exercises: [
-            { id: 'lat-pulldown', sets: [{ reps: "8-12" }, { reps: "8-12" }, { reps: "8-12" }] }, // 
-            { id: 'seated-cable-row', sets: [{ reps: "8-12" }, { reps: "8-12" }, { reps: "8-12" }] }, // 
-            { id: 'assisted-pull-ups', sets: [{ reps: "to failure" }, { reps: "to failure" }, { reps: "to failure" }] }, // 
-            { id: 't-bar-row', sets: [{ reps: "8-10" }, { reps: "8-10" }, { reps: "8-10" }] }, // 
-            { id: 'seated-bicep-curl-machine', sets: [{ reps: "10-15" }, { reps: "10-15" }, { reps: "10-15" }] } // 
+            { id: 'lat-pulldown', sets: [{ reps: "8-12" }, { reps: "8-12" }, { reps: "8-12" }] },
+            { id: 'seated-cable-row', sets: [{ reps: "8-12" }, { reps: "8-12" }, { reps: "8-12" }] },
+            { id: 'assisted-pull-ups', sets: [{ reps: "to failure" }, { reps: "to failure" }, { reps: "to failure" }] },
+            { id: 't-bar-row', sets: [{ reps: "8-10" }, { reps: "8-10" }, { reps: "8-10" }] },
+            { id: 'seated-bicep-curl-machine', sets: [{ reps: "10-15" }, { reps: "10-15" }, { reps: "10-15" }] }
         ]
     },
     'cardio-core': {
         title: "Cardio & Core",
-        preStretches: ["Leg Swings", "Torso Twists", "Arm Circles"], // 
-        coolDownStretches: ["Knee to Chest Stretch", "Cobra Stretch"], // 
+        preStretches: ["Leg Swings", "Torso Twists", "Arm Circles"],
+        coolDownStretches: ["Knee to Chest Stretch", "Cobra Stretch"],
         exercises: [
-            { id: 'treadmill', name: "Cardio of Choice", type: 'cardio', sets: [{ notes: "20-30 mins" }] }, // 
-            { id: 'rotary-torso-machine', sets: [{ reps: "15/side" }, { reps: "15/side" }, { reps: "15/side" }] }, // 
-            { id: 'seated-ab-crunch-machine', sets: [{ reps: "15-20" }, { reps: "15-20" }, { reps: "15-20" }] }, // 
-            { id: 'plank', name: "Plank", type: 'note', sets: [{ notes: "to failure" }, { notes: "to failure" }, { notes: "to failure" }] } // 
+            { id: 'treadmill', name: "Cardio of Choice", type: 'cardio', sets: [{ notes: "20-30 mins" }] },
+            { id: 'rotary-torso-machine', sets: [{ reps: "15/side" }, { reps: "15/side" }, { reps: "15/side" }] },
+            { id: 'seated-ab-crunch-machine', sets: [{ reps: "15-20" }, { reps: "15-20" }, { reps: "15-20" }] },
+            { id: 'plank', name: "Plank", type: 'note', sets: [{ notes: "to failure" }, { notes: "to failure" }, { notes: "to failure" }] }
         ]
     },
     'full-body': {
         title: "Full Body Strength",
-        preStretches: ["Bodyweight Squats", "Arm Circles", "Leg Swings"], // 
-        coolDownStretches: ["Light, full-body stretch"], // 
+        preStretches: ["Bodyweight Squats", "Arm Circles", "Leg Swings"],
+        coolDownStretches: ["Light, full-body stretch"],
         exercises: [
-            { id: 'dumbbell-chest-press', name: "Upper Body Push (e.g., Chest Press)", type: 'note', sets: [{ notes: "3 sets of 8-12 reps" }] }, // 
-            { id: 'lat-pulldown', name: "Upper Body Pull (e.g., Lat Pulldown)", type: 'note', sets: [{ notes: "3 sets of 8-12 reps" }] }, // 
-            { id: 'leg-press', name: "Lower Body (e.g., Leg Press)", type: 'note', sets: [{ notes: "3 sets of 8-12 reps" }] }, // 
-            { id: 'dumbbell-bicep-curl', name: "Accessory (Your Choice)", type: 'note', sets: [{ notes: "2 sets" }] } // 
+            { id: 'dumbbell-chest-press', name: "Upper Body Push (e.g., Chest Press)", type: 'note', sets: [{ notes: "3 sets of 8-12 reps" }] },
+            { id: 'lat-pulldown', name: "Upper Body Pull (e.g., Lat Pulldown)", type: 'note', sets: [{ notes: "3 sets of 8-12 reps" }] },
+            { id: 'leg-press', name: "Lower Body (e.g., Leg Press)", type: 'note', sets: [{ notes: "3 sets of 8-12 reps" }] },
+            { id: 'dumbbell-bicep-curl', name: "Accessory (Your Choice)", type: 'note', sets: [{ notes: "2 sets" }] }
         ]
     }
 };
@@ -156,7 +166,6 @@ function displayWorkout(workoutKey, existingData = null) {
     const plan = WORKOUT_PLANS[workoutKey];
     if (!plan) return;
 
-    // **FIX**: Using the cached uiElements
     const { workoutSelectorContainer, workoutDisplayContainer } = uiElements;
     if (!workoutSelectorContainer || !workoutDisplayContainer) return;
 
@@ -178,7 +187,6 @@ function displayWorkout(workoutKey, existingData = null) {
         });
     }
 
-    // **FIX**: Updated HTML template to include stretch sections
     const workoutHTML = `
         <div class="workout-active-display" data-key="${workoutKey}" data-doc-id="${existingData ? existingData.id : ''}">
             <h3 class="text-2xl mb-4">${escapeHTML(plan.title)}</h3>
@@ -230,55 +238,78 @@ function setupDynamicListeners() {
 function openAddExerciseModal() {
     const modal = document.getElementById('addExerciseModal');
     if (!modal) return;
-    document.getElementById('addExerciseTypeSelect').value = "";
-    document.getElementById('addSpecificExerciseSelect').innerHTML = "";
-    document.getElementById('specificExerciseContainer').classList.add('hidden');
-    document.getElementById('confirmAddExerciseBtn').disabled = true;
+    
+    const categorySelect = document.getElementById('addExerciseCategorySelect');
+    const searchInput = document.getElementById('exerciseSearchInput');
+    
+    categorySelect.value = 'all'; // Default to "All Categories"
+    searchInput.value = '';
+
+    categorySelect.onchange = populateExerciseList;
+    searchInput.oninput = debounce(populateExerciseList, 250);
+    document.getElementById('cancelAddExerciseBtn').onclick = closeAddExerciseModal;
+
+    populateExerciseList();
+    
     modal.classList.remove('hidden');
     modal.classList.add('modal-visible');
-
-    document.getElementById('addExerciseTypeSelect').onchange = populateSpecificExercises;
-    document.getElementById('confirmAddExerciseBtn').onclick = confirmAddExercise;
-    document.getElementById('cancelAddExerciseBtn').onclick = closeAddExerciseModal;
 }
+
 function closeAddExerciseModal() {
     const modal = document.getElementById('addExerciseModal');
     if (modal) {
         modal.classList.remove('modal-visible');
-        modal.classList.add('hidden');
+        setTimeout(() => modal.classList.add('hidden'), 300);
     }
 }
-function populateSpecificExercises() {
-    const type = document.getElementById('addExerciseTypeSelect').value;
-    const specificSelect = document.getElementById('addSpecificExerciseSelect');
-    const specificContainer = document.getElementById('specificExerciseContainer');
-    const confirmBtn = document.getElementById('confirmAddExerciseBtn');
 
-    specificSelect.innerHTML = '<option value="">-- Select Exercise --</option>';
+function populateExerciseList() {
+    const category = document.getElementById('addExerciseCategorySelect').value;
+    const searchTerm = document.getElementById('exerciseSearchInput').value.toLowerCase();
+    const exerciseListContainer = document.getElementById('addSpecificExerciseList');
+    
+    exerciseListContainer.innerHTML = '';
 
-    if (type && EXERCISE_LIBRARY[type]) {
-        EXERCISE_LIBRARY[type].forEach(ex => {
-            const option = document.createElement('option');
-            option.value = ex.id;
-            option.textContent = ex.name;
-            specificSelect.appendChild(option);
-        });
-        specificContainer.classList.remove('hidden');
-        confirmBtn.disabled = false;
+    let exercisesToDisplay = [];
+    if (category === 'all') {
+        // Combine all exercises from all categories
+        for (const catKey in EXERCISE_LIBRARY) {
+            exercisesToDisplay = exercisesToDisplay.concat(EXERCISE_LIBRARY[catKey]);
+        }
     } else {
-        specificContainer.classList.add('hidden');
-        confirmBtn.disabled = true;
+        exercisesToDisplay = EXERCISE_LIBRARY[category] || [];
     }
-}
-function confirmAddExercise() {
-    const specificExerciseId = document.getElementById('addSpecificExerciseSelect').value;
-    if (!specificExerciseId) {
-        showFeedback("Please select a specific exercise.", true);
+
+    const filteredExercises = exercisesToDisplay.filter(ex => 
+        ex.name.toLowerCase().includes(searchTerm)
+    );
+
+    if (filteredExercises.length === 0) {
+        exerciseListContainer.innerHTML = `<p class="text-center p-4 opacity-70">No exercises found.</p>`;
         return;
     }
     
-    const exercise = findExerciseInLibrary(specificExerciseId);
-    if (!exercise) return;
+    // Sort alphabetically for consistency
+    filteredExercises.sort((a, b) => a.name.localeCompare(b.name));
+
+    filteredExercises.forEach(ex => {
+        const item = document.createElement('div');
+        item.className = 'exercise-list-item';
+        item.textContent = ex.name;
+        item.dataset.exerciseId = ex.id;
+        item.addEventListener('click', () => confirmAddExercise(ex.id));
+        exerciseListContainer.appendChild(item);
+    });
+}
+
+function confirmAddExercise(exerciseId) {
+    if (!exerciseId) return;
+    
+    const exercise = findExerciseInLibrary(exerciseId);
+    if (!exercise) {
+        showFeedback("Error finding selected exercise.", true);
+        return;
+    }
 
     const exercisesContainer = document.getElementById('exercisesContainer');
     const exerciseEl = createExerciseElement(exercise.id, exercise.name, exercise.type, [{ reps: '', weight: '', notes: '' }]);
@@ -291,6 +322,7 @@ function confirmAddExercise() {
     
     closeAddExerciseModal();
 }
+
 function createExerciseElement(id, name, type, sets = [], isCompleted = false) {
     const item = document.createElement('div');
     item.className = `workout-exercise-item ${isCompleted ? 'completed' : ''}`;
@@ -316,7 +348,7 @@ function createInputsForSets(setsData, type) {
     let inputsHtml = '';
     setsData.forEach((setDef, index) => {
         inputsHtml += `<div class="exercise-set-row" data-set-index="${index}"><span class="set-label">Set ${index + 1}:</span>`;
-        if (type === 'weight' || type === 'assistance') {
+        if (type === 'weight' || type === 'assistance' || type === 'bodyweight') {
             inputsHtml += `<input type="number" placeholder="Weight" class="input-90s exercise-weight-input" value="${escapeHTML(setDef.weight || '')}"><input type="number" placeholder="Reps" class="input-90s exercise-reps-input" value="${escapeHTML(setDef.reps || '')}">`;
         } else {
             inputsHtml += `<input type="text" placeholder="Notes (e.g., 20min)" class="input-90s exercise-notes-input" value="${escapeHTML(setDef.notes || '')}">`;
@@ -332,7 +364,7 @@ function addSet(event) {
     const currentSetsCount = exerciseSetsContainer.querySelectorAll('.exercise-set-row').length;
 
     let newSetHtml = `<div class="exercise-set-row" data-set-index="${currentSetsCount}"><span class="set-label">Set ${currentSetsCount + 1}:</span>`;
-    if (exerciseType === 'weight' || exerciseType === 'assistance') {
+    if (exerciseType === 'weight' || exerciseType === 'assistance' || type === 'bodyweight') {
         newSetHtml += `<input type="number" placeholder="Weight" class="input-90s exercise-weight-input"><input type="number" placeholder="Reps" class="input-90s exercise-reps-input">`;
     } else {
         newSetHtml += `<input type="text" placeholder="Notes" class="input-90s exercise-notes-input">`;
@@ -461,8 +493,8 @@ function renderWorkoutHistoryItem(log, isGuest) {
     historyList.appendChild(item);
 }
 function findExerciseInLibrary(exerciseId) {
-    for (const type in EXERCISE_LIBRARY) {
-        const found = EXERCISE_LIBRARY[type].find(ex => ex.id === exerciseId);
+    for (const category in EXERCISE_LIBRARY) {
+        const found = EXERCISE_LIBRARY[category].find(ex => ex.id === exerciseId);
         if (found) return found;
     }
     return null;

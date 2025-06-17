@@ -176,24 +176,36 @@
     </div>
 
     <div id="addExerciseModal" class="modal-base hidden">
-        <div class="container-90s w-11/11 max-w-lg">
+        <div class="container-90s w-11/12 max-w-lg">
             <h2>Add Exercise</h2>
             <div class="flex flex-col gap-4 my-4">
-                <div>
-                    <label for="addExerciseTypeSelect" class="jp-subtitle !mb-1 block">Exercise Type</label>
-                    <select id="addExerciseTypeSelect" class="input-90s w-full">
-                        <option value="">-- Select Type --</option>
-                        <option value="weights">Weights</option>
-                        <option value="cardio">Cardio</option>
-                    </select>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="addExerciseCategorySelect" class="jp-subtitle !mb-1 block">Category</label>
+                        <select id="addExerciseCategorySelect" class="input-90s w-full">
+                            <option value="all" selected>All Categories</option>
+                            <option value="cardio">Cardio</option>
+                            <option value="chest">Chest</option>
+                            <option value="back">Back</option>
+                            <option value="legs">Legs</option>
+                            <option value="arms">Arms</option>
+                            <option value="shoulders">Shoulders</option>
+                            <option value="core">Core</option>
+                        </select>
+                    </div>
+                     <div>
+                        <label for="exerciseSearchInput" class="jp-subtitle !mb-1 block">Search</label>
+                        <input type="search" id="exerciseSearchInput" placeholder="Search exercises..." class="input-90s w-full">
+                    </div>
                 </div>
-                <div id="specificExerciseContainer" class="hidden">
-                    <label for="addSpecificExerciseSelect" class="jp-subtitle !mb-1 block">Specific Exercise</label>
-                    <select id="addSpecificExerciseSelect" class="input-90s w-full"></select>
+
+                <div id="specificExerciseListContainer">
+                    <label class="jp-subtitle !mb-1 block">Select Exercise</label>
+                    <div id="addSpecificExerciseList" class="add-exercise-list">
+                        </div>
                 </div>
             </div>
             <div class="flex gap-4">
-                <button id="confirmAddExerciseBtn" class="button-90s w-full" disabled>Confirm</button>
                 <button id="cancelAddExerciseBtn" class="button-90s w-full">Cancel</button>
             </div>
         </div>
@@ -204,7 +216,7 @@
     <footer class="text-center mt-6 pb-6">
 		<div class="status-scroller-container">
             <p class="status-scroller-text">
-                SYSTEM <span class="scroller-accent">ONLINE</span>... AUTH STATUS: <span class="scroller-accent">VALIDATED</span>... QUERYING DATABASE... LOGS <span class="scroller-accent">SECURE</span>... STANDBY FOR INPUT... // SYSTEM.LOG v2.8... //&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SYSTEM <span class="scroller-accent">ONLINE</span>... AUTH STATUS: <span class="scroller-accent">VALIDATED</span>... QUERYING DATABASE... LOGS <span class="scroller-accent">SECURE</span>... STANDBY FOR INPUT... // SYSTEM.LOG v2.8... //&nbsp;
+                SYSTEM <span class="scroller-accent">ONLINE</span>... AUTH STATUS: <span class="scroller-accent">VALIDATED</span>... QUERYING DATABASE... LOGS <span class="scroller-accent">SECURE</span>... STANDBY FOR INPUT... // SYSTEM.LOG v2.9... //&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SYSTEM <span class="scroller-accent">ONLINE</span>... AUTH STATUS: <span class="scroller-accent">VALIDATED</span>... QUERYING DATABASE... LOGS <span class="scroller-accent">SECURE</span>... STANDBY FOR INPUT... // SYSTEM.LOG v2.9... //&nbsp;
             </p>
 		</div>
 		<p class="text-sm opacity-50">&copy; 2025 System Log Engineering</p>
