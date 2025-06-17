@@ -115,7 +115,7 @@ export async function logVitaminsTaken() {
         const updateData = {
             vitaminsTaken: currentlyTaken ? deleteField() : true,
             lastUpdated: serverTimestamp(),
-            displayDate: formatDisplayDate(todayId)
+            displayDate: formatDisplayDate(todayId) // Ensure displayDate is present if setting for the first time
         };
         
         await setDoc(journalDocRef, updateData, { merge: true });
@@ -148,7 +148,8 @@ export function loadJournal(isGuest) {
         }
         const q = query(journalCollectionRef, orderBy("lastUpdated", "desc"), limit(JOURNAL_PAGE_SIZE));
         unsubscribeJournal = onSnapshot(q, (snapshot) => {
-            if (lastVisibleJournalDoc === null) uiElements.journalList.innerHTML = '';
+            // ALWAYS clear the list before rendering new snapshot data to prevent duplicates
+            uiElements.journalList.innerHTML = '';
             
             // Check today's vitamin status to update the button
             const todayId = getTodayDocId();
@@ -334,7 +335,8 @@ async function deleteJournalDay(dayDocId, dayDate) {
     try {
         await deleteDoc(doc(journalCollectionRef, dayDocId));
         showFeedback(`All logs for ${escapeHTML(dayDate)} deleted.`);
-    } catch (error) {
+    }
+    catch (error) {
         console.error("Error deleting journal day:", error);
         showFeedback("Error deleting day's logs.", true);
     }
