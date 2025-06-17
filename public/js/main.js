@@ -1,65 +1,62 @@
 // public/js/main.js
 
 // Firebase services
-import { auth, db } from './firebaseService.js'; // Assuming firebaseService initializes and exports these
+import { auth, db } from './firebaseService.js';
 
 // UI and Core Logic Modules
-import { uiElements, switchToView, initializeAppearanceControls, getCurrentDesign, showFeedback, populateAiPersonalitiesDropdown } from './uiManager.js'; // Added populateAiPersonalitiesDropdown
-// import { playSound } from './soundManager.js'; // playSound import removed
+import { uiElements, switchToView, initializeAppearanceControls, getCurrentDesign, showFeedback, populateAiPersonalitiesDropdown } from './uiManager.js';
 import { initializeAuth, handleSignIn, handleGuestSignIn, handleSignOut } from './auth.js';
 import { isGuestMode, getUserId as getAuthUserId } from './guestManager.js';
-import { loadUserSpecificData, clearUserSpecificData, saveApiKey } from './dataManager.js'; // Removed getApiKey, setApiKey as they are internal to dataManager
+import { loadUserSpecificData, clearUserSpecificData, saveApiKey } from './dataManager.js';
 
 // Feature Modules
 import * as taskManager from './taskManager.js';
 import * as journalManager from './journalManager.js';
 import * as systemManager from './systemManager.js';
-import * as workoutManager from './workoutManager.js'; 
+import * as workoutManager from './workoutManager.js';
 import * as aiService from './aiService.js';
-import { AI_PERSONALITIES, DEFAULT_AI_PERSONALITY_KEY } from './aiConstants.js'; // Import AI constants
+import { AI_PERSONALITIES, DEFAULT_AI_PERSONALITY_KEY } from './aiConstants.js';
 import { debounce } from './utils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     async function onAuthStatusChanged(isLoggedIn) {
         if (isLoggedIn) {
-            const currentUserId = getAuthUserId(); 
-            taskManager.initializeTaskReferences(currentUserId); 
-            journalManager.initializeJournalReferences(currentUserId); 
+            const currentUserId = getAuthUserId();
+            taskManager.initializeTaskReferences(currentUserId);
+            journalManager.initializeJournalReferences(currentUserId);
             workoutManager.initializeWorkoutReferences(currentUserId);
             await loadUserSpecificData(isGuestMode(), taskManager, journalManager, systemManager, workoutManager);
-            
+
             const savedTab = localStorage.getItem('systemlog-activeTab') || 'tasks';
             switchToView(savedTab, getCurrentDesign(), true);
-            if (savedTab === 'workout') {
+
+            // Conditionally load content for the active tab after login
+            if (savedTab === 'journal' && !journalManager.getHasJournalLoaded()) {
+                journalManager.loadJournal(isGuestMode());
+            }
+             if (savedTab === 'system' && !systemManager.getHasSystemDataLoaded()){
+                systemManager.loadSystemData(isGuestMode());
+            }
+            if (savedTab === 'workout' && !workoutManager.getHasWorkoutLoaded()) {
                 workoutManager.loadWorkoutView();
-            }
-            if (savedTab === 'journal') {
-                 if (!journalManager.getHasJournalLoaded()) {
-                    journalManager.loadJournal(isGuestMode());
-                 }
-            }
-             if (savedTab === 'system') {
-                if (!systemManager.getHasSystemDataLoaded()){
-                    systemManager.loadSystemData(isGuestMode());
-                }
             }
 
         } else {
             taskManager.clearTaskData();
             journalManager.clearJournalData();
             systemManager.clearSystemData();
-            workoutManager.clearWorkoutData(); 
-            clearUserSpecificData(taskManager, journalManager, systemManager);
+            workoutManager.clearWorkoutData();
+            clearUserSpecificData(taskManager, journalManager, systemManager, workoutManager);
         }
     }
 
     function handleDesignChange() {
         const activeTab = localStorage.getItem('systemlog-activeTab') || 'tasks';
-        switchToView(activeTab, getCurrentDesign(), false); 
+        switchToView(activeTab, getCurrentDesign(), false);
     }
 
     function initApp() {
-        systemManager.initializeSystemPanel(handleDesignChange); 
+        systemManager.initializeSystemPanel(handleDesignChange);
         
         if (uiElements.aiPersonalitySelect) {
             populateAiPersonalitiesDropdown(AI_PERSONALITIES, DEFAULT_AI_PERSONALITY_KEY);
@@ -69,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         initializeAuth(onAuthStatusChanged);
         setupEventListeners();
-        console.log("System Log application initialized with AI personalities.");
+        console.log("System Log application initialized.");
     }
 
     function setupEventListeners() {
@@ -78,32 +75,33 @@ document.addEventListener('DOMContentLoaded', () => {
         if (uiElements.signOutBtn) uiElements.signOutBtn.addEventListener('click', () => { handleSignOut(); });
 
         if (uiElements.tasksTabBtn) uiElements.tasksTabBtn.addEventListener('click', () => { switchToView('tasks', getCurrentDesign()); });
+        
         if (uiElements.journalTabBtn) {
             uiElements.journalTabBtn.addEventListener('click', () => {
-                if (!journalManager.getHasJournalLoaded() && !isGuestMode()) {
-                    journalManager.loadJournal(false); 
-                } else if (isGuestMode() && !journalManager.getHasJournalLoaded()) {
-                    journalManager.loadJournal(true);
-                }
                 switchToView('journal', getCurrentDesign());
+                if (!journalManager.getHasJournalLoaded()) {
+                    journalManager.loadJournal(isGuestMode());
+                }
             });
         }
+        
         if (uiElements.workoutTabBtn) {
             uiElements.workoutTabBtn.addEventListener('click', () => {
+                // **FIXED LOGIC**: Switch to the view first.
+                switchToView('workout', getCurrentDesign());
+                // Then, load the content into the now-visible container if it hasn't been loaded before.
                 if (!workoutManager.getHasWorkoutLoaded()) {
                     workoutManager.loadWorkoutView();
                 }
-                switchToView('workout', getCurrentDesign());
             });
         }
+        
         if (uiElements.systemTabBtn) {
             uiElements.systemTabBtn.addEventListener('click', () => {
-                if (!systemManager.getHasSystemDataLoaded() && !isGuestMode()) {
-                    systemManager.loadSystemData(false);
-                } else if (isGuestMode()){
-                     systemManager.loadSystemData(true);
-                }
                 switchToView('system', getCurrentDesign());
+                if (!systemManager.getHasSystemDataLoaded()){
+                    systemManager.loadSystemData(isGuestMode());
+                }
             });
         }
 
@@ -112,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (uiElements.categorySelect) uiElements.categorySelect.addEventListener('change', (e) => taskManager.handleCategoryChange(e.target.value));
         
         if (uiElements.manageCategoriesBtn) {
-            uiElements.manageCategoriesBtn.addEventListener('click', () => { 
+            uiElements.manageCategoriesBtn.addEventListener('click', () => {
                 if(uiElements.categoryManagerModal) {
                     uiElements.categoryManagerModal.classList.remove('hidden');
                     requestAnimationFrame(() => uiElements.categoryManagerModal.classList.add('modal-visible'));
@@ -120,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         if (uiElements.closeCategoryManagerBtn) {
-            uiElements.closeCategoryManagerBtn.addEventListener('click', () => { 
+            uiElements.closeCategoryManagerBtn.addEventListener('click', () => {
                 if(uiElements.categoryManagerModal) uiElements.categoryManagerModal.classList.remove('modal-visible');
             });
         }
@@ -128,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (uiElements.newCategoryInput) uiElements.newCategoryInput.addEventListener('keypress', e => { if (e.key === 'Enter') { taskManager.addCategory(); } });
         
         if (uiElements.addJournalBtn) uiElements.addJournalBtn.addEventListener('click', () => { journalManager.addJournalLog(); });
-        if (uiElements.vitaminTrackerBtn) uiElements.vitaminTrackerBtn.addEventListener('click', () => { journalManager.logVitaminsTaken(); }); // <-- NEW
+        if (uiElements.vitaminTrackerBtn) uiElements.vitaminTrackerBtn.addEventListener('click', () => { journalManager.logVitaminsTaken(); });
         if (uiElements.journalSearch) {
             uiElements.journalSearch.addEventListener('input', debounce(() => journalManager.handleJournalSearch(), 300));
         }

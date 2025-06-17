@@ -1,6 +1,5 @@
 // public/js/uiManager.js
 import { DESIGNS, PALETTES, DESIGN_SPECIFIC_PALETTES, DESIGN_DEFAULT_PALETTES, TYPEWRITER_SPEED, SCRAMBLE_CYCLES, CHAR_POOL } from './uiConstants.js';
-// import { playSound } from './soundManager.js'; // playSound import removed
 
 export const uiElements = {
     loginContainer: document.getElementById('loginContainer'),
@@ -22,7 +21,7 @@ export const uiElements = {
     taskList: document.getElementById('taskList'),
     journalInput: document.getElementById('journalInput'),
     addJournalBtn: document.getElementById('addJournalBtn'),
-    vitaminTrackerBtn: document.getElementById('vitaminTrackerBtn'), // <-- NEW
+    vitaminTrackerBtn: document.getElementById('vitaminTrackerBtn'),
     journalList: document.getElementById('journalList'),
     journalLoadMoreContainer: document.getElementById('journalLoadMoreContainer'),
     launchKaleidoscopeBtn: document.getElementById('launchKaleidoscopeBtn'),
@@ -58,7 +57,12 @@ export const uiElements = {
     loadingOverlay: document.getElementById('loadingOverlay'),
     loadingMessageText: document.getElementById('loadingMessageText'),
     statusScrollerContainer: document.querySelector('.status-scroller-container'),
-    workoutNotesInput: document.getElementById('workoutNotesInput') // NEW: Workout notes input
+    
+    // **FIX**: Added all workout-related elements to the central cache
+    workoutSelectorContainer: document.getElementById('workoutSelectorContainer'),
+    workoutDisplayContainer: document.getElementById('workoutDisplayContainer'),
+    workoutHistoryList: document.getElementById('workoutHistoryList'),
+    workoutNotesInput: document.getElementById('workoutNotesInput')
 };
 
 let feedbackTimeout;
@@ -138,7 +142,9 @@ export function switchToView(viewName, currentDesignValue, isInitialLoad = false
 
     if (views[viewName]) {
         views[viewName].classList.remove('hidden');
-        tabs[viewName].classList.add('active');
+        if (tabs[viewName]) { // Check if tab exists
+             tabs[viewName].classList.add('active');
+        }
         localStorage.setItem('systemlog-activeTab', viewName);
         const titles = { tasks: "Task Log", journal: "Daily Entry", system: "System Panel", workout: "Workout Log" };
         const titleElement = uiElements[`${viewName}ViewTitle`];
@@ -205,7 +211,6 @@ export function initializeAppearanceControls(onDesignChangeCallback) {
         button.className = 'button-90s design-button theme-button';
         button.dataset.design = DESIGNS[designName];
         button.addEventListener('click', () => {
-            // playSound('clickSound'); // Re-enable if sound manager imported
             currentDesign = DESIGNS[designName];
             currentPalette = DESIGN_DEFAULT_PALETTES[currentDesign] || PALETTES[DESIGN_SPECIFIC_PALETTES[currentDesign][0]];
             populatePaletteSelector();
@@ -254,7 +259,6 @@ function createPaletteButton(container, nameKey, value) {
     button.className = 'button-90s palette-button theme-button';
     button.dataset.palette = value;
     button.addEventListener('click', () => {
-        // playSound('clickSound'); // Re-enable if sound manager imported
         currentPalette = value;
         applyAppearance();
     });

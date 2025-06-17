@@ -1,7 +1,7 @@
 // public/js/dataManager.js
 import { db, doc, getDoc, setDoc } from './firebaseService.js';
 import { uiElements, showFeedback } from './uiManager.js';
-import { getUserId, isGuestMode } from './guestManager.js'; // Added isGuestMode here
+import { getUserId, isGuestMode } from './guestManager.js';
 
 let apiKey = null;
 let userSpecificDataLoaded = false;
@@ -20,7 +20,7 @@ export async function loadUserConfig() {
         const configSnap = await getDoc(configRef);
         if (configSnap.exists() && configSnap.data().geminiApiKey) {
             setApiKey(configSnap.data().geminiApiKey);
-            if (uiElements.apiKeyInput) uiElements.apiKeyInput.value = getApiKey() || ''; // Ensure value is not undefined
+            if (uiElements.apiKeyInput) uiElements.apiKeyInput.value = getApiKey() || '';
             console.log("User API key loaded.");
         } else {
             setApiKey(null);
@@ -41,8 +41,7 @@ export async function saveApiKey(keyToSave) {
         showFeedback("API Key cannot be saved in guest mode or if not logged in.", true);
         return;
     }
-    // Basic validation for the key itself can be added here if needed
-    if (typeof keyToSave !== 'string' ) { // Allow empty string to clear the key
+    if (typeof keyToSave !== 'string' ) {
         showFeedback("Invalid API Key format.", true);
         return;
     }
@@ -66,7 +65,7 @@ export function setApiKey(key) {
     apiKey = key;
 }
 
-export async function loadUserSpecificData(isCurrentlyGuest, taskMgr, journalMgr, systemMgr, workoutMgr) { // Added workoutMgr
+export async function loadUserSpecificData(isCurrentlyGuest, taskMgr, journalMgr, systemMgr, workoutMgr) {
     console.log(`Loading data for ${isCurrentlyGuest ? 'guest' : 'authenticated user'}`);
     userSpecificDataLoaded = false;
 
@@ -74,32 +73,29 @@ export async function loadUserSpecificData(isCurrentlyGuest, taskMgr, journalMgr
         taskMgr.loadTasks(true);
         journalMgr.loadJournal(true);
         systemMgr.loadSystemData(true);
-        workoutMgr.loadWorkoutView(); // NEW: Load workouts for guest mode
-        workoutMgr.initializeWorkoutReferences(getUserId()); // NEW: Initialize workout refs for guest mode
+        // **FIX**: Do not load the workout view here. Only initialize its references.
+        workoutMgr.initializeWorkoutReferences(getUserId());
     } else {
         // For authenticated users, loadUserConfig is already called by authStateObserver in auth.js
-        // We proceed to load other user-specific data.
-        taskMgr.initializeTaskReferences(); // Initialize with current (non-guest) userId
-        journalMgr.initializeJournalReferences(); // Initialize with current (non-guest) userId
-        workoutMgr.initializeWorkoutReferences(getUserId()); // Initialize workout refs for authenticated user
+        taskMgr.initializeTaskReferences();
+        journalMgr.initializeJournalReferences();
+        workoutMgr.initializeWorkoutReferences(getUserId());
 
-        await taskMgr.loadCategoriesAndTasks(); // This loads categories then tasks for authenticated user
-        journalMgr.loadJournal(false);
-        journalMgr.setHasJournalLoaded(true); // Mark as loaded
-        systemMgr.loadSystemData(false);
-        systemMgr.setHasSystemDataLoaded(true); // Mark as loaded
-        workoutMgr.loadWorkoutView(); // Load workouts for authenticated mode
+        await taskMgr.loadCategoriesAndTasks();
+        // **NOTE**: Journal and System data can be pre-fetched, but workout view cannot.
+        journalMgr.setHasJournalLoaded(false); // Set to false so it loads on first click
+        systemMgr.setHasSystemDataLoaded(false); // Set to false so it loads on first click
     }
     userSpecificDataLoaded = true;
 }
 
-export function clearUserSpecificData(taskMgr, journalMgr, systemMgr, workoutMgr) { // Added workoutMgr
+export function clearUserSpecificData(taskMgr, journalMgr, systemMgr, workoutMgr) {
     if (taskMgr) taskMgr.clearTaskData();
     if (journalMgr) journalMgr.clearJournalData();
-    if (systemMgr) systemMgr.clearSystemData();
-    if (workoutMgr) workoutMgr.clearWorkoutData(); // NEW: Clear workout data
+    if (systemManager) systemMgr.clearSystemData();
+    if (workoutMgr) workoutMgr.clearWorkoutData();
     setApiKey(null);
-    if (uiElements.apiKeyInput) uiElements.apiKeyInput.value = ''; // Clear API key field
+    if (uiElements.apiKeyInput) uiElements.apiKeyInput.value = '';
     userSpecificDataLoaded = false;
     console.log("User-specific data cleared.");
 }
