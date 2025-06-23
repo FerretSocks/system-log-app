@@ -1,4 +1,4 @@
-/* style.css */
+/* public/style.css */
 /* --- Root Variables for Fallback & Animations --- */
 :root {
     --font-main: 'VT323', monospace; /* Default fallback */
@@ -388,20 +388,32 @@ body.palette-ghost-protocol {
     --border-color: #34495E;
 }
 body.palette-neon-noir {
-    --background-main: #1A1229; --container-bg: rgba(30, 20, 50, 0.8);
-    --input-bg: #2A203D; --input-bg-focus: #3B2A54;
-    --text-primary: #DA00FF; --text-secondary: #00F0FF; --text-dim: #746A8A;
-    --accent-primary: #9F00FF; --accent-secondary: #39FF14; --accent-danger: #FF1D58;
-    --border-color: #2E1A47;
+    --background-main: #130F1A; /* Deep, dark purple-blue */
+    --container-bg: rgba(19, 15, 26, 0.85);
+    --input-bg: #201B2B;
+    --input-bg-focus: #2F2840;
+    --text-primary: #A0DFFF; /* Bright, desaturated electric blue */
+    --text-secondary: #FF69B4; /* Vibrant magenta/pink */
+    --text-dim: #6E6280; /* Muted grey-purple */
+    --accent-primary: #BB00FF; /* Striking neon purple */
+    --accent-secondary: #00CFFF; /* Bright cyan */
+    --accent-danger: #FF3060; /* Sharp, clear red */
+    --border-color: #403A55; /* Dark, subtle purple */
 }
 
 /* Mecha Manual Design Palettes */
 body.palette-mecha-hangar {
-    --background-main: #D1D5DB; --container-bg: rgba(229, 231, 235, 0.85);
-    --input-bg: #E5E7EB; --input-bg-focus: #F3F4F6;
-    --text-primary: #1F2937; --text-secondary: #F59E0B; --text-dim: #6B7280;
-    --accent-primary: #EF4444; --accent-secondary: #6B7280; --accent-danger: #DC2626;
-    --border-color: #4B5563;
+    --background-main: #F8FAFC; /* Very light, almost off-white grey */
+    --container-bg: rgba(240, 244, 248, 0.95);
+    --input-bg: #EBF1F5; /* A clean light grey */
+    --input-bg-focus: #DCE4E8; /* A slightly darker, active grey */
+    --text-primary: #2C3E50; /* Very dark charcoal grey */
+    --text-secondary: #5D7082; /* Subtle, readable dark blue-grey */
+    --text-dim: #AAB7C4; /* A lighter, faded grey */
+    --accent-primary: #007BFF; /* Clean, digital blue */
+    --accent-secondary: #6CACE4; /* Slightly softer, but distinct blue */
+    --accent-danger: #D32F2F; /* Standard red for warnings */
+    --border-color: #C4D0DB; /* Medium light grey for subtle depth */
 }
 body.palette-mecha-olive-drab {
     --background-main: #EAE7DC; --container-bg: rgba(240, 238, 230, 0.85);
@@ -425,11 +437,17 @@ body.palette-mecha-system-alert {
     --border-color: #6B3030;
 }
 body.palette-mecha-digital-hazard {
-    --background-main: #0F172A; --container-bg: rgba(20, 30, 50, 0.82);
-    --input-bg: #1E293B; --input-bg-focus: #334155;
-    --text-primary: #6EE7B7; --text-secondary: #FACC15; --text-dim: #94A3B8;
-    --accent-primary: #FACC15; --accent-secondary: #38BDF8; --accent-danger: #DC2626;
-    --border-color: #475569;
+    --background-main: #0F1D1A; /* Deep dark green-blue */
+    --container-bg: rgba(15, 29, 26, 0.9);
+    --input-bg: #1A2825;
+    --input-bg-focus: #263632;
+    --text-primary: #6EE7B7; /* Softer, more muted cyan-green */
+    --text-secondary: #E89D50; /* Muted, almost rusty orange/brown */
+    --text-dim: #738D88; /* Muted dark grey-green */
+    --accent-primary: #00B580; /* Slightly deeper, less blinding green */
+    --accent-secondary: #D96040; /* More subtle, less aggressive red-orange */
+    --accent-danger: #C02020; /* Strong but not harsh red */
+    --border-color: #334C47; /* Dark green-grey */
 }
 
 
@@ -685,7 +703,8 @@ body.palette-mecha-digital-hazard {
 .exercise-set-row .exercise-reps-input { max-width: 80px; }
 .exercise-set-row .exercise-notes-input { max-width: none; }
 
-.add-set-btn, .remove-exercise-btn { /* Style for add set and remove exercise buttons */
+/* Optimize delete buttons for mobile */
+.add-set-btn, .remove-exercise-btn {
     font-size: 12px !important;
     padding: 4px 8px !important;
     margin-top: 10px;
@@ -772,6 +791,31 @@ body.palette-mecha-digital-hazard {
     {
         text-shadow: none !important;
     }
+    /* ADDED: General text shadow removal for mobile */
+    body p, 
+    body span, 
+    body li,
+    body a,
+    body .journal-day-content div,
+    body .log-time,
+    body .log-text,
+    body .exercise-name,
+    body .exercise-history-name,
+    body .exercise-set-row .set-label,
+    body .jp-subtitle,
+    body input.input-90s,
+    body textarea.input-90s,
+    body select.input-90s,
+    body button.button-90s,
+    body button.subtle-link-90s,
+    body .task-text,
+    body .category-item-name,
+    body .ai-chat-message p,
+    body .ai-chat-message .sender,
+    body #feedbackBox {
+        text-shadow: none !important;
+    }
+
 
     .workout-exercise-item .flex.items-center { flex-direction: column; align-items: flex-start; }
     .workout-exercise-item .exercise-expected-reps { margin-left: 38px; margin-top: 5px; }
@@ -780,6 +824,18 @@ body.palette-mecha-digital-hazard {
     .exercise-set-row .set-label { min-width: unset; width: 100%; margin-bottom: 4px; }
     .exercise-set-row .input-90s { max-width: 48% !important; flex-grow: 0; }
     .exercise-set-row .exercise-notes-input { width: 100%; max-width: 100% !important; }
-    .add-set-btn, .remove-exercise-btn { width: 100%; align-self: center; }
-    .delete-set-btn { margin-left: 0; margin-top: 5px; width: 100%; }
+    /* Mobile-specific adjustments for workout action buttons */
+    .add-set-btn, .remove-exercise-btn {
+        width: auto !important; /* Allow buttons to size to content */
+        font-size: 10px !important; /* Smaller font size */
+        padding: 2px 5px !important; /* Smaller padding */
+        margin-top: 5px;
+    }
+    .delete-set-btn {
+        margin-left: 0;
+        margin-top: 5px;
+        width: auto !important; /* Allow buttons to size to content */
+        font-size: 10px !important; /* Smaller font size */
+        padding: 2px 5px !important; /* Smaller padding */
+    }
 }

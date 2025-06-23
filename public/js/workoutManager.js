@@ -19,7 +19,8 @@ const EXERCISE_LIBRARY = {
         { id: 'rowing-machine', name: 'Rowing Machine', type: 'cardio' },
         { id: 'sled-push', name: 'Sled Push/Pull', type: 'cardio' },
         { id: 'ski-erg', name: 'SkiErg', type: 'cardio' },
-        { id: 'boxing', name: 'Boxing Bag', type: 'cardio' }
+        { id: 'boxing', name: 'Boxing Bag', type: 'cardio' },
+        { id: 'walking', name: 'Walking', type: 'cardio' } // Retain walking here for general cardio selection
     ],
     chest: [
         { id: 'dumbbell-chest-press', name: 'Dumbbell Chest Press', type: 'weight' },
@@ -117,6 +118,15 @@ const WORKOUT_PLANS = {
             { id: 'leg-press', name: "Lower Body (e.g., Leg Press)", type: 'note', sets: [{ notes: "3 sets of 8-12 reps" }] },
             { id: 'dumbbell-bicep-curl', name: "Accessory (Your Choice)", type: 'note', sets: [{ notes: "2 sets" }] }
         ]
+    },
+    'walking-day': {
+        title: "Walking Day",
+        preStretches: ["Leg Swings", "Ankle Rotations"],
+        coolDownStretches: ["Calf Stretch", "Hamstring Stretch"],
+        exercises: [
+            { id: 'walking', name: "Daily Walk", type: 'cardio', sets: [{ notes: "" }] } // MODIFIED: Changed notes to empty string
+        ],
+        notes: "" // MODIFIED: Changed notes to empty string
     }
 };
 
@@ -198,7 +208,7 @@ function displayWorkout(workoutKey, existingData = null) {
              ${plan.coolDownStretches ? `<hr class="my-6 border-dashed border-border-color opacity-50"><h4 class="stretches-header">Cool-Down Stretches</h4><ul class="stretches-list">${plan.coolDownStretches.map(s => `<li>${escapeHTML(s)}</li>`).join('')}</ul>` : ''}
             <hr class="my-6 border-dashed border-border-color opacity-50">
             <h3 class="mt-6">Workout Notes</h3>
-            <textarea id="workoutNotesInput" placeholder="Add any notes..." class="input-90s journal-textarea">${existingData?.notes || ''}</textarea>
+            <textarea id="workoutNotesInput" placeholder="Add any notes..." class="input-90s journal-textarea">${existingData?.notes || plan.notes || ''}</textarea>
             <div class="mt-6 flex gap-4">
                 <button id="finishWorkoutBtn" class="button-90s">${existingData ? 'Update' : 'Finish'}</button>
                 <button id="backToWorkoutSelectBtn" class="subtle-link-90s">Back</button>
