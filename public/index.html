@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -52,6 +51,7 @@
                 <button id="tasksTabBtn" class="nav-tab button-90s active">Tasks</button>
                 <button id="journalTabBtn" class="nav-tab button-90s">Journal</button>
                 <button id="workoutTabBtn" class="nav-tab button-90s">Workout</button>
+                <button id="bookReviewTabBtn" class="nav-tab button-90s">Books</button>
                 <button id="systemTabBtn" class="nav-tab button-90s">System</button>
             </nav>
 
@@ -106,6 +106,17 @@
                         <h3 class="mb-2">Workout History</h3>
                         <div id="workoutHistoryList"></div>
                     </div>
+                </div>
+
+                <div id="bookReviewView" class="hidden">
+                    <h2 id="bookReviewViewTitle"></h2>
+                    <p class="jp-subtitle">読書記録</p>
+                    <div class="mb-4">
+                        <button id="addBookBtn" class="button-90s w-full">Add New Book</button>
+                    </div>
+                    <div id="bookList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        </div>
+                    <div id="bookListLoadMoreContainer" class="text-center mt-4"></div>
                 </div>
 
                 <div id="systemView" class="hidden">
@@ -208,6 +219,46 @@
             <div class="flex gap-4">
                 <button id="cancelAddExerciseBtn" class="button-90s w-full">Cancel</button>
             </div>
+        </div>
+    </div>
+
+    <div id="addBookModal" class="modal-base hidden">
+        <div class="container-90s w-11/12 max-w-lg">
+            <h2>Add New Book</h2>
+            <div class="flex flex-col gap-4 my-4">
+                <div>
+                    <label for="bookTitleInput" class="jp-subtitle !mb-1 block">Title</label>
+                    <input type="text" id="bookTitleInput" placeholder="Book Title..." class="input-90s w-full">
+                </div>
+                <div>
+                    <label for="bookAuthorInput" class="jp-subtitle !mb-1 block">Author</label>
+                    <input type="text" id="bookAuthorInput" placeholder="Author Name..." class="input-90s w-full">
+                </div>
+                <div>
+                    <label for="bookCoverUrlInput" class="jp-subtitle !mb-1 block">Cover Image URL (Optional)</label>
+                    <input type="text" id="bookCoverUrlInput" placeholder="https://example.com/cover.jpg" class="input-90s w-full">
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <button id="saveNewBookBtn" class="button-90s w-full">Save Book</button>
+                <button id="cancelAddBookBtn" class="button-90s w-full">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="bookNotesModal" class="modal-base hidden">
+        <div class="container-90s w-11/11 max-w-2xl flex flex-col" style="height: 80vh;">
+            <div class="flex justify-between items-center mb-3">
+                <h2 id="bookNotesModalTitle"></h2>
+                <button id="deleteBookBtn" class="button-90s text-sm">DELETE BOOK</button>
+            </div>
+            <p id="bookNotesModalSubtitle" class="jp-subtitle"></p>
+            <textarea id="bookNotesInput" placeholder="Your notes and thoughts on this book..." class="input-90s journal-textarea flex-grow mb-4"></textarea>
+            <button id="addBookNoteBtn" class="button-90s w-full mt-2">Add Note to Book</button>
+            <h3 class="mt-4 mb-0">Previous Notes</h3>
+            <p class="jp-subtitle">過去の記録</p>
+            <div id="bookNotesList" class="my-4 flex-grow overflow-y-auto border border-border-color p-2 bg-input-bg"></div>
+            <button id="closeBookNotesModalBtn" class="button-90s w-full mt-4">Close</button>
         </div>
     </div>
 

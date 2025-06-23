@@ -1,72 +1,33 @@
 // public/js/uiManager.js
 import { DESIGNS, PALETTES, DESIGN_SPECIFIC_PALETTES, DESIGN_DEFAULT_PALETTES, TYPEWRITER_SPEED, SCRAMBLE_CYCLES, CHAR_POOL } from './uiConstants.js';
 
-export const uiElements = {
-    loginContainer: document.getElementById('loginContainer'),
-    appContainer: document.getElementById('appContainer'),
-    signInBtn: document.getElementById('signInBtn'),
-    guestSignInBtn: document.getElementById('guestSignInBtn'),
-    signOutBtn: document.getElementById('signOutBtn'),
-    userIdDisplay: document.getElementById('userIdDisplay'),
-    tasksView: document.getElementById('tasksView'),
-    journalView: document.getElementById('journalView'),
-    systemView: document.getElementById('systemView'),
-    workoutView: document.getElementById('workoutView'),
-    tasksTabBtn: document.getElementById('tasksTabBtn'),
-    journalTabBtn: document.getElementById('journalTabBtn'),
-    systemTabBtn: document.getElementById('systemTabBtn'),
-    workoutTabBtn: document.getElementById('workoutTabBtn'),
-    taskInput: document.getElementById('taskInput'),
-    addTaskBtn: document.getElementById('addTaskBtn'),
-    taskList: document.getElementById('taskList'),
-    journalInput: document.getElementById('journalInput'),
-    addJournalBtn: document.getElementById('addJournalBtn'),
-    vitaminTrackerBtn: document.getElementById('vitaminTrackerBtn'),
-    journalList: document.getElementById('journalList'),
-    journalLoadMoreContainer: document.getElementById('journalLoadMoreContainer'),
-    launchKaleidoscopeBtn: document.getElementById('launchKaleidoscopeBtn'),
-    journalSearch: document.getElementById('journalSearch'),
-    journalHeatmapContainer: document.getElementById('journalHeatmapContainer'),
-    kaleidoscopeModal: document.getElementById('kaleidoscopeModal'),
-    kSymmetrySlider: document.getElementById('kSymmetrySlider'),
-    kClearBtn: document.getElementById('kClearBtn'),
-    closeKaleidoscopeBtn: document.getElementById('closeKaleidoscopeBtn'),
-    tasksViewTitle: document.getElementById('tasksViewTitle'),
-    journalViewTitle: document.getElementById('journalViewTitle'),
-    systemViewTitle: document.getElementById('systemViewTitle'),
-    workoutViewTitle: document.getElementById('workoutViewTitle'),
-    feedbackBox: document.getElementById('feedbackBox'),
-    themeSwitcher: document.getElementById('themeSwitcher'),
-    journalStreakDisplay: document.getElementById('journalStreakDisplay'),
-    categorySelect: document.getElementById('categorySelect'),
-    manageCategoriesBtn: document.getElementById('manageCategoriesBtn'),
-    categoryManagerModal: document.getElementById('categoryManagerModal'),
-    categoryList: document.getElementById('categoryList'),
-    newCategoryInput: document.getElementById('newCategoryInput'),
-    addCategoryBtn: document.getElementById('addCategoryBtn'),
-    closeCategoryManagerBtn: document.getElementById('closeCategoryManagerBtn'),
-    apiKeyInput: document.getElementById('apiKeyInput'),
-    saveApiKeyBtn: document.getElementById('saveApiKeyBtn'),
-    apiKeySection: document.getElementById('apiKeySection'),
-    aiChatModal: document.getElementById('aiChatModal'),
-    aiChatHistory: document.getElementById('aiChatHistory'),
-    aiChatInput: document.getElementById('aiChatInput'),
-    aiChatSendBtn: document.getElementById('aiChatSendBtn'),
-    closeAiChatBtn: document.getElementById('closeAiChatBtn'),
-    aiPersonalitySelect: document.getElementById('aiPersonalitySelect'),
-    loadingOverlay: document.getElementById('loadingOverlay'),
-    loadingMessageText: document.getElementById('loadingMessageText'),
-    statusScrollerContainer: document.querySelector('.status-scroller-container'),
-    
-    workoutSelectorContainer: document.getElementById('workoutSelectorContainer'),
-    workoutDisplayContainer: document.getElementById('workoutDisplayContainer'),
-    workoutHistoryList: document.getElementById('workoutHistoryList'),
-    workoutNotesInput: document.getElementById('workoutNotesInput')
-};
+// Private variable to hold the actual UI elements after initialization
+let _uiElements = {};
+
+// Export a proxy object that will contain the initialized elements
+// This allows other modules to import 'uiElements' even before initializeUIElements is called,
+// but ensures they access populated values only after it runs.
+export const uiElements = new Proxy(_uiElements, {
+    get: (target, prop) => {
+        // Optional: Add a warning if a property is accessed before initialization
+        if (Object.keys(target).length === 0 && prop !== 'length' && prop !== 'prototype' && prop !== 'constructor') {
+            console.warn(`Attempted to access uiElements.${String(prop)} before initializeUIElements was called.`);
+        }
+        return target[prop];
+    },
+    set: (target, prop, value) => {
+        target[prop] = value;
+        return true;
+    }
+});
+
 
 let feedbackTimeout;
 export function showFeedback(message, isError = false) {
-    if (!uiElements.feedbackBox) return;
+    if (!uiElements.feedbackBox) {
+        console.warn("Feedback box element not found.");
+        return;
+    }
     clearTimeout(feedbackTimeout);
     uiElements.feedbackBox.textContent = message;
     uiElements.feedbackBox.style.backgroundColor = isError ? 'var(--accent-danger)' : 'var(--accent-secondary)';
@@ -122,15 +83,17 @@ export function typewriterScrambleEffect(element, text) {
     });
 }
 
+// NEW: Show loading overlay function
 export async function showLoadingOverlay(message = "LOADING...") {
     if (uiElements.loadingOverlay && uiElements.loadingMessageText) {
         uiElements.loadingOverlay.classList.remove('hidden');
         await typewriterScrambleEffect(uiElements.loadingMessageText, message);
     } else {
-        console.warn("Loading overlay elements not found.");
+        console.warn("Loading overlay elements not found or not initialized.");
     }
 }
 
+// NEW: Hide loading overlay function
 export function hideLoadingOverlay() {
     if (uiElements.loadingOverlay && uiElements.loadingMessageText) {
         uiElements.loadingOverlay.classList.add('hidden');
@@ -140,25 +103,34 @@ export function hideLoadingOverlay() {
 
 
 export function switchToView(viewName, currentDesignValue, isInitialLoad = false) {
-    const views = { tasks: uiElements.tasksView, journal: uiElements.journalView, system: uiElements.systemView, workout: uiElements.workoutView };
-    const tabs = { tasks: uiElements.tasksTabBtn, journal: uiElements.journalTabBtn, system: uiElements.systemTabBtn, workout: uiElements.workoutTabBtn };
+    // Ensure _uiElements is populated before trying to access its properties
+    if (Object.keys(_uiElements).length === 0) {
+        console.warn("uiElements not initialized yet when switchToView was called.");
+        return; // Exit if UI elements are not ready
+    }
 
+    const views = { tasks: uiElements.tasksView, journal: uiElements.journalView, system: uiElements.systemView, workout: uiElements.workoutView, books: uiElements.bookReviewView };
+    const tabs = { tasks: uiElements.tasksTabBtn, journal: uiElements.journalTabBtn, system: uiElements.systemTabBtn, workout: uiElements.workoutTabBtn, books: uiElements.bookReviewTabBtn };
+
+    // Ensure all views are hidden and tabs are inactive
     Object.values(views).forEach(v => v?.classList.add('hidden'));
     Object.values(tabs).forEach(t => t?.classList.remove('active'));
 
+    // Activate selected view and tab
     if (views[viewName]) {
         views[viewName].classList.remove('hidden');
-        if (tabs[viewName]) { // Check if tab exists
+        if (tabs[viewName]) { // Check if tab element actually exists
              tabs[viewName].classList.add('active');
         }
         localStorage.setItem('systemlog-activeTab', viewName);
-        const titles = { tasks: "Task Log", journal: "Daily Entry", system: "System Panel", workout: "Workout Log" };
+        // Corrected key for books to match HTML ID for consistency
+        const titles = { tasks: "Task Log", journal: "Daily Entry", system: "System Panel", workout: "Workout Log", books: "Book Reviews" }; 
         const titleElement = uiElements[`${viewName}ViewTitle`];
 
         if (titleElement) {
             titleElement.classList.remove('fade-in-title');
             titleElement.classList.remove('typing-done'); // Important: Remove old class
-            void titleElement.offsetWidth;
+            void titleElement.offsetWidth; // Trigger reflow to restart animation
 
             if (isInitialLoad) {
                 titleElement.textContent = titles[viewName];
@@ -168,7 +140,7 @@ export function switchToView(viewName, currentDesignValue, isInitialLoad = false
             }
         }
     } else {
-        console.warn(`View "${viewName}" not found.`);
+        console.warn(`View "${viewName}" not found in uiElements.`);
     }
 }
 
@@ -314,4 +286,97 @@ export function loadInitialAppearance() {
 
     populatePaletteSelector();
     applyAppearance();
+}
+
+/**
+ * Initializes the _uiElements object by getting references to all necessary DOM elements.
+ * This function should be called after the DOM is fully loaded.
+ */
+export function initializeUIElements() {
+    // Populate the _uiElements object (which uiElements proxy wraps)
+    Object.assign(_uiElements, {
+        loginContainer: document.getElementById('loginContainer'),
+        appContainer: document.getElementById('appContainer'),
+        signInBtn: document.getElementById('signInBtn'),
+        guestSignInBtn: document.getElementById('guestSignInBtn'),
+        signOutBtn: document.getElementById('signOutBtn'),
+        userIdDisplay: document.getElementById('userIdDisplay'),
+        tasksView: document.getElementById('tasksView'),
+        journalView: document.getElementById('journalView'),
+        systemView: document.getElementById('systemView'),
+        workoutView: document.getElementById('workoutView'),
+        bookReviewView: document.getElementById('bookReviewView'),
+        tasksTabBtn: document.getElementById('tasksTabBtn'),
+        journalTabBtn: document.getElementById('journalTabBtn'),
+        systemTabBtn: document.getElementById('systemTabBtn'),
+        workoutTabBtn: document.getElementById('workoutTabBtn'),
+        bookReviewTabBtn: document.getElementById('bookReviewTabBtn'),
+        taskInput: document.getElementById('taskInput'),
+        addTaskBtn: document.getElementById('addTaskBtn'),
+        taskList: document.getElementById('taskList'),
+        journalInput: document.getElementById('journalInput'),
+        addJournalBtn: document.getElementById('addJournalBtn'),
+        vitaminTrackerBtn: document.getElementById('vitaminTrackerBtn'),
+        journalList: document.getElementById('journalList'),
+        journalLoadMoreContainer: document.getElementById('journalLoadMoreContainer'),
+        launchKaleidoscopeBtn: document.getElementById('launchKaleidoscopeBtn'),
+        journalSearch: document.getElementById('journalSearch'),
+        journalHeatmapContainer: document.getElementById('journalHeatmapContainer'),
+        kaleidoscopeModal: document.getElementById('kaleidoscopeModal'),
+        kSymmetrySlider: document.getElementById('kSymmetrySlider'),
+        kClearBtn: document.getElementById('kClearBtn'),
+        closeKaleidoscopeBtn: document.getElementById('closeKaleidoscopeBtn'),
+        tasksViewTitle: document.getElementById('tasksViewTitle'),
+        journalViewTitle: document.getElementById('journalViewTitle'),
+        systemViewTitle: document.getElementById('systemViewTitle'),
+        workoutViewTitle: document.getElementById('workoutViewTitle'),
+        bookReviewViewTitle: document.getElementById('bookReviewViewTitle'),
+        feedbackBox: document.getElementById('feedbackBox'),
+        themeSwitcher: document.getElementById('themeSwitcher'),
+        journalStreakDisplay: document.getElementById('journalStreakDisplay'),
+        categorySelect: document.getElementById('categorySelect'),
+        manageCategoriesBtn: document.getElementById('manageCategoriesBtn'),
+        categoryManagerModal: document.getElementById('categoryManagerModal'),
+        categoryList: document.getElementById('categoryList'),
+        newCategoryInput: document.getElementById('newCategoryInput'),
+        addCategoryBtn: document.getElementById('addCategoryBtn'),
+        closeCategoryManagerBtn: document.getElementById('closeCategoryManagerBtn'),
+        apiKeyInput: document.getElementById('apiKeyInput'),
+        saveApiKeyBtn: document.getElementById('saveApiKeyBtn'),
+        apiKeySection: document.getElementById('apiKeySection'),
+        aiChatModal: document.getElementById('aiChatModal'),
+        aiChatHistory: document.getElementById('aiChatHistory'),
+        aiChatInput: document.getElementById('aiChatInput'),
+        aiChatSendBtn: document.getElementById('aiChatSendBtn'),
+        closeAiChatBtn: document.getElementById('closeAiChatBtn'),
+        aiPersonalitySelect: document.getElementById('aiPersonalitySelect'),
+        loadingOverlay: document.getElementById('loadingOverlay'),
+        loadingMessageText: document.getElementById('loadingMessageText'),
+        statusScrollerContainer: document.querySelector('.status-scroller-container'),
+        
+        workoutSelectorContainer: document.getElementById('workoutSelectorContainer'),
+        workoutDisplayContainer: document.getElementById('workoutDisplayContainer'),
+        workoutHistoryList: document.getElementById('workoutHistoryList'),
+        workoutNotesInput: document.getElementById('workoutNotesInput'),
+
+        // Book Review Specific Elements
+        addBookBtn: document.getElementById('addBookBtn'),
+        bookList: document.getElementById('bookList'),
+        bookListLoadMoreContainer: document.getElementById('bookListLoadMoreContainer'),
+        addBookModal: document.getElementById('addBookModal'),
+        bookTitleInput: document.getElementById('bookTitleInput'),
+        bookAuthorInput: document.getElementById('bookAuthorInput'),
+        bookCoverUrlInput: document.getElementById('bookCoverUrlInput'),
+        saveNewBookBtn: document.getElementById('saveNewBookBtn'),
+        cancelAddBookBtn: document.getElementById('cancelAddBookBtn'),
+        bookNotesModal: document.getElementById('bookNotesModal'),
+        bookNotesModalTitle: document.getElementById('bookNotesModalTitle'),
+        bookNotesModalSubtitle: document.getElementById('bookNotesModalSubtitle'),
+        bookNotesInput: document.getElementById('bookNotesInput'),
+        addBookNoteBtn: document.getElementById('addBookNoteBtn'),
+        bookNotesList: document.getElementById('bookNotesList'),
+        closeBookNotesModalBtn: document.getElementById('closeBookNotesModalBtn'),
+        deleteBookBtn: document.getElementById('deleteBookBtn'),
+    });
+    console.log("UI elements initialized.");
 }

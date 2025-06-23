@@ -4,7 +4,8 @@ import { generateLogId, getTodayDocId, formatDisplayDate } from './utils.js';
 let guestData = {
     tasks: [],
     journalEntries: [],
-    workoutLogs: [] // NEW: Added workoutLogs array for guest data
+    workoutLogs: [], // NEW: Added workoutLogs array for guest data
+    bookReviews: [] // NEW: Added bookReviews array for guest data
 };
 let _isGuestMode = false;
 let _currentUserId = null; // This will store Firebase UID or a guest identifier
@@ -34,10 +35,12 @@ export function loadGuestDataFromLocalStorage() {
         if (storedJournal) guestData.journalEntries = JSON.parse(storedJournal);
         const storedWorkouts = localStorage.getItem('guestWorkouts'); // NEW: Load guest workouts
         if (storedWorkouts) guestData.workoutLogs = JSON.parse(storedWorkouts); // NEW: Parse guest workouts
+        const storedBookReviews = localStorage.getItem('guestBookReviews'); // NEW: Load guest book reviews
+        if (storedBookReviews) guestData.bookReviews = JSON.parse(storedBookReviews); // NEW: Parse guest book reviews
         console.log("Guest data loaded from local storage.");
     } catch (e) {
         console.error("Error loading guest data from local storage:", e);
-        guestData = { tasks: [], journalEntries: [], workoutLogs: [] }; // Reset on error
+        guestData = { tasks: [], journalEntries: [], workoutLogs: [], bookReviews: [] }; // Reset on error
     }
 }
 
@@ -47,6 +50,7 @@ export function saveGuestDataToLocalStorage() {
         localStorage.setItem('guestTasks', JSON.stringify(guestData.tasks));
         localStorage.setItem('guestJournal', JSON.stringify(guestData.journalEntries));
         localStorage.setItem('guestWorkouts', JSON.stringify(guestData.workoutLogs)); // NEW: Save guest workouts
+        localStorage.setItem('guestBookReviews', JSON.stringify(guestData.bookReviews)); // NEW: Save guest book reviews
         console.log("Guest data saved to local storage.");
     } catch (e) {
         console.error("Error saving guest data to local storage:", e);
@@ -54,11 +58,12 @@ export function saveGuestDataToLocalStorage() {
 }
 
 export function clearGuestData() {
-    guestData = { tasks: [], journalEntries: [], workoutLogs: [] }; // NEW: Clear workoutLogs
+    guestData = { tasks: [], journalEntries: [], workoutLogs: [], bookReviews: [] }; // NEW: Clear workoutLogs and bookReviews
     if (typeof localStorage !== 'undefined') {
         localStorage.removeItem('guestTasks');
         localStorage.removeItem('guestJournal');
         localStorage.removeItem('guestWorkouts'); // NEW: Remove guest workouts
+        localStorage.removeItem('guestBookReviews'); // NEW: Remove guest book reviews
     }
     console.log("Guest data cleared.");
 }
@@ -185,5 +190,44 @@ export function saveGuestWorkoutLog(workoutData) {
 
 export function deleteGuestWorkoutLog(workoutId) {
     guestData.workoutLogs = guestData.workoutLogs.filter(log => log.id !== workoutId);
+    saveGuestDataToLocalStorage();
+}
+
+// --- NEW: Guest Book Review Management ---
+export function getGuestBookReviews() {
+    // Sort books by lastUpdated (most recent first)
+    return guestData.bookReviews.sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime());
+}
+
+export function addGuestBookReview(bookData) {
+    const newBook = {
+        id: generateLogId(),
+        title: bookData.title,
+        author: bookData.author,
+        coverImageUrl: bookData.coverImageUrl,
+        notesContent: "", // Initialize with empty content
+        createdAt: new Date().toISOString(),
+        lastUpdated: new Date().toISOString()
+    };
+    guestData.bookReviews.push(newBook);
+    saveGuestDataToLocalStorage();
+    return newBook;
+}
+
+export function updateGuestBookReview(bookId, newData) {
+    const bookIndex = guestData.bookReviews.findIndex(b => b.id === bookId);
+    if (bookIndex > -1) {
+        // Merge new data with existing, ensuring lastUpdated is current
+        guestData.bookReviews[bookIndex] = {
+            ...guestData.bookReviews[bookIndex],
+            ...newData,
+            lastUpdated: new Date().toISOString() // Always update timestamp on modification
+        };
+        saveGuestDataToLocalStorage();
+    }
+}
+
+export function deleteGuestBookReview(bookId) {
+    guestData.bookReviews = guestData.bookReviews.filter(b => b.id !== bookId);
     saveGuestDataToLocalStorage();
 }

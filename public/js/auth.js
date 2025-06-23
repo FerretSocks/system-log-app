@@ -7,82 +7,48 @@ import {
     signOut as firebaseSignOut,
     signInAnonymously
 } from './firebaseService.js';
-import { uiElements, showFeedback, typewriterScrambleEffect, loadInitialAppearance, getCurrentDesign, switchToView as switchViewManager, showLoadingOverlay, hideLoadingOverlay } from './uiManager.js'; // Added showLoadingOverlay, hideLoadingOverlay
-import { loadGuestDataFromLocalStorage, clearGuestData, isGuestMode, setGuestMode, getUserId, setUserId } from './guestManager.js';
-import { loadUserSpecificData, clearUserSpecificData, loadUserConfig, getApiKey, setApiKey } from './dataManager.js';
+// Removed specific uiManager and guestManager imports from here,
+// as auth.js will now pass the raw Firebase user object to main.js
+// for centralized handling.
+import { uiElements, showFeedback, typewriterScrambleEffect, showLoadingOverlay, hideLoadingOverlay } from './uiManager.js'; // Retain only what's needed for loading overlay and feedback
 
 let currentAuthCallback = null;
+let onAuthInitCallback = null; // NEW: Callback for initial auth state processing completion
 
 async function authStateObserver(user) {
-    // Hide loading overlay once auth state is resolved
+    // Hide loading overlay once auth state is resolved. This remains here as auth.js controls auth process display.
     hideLoadingOverlay();
 
-    if (user) {
-        if(uiElements.appContainer) uiElements.appContainer.classList.remove('hidden');
-        if(uiElements.loginContainer) uiElements.loginContainer.classList.add('hidden');
-        setUserId(user.uid);
-
-        if (user.isAnonymous) {
-            setGuestMode(true);
-            if(uiElements.userIdDisplay) uiElements.userIdDisplay.textContent = 'GUEST';
-            if (uiElements.apiKeySection) uiElements.apiKeySection.classList.add('hidden');
-            const taskCatContainer = document.getElementById('taskCategoryContainer');
-            if (taskCatContainer) taskCatContainer.classList.add('hidden');
-            setApiKey(null);
-            loadGuestDataFromLocalStorage();
-            showFeedback("Guest mode activated. Data is local.", false);
-        } else {
-            setGuestMode(false);
-            if(uiElements.userIdDisplay) uiElements.userIdDisplay.textContent = user.displayName?.split(' ')[0].toUpperCase() || 'AGENT';
-            if (uiElements.apiKeySection) uiElements.apiKeySection.classList.remove('hidden');
-            const taskCatContainer = document.getElementById('taskCategoryContainer');
-            if (taskCatContainer) taskCatContainer.classList.remove('hidden');
-            await loadUserConfig(); // Load API key etc.
-            showFeedback(`Welcome, ${uiElements.userIdDisplay.textContent}! System synced.`, false);
+    // The core logic for setting user ID, guest mode, and updating initial UI
+    // is now moved to onAuthStatusChanged in main.js.
+    // auth.js now primarily focuses on the Firebase auth state and passing it.
+    
+    if (currentAuthCallback) {
+        try {
+            await currentAuthCallback(user); // NEW: Pass the 'user' object (or null) to the callback
+        } catch (error) {
+            console.error("Error in auth callback after login/logout:", error);
+            // Optionally show feedback if this callback fails, though main.js should handle most.
         }
-        
-        loadInitialAppearance(); // Ensure appearance is applied after login state is known
+    }
 
-        if (currentAuthCallback) {
-            try {
-                await currentAuthCallback(true); // Indicates user is now logged in
-            } catch (error) {
-                console.error("Error in auth callback after login:", error);
-                showFeedback("Error initializing app components.", true);
-            }
-        }
-        
-        const savedTab = localStorage.getItem('systemlog-activeTab') || 'tasks';
-        switchViewManager(savedTab, getCurrentDesign(), true); // True for initial load (no title animation)
-
-    } else {
-        setUserId(null); 
-        setGuestMode(false); 
-        if(uiElements.appContainer) uiElements.appContainer.classList.add('hidden');
-        if(uiElements.loginContainer) uiElements.loginContainer.classList.remove('hidden');
-        
-        if (currentAuthCallback) {
-            try {
-                await currentAuthCallback(false); 
-            } catch (error) {
-                console.error("Error in auth callback after logout:", error);
-            }
-        }
-        setApiKey(null); 
-        clearGuestData(); 
-        // clearUserSpecificData is called by onAuthStatusChanged in main.js
-        loadInitialAppearance();
-        showFeedback("Disconnected. Awaiting authentication.", false);
+    // NEW: After the initial auth state is processed by the main app,
+    // call the init callback if it exists. This ensures main.js proceeds safely.
+    if (onAuthInitCallback) {
+        onAuthInitCallback();
+        onAuthInitCallback = null; // Call once
     }
 }
 
-export function initializeAuth(authCb) {
+// NEW: Add onInitCb parameter to initializeAuth
+export function initializeAuth(authCb, onInitCb) {
     if (!auth) {
         console.error("Auth service is not available.");
         showFeedback("Authentication service error. Please refresh.", true);
         return;
     }
     currentAuthCallback = authCb;
+    onAuthInitCallback = onInitCb; // Store the initialisation callback
     onAuthStateChanged(auth, authStateObserver);
 }
 

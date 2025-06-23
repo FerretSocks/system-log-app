@@ -248,7 +248,9 @@ body.design-wired .scroller-accent { text-shadow: 0 0 5px var(--text-primary); a
 body.design-wired #kaleidoscopeModal .container-90s,
 body.design-wired #categoryManagerModal .container-90s,
 body.design-wired #aiChatModal .container-90s,
-body.design-wired #addExerciseModal .container-90s {
+body.design-wired #addExerciseModal .container-90s,
+body.design-wired #addBookModal .container-90s,
+body.design-wired #bookNotesModal .container-90s {
     border-image: linear-gradient(to right, var(--accent-primary), var(--accent-secondary)) 1;
     box-shadow: 0 0 25px var(--accent-secondary), inset 0 0 15px rgba(0, 195, 255, 0.2);
     animation: none;
@@ -349,7 +351,7 @@ body.design-mecha-manual .button-90s:hover {
 body.design-mecha-manual .button-90s:active {
     background-color: var(--input-bg); border-color: var(--mecha-border-highlight);
     border-top-color: var(--mecha-border-shadow); border-left-color: var(--mecha-border-shadow);
-    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5);
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5); transform: translateY(1px) translateX(1px);
 }
 body.design-mecha-manual .nav-tab.active {
     background-color: var(--container-bg);
@@ -459,7 +461,8 @@ body.palette-mecha-digital-hazard {
 #categoryList,
 #aiChatHistory,
 #workoutHistoryList,
-.add-exercise-list { /* Added .add-exercise-list */
+.add-exercise-list,
+#bookNotesList { /* Added #bookNotesList */
     min-height: 100px;
     max-height: 400px;
     overflow-y: auto;
@@ -554,7 +557,11 @@ body.palette-mecha-digital-hazard {
 #kaleidoscopeModal .container-90s,
 #categoryManagerModal .container-90s,
 #aiChatModal .container-90s,
-#addExerciseModal .container-90s { background-color: var(--background-main); }
+#addExerciseModal .container-90s,
+#addBookModal .container-90s, /* NEW */
+#bookNotesModal .container-90s { /* NEW */
+    background-color: var(--background-main);
+}
 
 
 #kaleidoscopeCanvasParent { display: flex; justify-content: center; border: 1px solid var(--border-color); }
@@ -773,6 +780,133 @@ body.palette-mecha-digital-hazard {
 /* Vitamin indicator for Journal */
 .vitamin-indicator { display: inline-flex; width: 2rem; align-items: center; justify-content: center; font-size: 1.2rem; }
 
+/* --- NEW: Book Review Specific Styles --- */
+#bookList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Responsive grid for books */
+    gap: 15px;
+    margin-top: 20px;
+    min-height: 150px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    background-color: var(--input-bg);
+}
+
+.book-card {
+    background-color: var(--container-bg);
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--animation-speed-fast) ease-out;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 180px; /* Ensure consistent card height */
+}
+
+.book-card:hover {
+    background-color: var(--input-bg-focus);
+    box-shadow: 0 0 10px var(--accent-secondary);
+    transform: translateY(-3px);
+}
+
+.book-cover {
+    width: 80px; /* Standard book cover width */
+    height: 120px; /* Standard book cover height */
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+    margin-bottom: 8px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+.book-cover-placeholder {
+    width: 80px;
+    height: 120px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    overflow: hidden; /* Prevent text overflow */
+}
+
+.book-title {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Limit to 2 lines */
+    -webkit-box-orient: vertical;
+}
+
+.book-author {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+}
+
+/* Styles for Book Notes Modal */
+#bookNotesModal .container-90s {
+    max-width: 750px;
+}
+
+#bookNotesModalTitle {
+    font-size: 26px;
+    text-align: left;
+    border-bottom: 1px solid var(--accent-primary);
+    padding-bottom: 5px;
+    min-height: 32px;
+    text-shadow: 0 0 4px var(--accent-secondary);
+    margin-bottom: 5px; /* Adjust margin */
+}
+
+#bookNotesModalSubtitle {
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-bottom: 15px; /* Space below subtitle */
+    text-align: left;
+}
+
+#bookNotesInput {
+    min-height: 250px; /* Larger text area for notes */
+    resize: vertical;
+    line-height: 1.6;
+    background-color: color-mix(in srgb, var(--input-bg) 80%, var(--background-main) 20%); /* Slightly lighter background */
+    border: 2px inset var(--border-color);
+    padding: 15px;
+}
+
+#bookNotesInput:focus {
+    box-shadow: 0 0 10px var(--accent-primary), inset 0 0 5px var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+#bookNotesList { /* This will display historical versions if we track them, or just empty for continuous notes */
+    min-height: 50px;
+    background-color: transparent;
+    border: none;
+    padding: 0;
+}
+
+#bookNotesList p { /* Style for individual notes within the list, if applicable */
+    font-size: 1rem;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
 @media (max-width: 768px) {
     body.design-wired h1,
     body.design-wired .app-title,
@@ -812,7 +946,8 @@ body.palette-mecha-digital-hazard {
     body .category-item-name,
     body .ai-chat-message p,
     body .ai-chat-message .sender,
-    body #feedbackBox {
+    body #feedbackBox,
+    .book-card, .book-title, .book-author { /* Added book review elements */
         text-shadow: none !important;
     }
 
