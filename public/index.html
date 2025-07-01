@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -247,18 +248,19 @@
     </div>
 
     <div id="bookNotesModal" class="modal-base hidden">
-        <div class="container-90s w-11/11 max-w-2xl flex flex-col" style="height: 80vh;">
-            <div class="flex justify-between items-center mb-3">
-                <h2 id="bookNotesModalTitle"></h2>
-                <button id="deleteBookBtn" class="button-90s text-sm">DELETE BOOK</button>
+        <div class="container-90s w-11/12 max-w-2xl flex flex-col" style="height: 80vh;">
+            <div class="book-modal-header flex justify-between items-start mb-4">
+                <div class="flex-grow">
+                    <h2 id="bookNotesModalTitle" class="!mb-1 !border-b-0 !text-left"></h2>
+                    <p id="bookNotesModalSubtitle" class="!m-0 !text-left jp-subtitle"></p>
+                </div>
+                <button id="deleteBookBtn" class="button-90s !text-sm !p-2 !min-w-0 !ml-4">DELETE</button>
             </div>
-            <p id="bookNotesModalSubtitle" class="jp-subtitle"></p>
             <textarea id="bookNotesInput" placeholder="Your notes and thoughts on this book..." class="input-90s journal-textarea flex-grow mb-4"></textarea>
-            <button id="addBookNoteBtn" class="button-90s w-full mt-2">Add Note to Book</button>
-            <h3 class="mt-4 mb-0">Previous Notes</h3>
-            <p class="jp-subtitle">過去の記録</p>
-            <div id="bookNotesList" class="my-4 flex-grow overflow-y-auto border border-border-color p-2 bg-input-bg"></div>
-            <button id="closeBookNotesModalBtn" class="button-90s w-full mt-4">Close</button>
+            <div class="flex gap-4 mt-auto">
+                <button id="saveBookNotesBtn" class="button-90s w-full">Save Notes</button>
+                <button id="closeBookNotesModalBtn" class="button-90s w-full">Close</button>
+            </div>
         </div>
     </div>
 

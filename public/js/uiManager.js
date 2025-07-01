@@ -5,11 +5,8 @@ import { DESIGNS, PALETTES, DESIGN_SPECIFIC_PALETTES, DESIGN_DEFAULT_PALETTES, T
 let _uiElements = {};
 
 // Export a proxy object that will contain the initialized elements
-// This allows other modules to import 'uiElements' even before initializeUIElements is called,
-// but ensures they access populated values only after it runs.
 export const uiElements = new Proxy(_uiElements, {
     get: (target, prop) => {
-        // Optional: Add a warning if a property is accessed before initialization
         if (Object.keys(target).length === 0 && prop !== 'length' && prop !== 'prototype' && prop !== 'constructor') {
             console.warn(`Attempted to access uiElements.${String(prop)} before initializeUIElements was called.`);
         }
@@ -43,7 +40,6 @@ export function typewriterScrambleEffect(element, text) {
             resolve();
             return;
         }
-        // Remove class from previous animation before starting a new one
         element.classList.remove('typing-done');
         activeScrambleTimers.forEach(timer => clearInterval(timer));
         activeScrambleTimers = [];
@@ -62,7 +58,6 @@ export function typewriterScrambleEffect(element, text) {
                         element.textContent = revealedText;
                         i++;
                         if (i >= text.length) {
-                            // Typing is finished, add the class for the blinking cursor
                             element.classList.add('typing-done');
                             resolve();
                         }
@@ -83,7 +78,6 @@ export function typewriterScrambleEffect(element, text) {
     });
 }
 
-// NEW: Show loading overlay function
 export async function showLoadingOverlay(message = "LOADING...") {
     if (uiElements.loadingOverlay && uiElements.loadingMessageText) {
         uiElements.loadingOverlay.classList.remove('hidden');
@@ -93,7 +87,6 @@ export async function showLoadingOverlay(message = "LOADING...") {
     }
 }
 
-// NEW: Hide loading overlay function
 export function hideLoadingOverlay() {
     if (uiElements.loadingOverlay && uiElements.loadingMessageText) {
         uiElements.loadingOverlay.classList.add('hidden');
@@ -103,38 +96,34 @@ export function hideLoadingOverlay() {
 
 
 export function switchToView(viewName, currentDesignValue, isInitialLoad = false) {
-    // Ensure _uiElements is populated before trying to access its properties
     if (Object.keys(_uiElements).length === 0) {
         console.warn("uiElements not initialized yet when switchToView was called.");
-        return; // Exit if UI elements are not ready
+        return; 
     }
 
     const views = { tasks: uiElements.tasksView, journal: uiElements.journalView, system: uiElements.systemView, workout: uiElements.workoutView, books: uiElements.bookReviewView };
     const tabs = { tasks: uiElements.tasksTabBtn, journal: uiElements.journalTabBtn, system: uiElements.systemTabBtn, workout: uiElements.workoutTabBtn, books: uiElements.bookReviewTabBtn };
 
-    // Ensure all views are hidden and tabs are inactive
     Object.values(views).forEach(v => v?.classList.add('hidden'));
     Object.values(tabs).forEach(t => t?.classList.remove('active'));
 
-    // Activate selected view and tab
     if (views[viewName]) {
         views[viewName].classList.remove('hidden');
-        if (tabs[viewName]) { // Check if tab element actually exists
+        if (tabs[viewName]) {
              tabs[viewName].classList.add('active');
         }
         localStorage.setItem('systemlog-activeTab', viewName);
-        // Corrected key for books to match HTML ID for consistency
         const titles = { tasks: "Task Log", journal: "Daily Entry", system: "System Panel", workout: "Workout Log", books: "Book Reviews" }; 
         const titleElement = uiElements[`${viewName}ViewTitle`];
 
         if (titleElement) {
             titleElement.classList.remove('fade-in-title');
-            titleElement.classList.remove('typing-done'); // Important: Remove old class
-            void titleElement.offsetWidth; // Trigger reflow to restart animation
+            titleElement.classList.remove('typing-done'); 
+            void titleElement.offsetWidth; 
 
             if (isInitialLoad) {
                 titleElement.textContent = titles[viewName];
-                titleElement.classList.add('typing-done'); // Add class immediately on load
+                titleElement.classList.add('typing-done');
             } else {
                 typewriterScrambleEffect(titleElement, titles[viewName]);
             }
@@ -288,12 +277,7 @@ export function loadInitialAppearance() {
     applyAppearance();
 }
 
-/**
- * Initializes the _uiElements object by getting references to all necessary DOM elements.
- * This function should be called after the DOM is fully loaded.
- */
 export function initializeUIElements() {
-    // Populate the _uiElements object (which uiElements proxy wraps)
     Object.assign(_uiElements, {
         loginContainer: document.getElementById('loginContainer'),
         appContainer: document.getElementById('appContainer'),
@@ -353,7 +337,6 @@ export function initializeUIElements() {
         loadingOverlay: document.getElementById('loadingOverlay'),
         loadingMessageText: document.getElementById('loadingMessageText'),
         statusScrollerContainer: document.querySelector('.status-scroller-container'),
-        
         workoutSelectorContainer: document.getElementById('workoutSelectorContainer'),
         workoutDisplayContainer: document.getElementById('workoutDisplayContainer'),
         workoutHistoryList: document.getElementById('workoutHistoryList'),
@@ -373,8 +356,7 @@ export function initializeUIElements() {
         bookNotesModalTitle: document.getElementById('bookNotesModalTitle'),
         bookNotesModalSubtitle: document.getElementById('bookNotesModalSubtitle'),
         bookNotesInput: document.getElementById('bookNotesInput'),
-        addBookNoteBtn: document.getElementById('addBookNoteBtn'),
-        bookNotesList: document.getElementById('bookNotesList'),
+        saveBookNotesBtn: document.getElementById('saveBookNotesBtn'), // Corrected ID
         closeBookNotesModalBtn: document.getElementById('closeBookNotesModalBtn'),
         deleteBookBtn: document.getElementById('deleteBookBtn'),
     });

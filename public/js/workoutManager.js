@@ -20,7 +20,7 @@ const EXERCISE_LIBRARY = {
         { id: 'sled-push', name: 'Sled Push/Pull', type: 'cardio' },
         { id: 'ski-erg', name: 'SkiErg', type: 'cardio' },
         { id: 'boxing', name: 'Boxing Bag', type: 'cardio' },
-        { id: 'walking', name: 'Walking', type: 'cardio' } // Retain walking here for general cardio selection
+        { id: 'walking', name: 'Walking', type: 'cardio' } 
     ],
     chest: [
         { id: 'dumbbell-chest-press', name: 'Dumbbell Chest Press', type: 'weight' },
@@ -66,11 +66,11 @@ const WORKOUT_PLANS = {
         preStretches: ["Leg Swings", "Walking High Knees", "Bodyweight Squats"],
         coolDownStretches: ["Standing Quad Stretch", "Seated Hamstring Stretch", "Standing Calf Stretch"],
         exercises: [
-            { id: 'squat-rack', sets: [{ reps: "10", notes: "light weight" }, { reps: "8-12" }, { reps: "8-12" }, { reps: "8-12" }] },
-            { id: 'leg-press', sets: [{ reps: "10-12" }, { reps: "10-12" }, { reps: "10-12" }] },
-            { id: 'lying-leg-curls', sets: [{ reps: "10-15" }, { reps: "10-15" }, { reps: "10-15" }] },
-            { id: 'seated-leg-extensions', sets: [{ reps: "10-15" }, { reps: "10-15" }, { reps: "10-15" }] },
-            { id: 'standing-calf-raises', sets: [{ reps: "12-15" }, { reps: "12-15" }, { reps: "12-15" }] }
+            { id: 'squat-rack', sets: [{}, {}, {}] },
+            { id: 'leg-press', sets: [{}, {}, {}] },
+            { id: 'lying-leg-curls', sets: [{}, {}, {}] },
+            { id: 'seated-leg-extensions', sets: [{}, {}, {}] },
+            { id: 'standing-calf-raises', sets: [{}, {}, {}] }
         ]
     },
     'push-day': {
@@ -78,11 +78,11 @@ const WORKOUT_PLANS = {
         preStretches: ["Arm Circles", "Torso Twists", "Cat-Cow Stretch"],
         coolDownStretches: ["Doorway Chest Stretch", "Cross-Body Shoulder Stretch", "Overhead Tricep Stretch"],
         exercises: [
-            { id: 'dumbbell-chest-press', sets: [{ reps: "8-12" }, { reps: "8-12" }, { reps: "8-12" }] },
-            { id: 'seated-shoulder-press-machine', sets: [{ reps: "8-12" }, { reps: "8-12" }, { reps: "8-12" }] },
-            { id: 'chest-fly-machine', sets: [{ reps: "10-15" }, { reps: "10-15" }, { reps: "10-15" }] },
-            { id: 'seated-tricep-extension-machine', sets: [{ reps: "10-15" }, { reps: "10-15" }, { reps: "10-15" }] },
-            { id: 'assisted-dips', sets: [{ reps: "to failure" }, { reps: "to failure" }, { reps: "to failure" }] }
+            { id: 'dumbbell-chest-press', sets: [{}, {}, {}] },
+            { id: 'seated-shoulder-press-machine', sets: [{}, {}, {}] },
+            { id: 'chest-fly-machine', sets: [{}, {}, {}] },
+            { id: 'seated-tricep-extension-machine', sets: [{}, {}, {}] },
+            { id: 'assisted-dips', sets: [{}, {}, {}] }
         ]
     },
     'pull-day': {
@@ -90,11 +90,11 @@ const WORKOUT_PLANS = {
         preStretches: ["Band Pull-Aparts", "Scapular Retractions", "Arm Swings"],
         coolDownStretches: ["Lat Stretch", "Bicep Wall Stretch"],
         exercises: [
-            { id: 'lat-pulldown', sets: [{ reps: "8-12" }, { reps: "8-12" }, { reps: "8-12" }] },
-            { id: 'seated-cable-row', sets: [{ reps: "8-12" }, { reps: "8-12" }, { reps: "8-12" }] },
-            { id: 'assisted-pull-ups', sets: [{ reps: "to failure" }, { reps: "to failure" }, { reps: "to failure" }] },
-            { id: 't-bar-row', sets: [{ reps: "8-10" }, { reps: "8-10" }, { reps: "8-10" }] },
-            { id: 'seated-bicep-curl-machine', sets: [{ reps: "10-15" }, { reps: "10-15" }, { reps: "10-15" }] }
+            { id: 'lat-pulldown', sets: [{}, {}, {}] },
+            { id: 'seated-cable-row', sets: [{}, {}, {}] },
+            { id: 'assisted-pull-ups', sets: [{}, {}, {}] },
+            { id: 't-bar-row', sets: [{}, {}, {}] },
+            { id: 'seated-bicep-curl-machine', sets: [{}, {}, {}] }
         ]
     },
     'cardio-core': {
@@ -103,9 +103,9 @@ const WORKOUT_PLANS = {
         coolDownStretches: ["Knee to Chest Stretch", "Cobra Stretch"],
         exercises: [
             { id: 'treadmill', name: "Cardio of Choice", type: 'cardio', sets: [{ notes: "20-30 mins" }] },
-            { id: 'rotary-torso-machine', sets: [{ reps: "15/side" }, { reps: "15/side" }, { reps: "15/side" }] },
-            { id: 'seated-ab-crunch-machine', sets: [{ reps: "15-20" }, { reps: "15-20" }, { reps: "15-20" }] },
-            { id: 'plank', name: "Plank", type: 'note', sets: [{ notes: "to failure" }, { notes: "to failure" }, { notes: "to failure" }] }
+            { id: 'rotary-torso-machine', sets: [{}, {}, {}] },
+            { id: 'seated-ab-crunch-machine', sets: [{}, {}, {}] },
+            { id: 'plank', name: "Plank", type: 'note', sets: [{}, {}, {}] }
         ]
     },
     'full-body': {
@@ -113,10 +113,10 @@ const WORKOUT_PLANS = {
         preStretches: ["Bodyweight Squats", "Arm Circles", "Leg Swings"],
         coolDownStretches: ["Light, full-body stretch"],
         exercises: [
-            { id: 'dumbbell-chest-press', name: "Upper Body Push (e.g., Chest Press)", type: 'note', sets: [{ notes: "3 sets of 8-12 reps" }] },
-            { id: 'lat-pulldown', name: "Upper Body Pull (e.g., Lat Pulldown)", type: 'note', sets: [{ notes: "3 sets of 8-12 reps" }] },
-            { id: 'leg-press', name: "Lower Body (e.g., Leg Press)", type: 'note', sets: [{ notes: "3 sets of 8-12 reps" }] },
-            { id: 'dumbbell-bicep-curl', name: "Accessory (Your Choice)", type: 'note', sets: [{ notes: "2 sets" }] }
+            { id: 'dumbbell-chest-press', sets: [{}, {}, {}] },
+            { id: 'lat-pulldown', sets: [{}, {}, {}] },
+            { id: 'leg-press', sets: [{}, {}, {}] },
+            { id: 'dumbbell-bicep-curl', sets: [{}, {}] }
         ]
     },
     'walking-day': {
@@ -124,9 +124,9 @@ const WORKOUT_PLANS = {
         preStretches: ["Leg Swings", "Ankle Rotations"],
         coolDownStretches: ["Calf Stretch", "Hamstring Stretch"],
         exercises: [
-            { id: 'walking', name: "Daily Walk", type: 'cardio', sets: [{ notes: "" }] } // MODIFIED: Changed notes to empty string
+            { id: 'walking', name: "Daily Walk", type: 'cardio', sets: [{ notes: "" }] }
         ],
-        notes: "" // MODIFIED: Changed notes to empty string
+        notes: ""
     }
 };
 
@@ -243,8 +243,13 @@ function setupDynamicListeners() {
 
         const addSetBtn = item.querySelector('.add-set-btn');
         if (addSetBtn) addSetBtn.addEventListener('click', addSet);
+
+        item.querySelectorAll('.delete-set-btn').forEach(button => {
+            button.addEventListener('click', deleteSet);
+        });
     });
 }
+
 function openAddExerciseModal() {
     const modal = document.getElementById('addExerciseModal');
     if (!modal) return;
@@ -252,7 +257,7 @@ function openAddExerciseModal() {
     const categorySelect = document.getElementById('addExerciseCategorySelect');
     const searchInput = document.getElementById('exerciseSearchInput');
     
-    categorySelect.value = 'all'; // Default to "All Categories"
+    categorySelect.value = 'all';
     searchInput.value = '';
 
     categorySelect.onchange = populateExerciseList;
@@ -282,7 +287,6 @@ function populateExerciseList() {
 
     let exercisesToDisplay = [];
     if (category === 'all') {
-        // Combine all exercises from all categories
         for (const catKey in EXERCISE_LIBRARY) {
             exercisesToDisplay = exercisesToDisplay.concat(EXERCISE_LIBRARY[catKey]);
         }
@@ -299,7 +303,6 @@ function populateExerciseList() {
         return;
     }
     
-    // Sort alphabetically for consistency
     filteredExercises.sort((a, b) => a.name.localeCompare(b.name));
 
     filteredExercises.forEach(ex => {
@@ -322,13 +325,22 @@ function confirmAddExercise(exerciseId) {
     }
 
     const exercisesContainer = document.getElementById('exercisesContainer');
-    const exerciseEl = createExerciseElement(exercise.id, exercise.name, exercise.type, [{ reps: '', weight: '', notes: '' }]);
+    const defaultSets = (exercise.type === 'cardio' || exercise.type === 'note') ? 1 : 3;
+    const exerciseEl = createExerciseElement(exercise.id, exercise.name, exercise.type, new Array(defaultSets).fill({ reps: '', weight: '', notes: '' }));
     exercisesContainer.appendChild(exerciseEl);
     
+    const checkbox = exerciseEl.querySelector('.task-status-workout');
+    if (checkbox) checkbox.addEventListener('change', (e) => e.target.closest('.workout-exercise-item').classList.toggle('completed', e.target.checked));
+
     const removeBtn = exerciseEl.querySelector('.remove-exercise-btn');
     if (removeBtn) removeBtn.addEventListener('click', (e) => e.target.closest('.workout-exercise-item').remove());
+    
     const addSetBtn = exerciseEl.querySelector('.add-set-btn');
     if (addSetBtn) addSetBtn.addEventListener('click', addSet);
+    
+    exerciseEl.querySelectorAll('.delete-set-btn').forEach(button => {
+        button.addEventListener('click', deleteSet);
+    });
     
     closeAddExerciseModal();
 }
@@ -354,6 +366,7 @@ function createExerciseElement(id, name, type, sets = [], isCompleted = false) {
     `;
     return item;
 }
+
 function createInputsForSets(setsData, type) {
     let inputsHtml = '';
     setsData.forEach((setDef, index) => {
@@ -367,6 +380,7 @@ function createInputsForSets(setsData, type) {
     });
     return inputsHtml;
 }
+
 function addSet(event) {
     const exerciseItem = event.target.closest('.workout-exercise-item');
     const exerciseSetsContainer = exerciseItem.querySelector('.exercise-sets-container');
@@ -374,7 +388,7 @@ function addSet(event) {
     const currentSetsCount = exerciseSetsContainer.querySelectorAll('.exercise-set-row').length;
 
     let newSetHtml = `<div class="exercise-set-row" data-set-index="${currentSetsCount}"><span class="set-label">Set ${currentSetsCount + 1}:</span>`;
-    if (exerciseType === 'weight' || exerciseType === 'assistance' || type === 'bodyweight') {
+    if (exerciseType === 'weight' || exerciseType === 'assistance' || exerciseType === 'bodyweight') {
         newSetHtml += `<input type="number" placeholder="Weight" class="input-90s exercise-weight-input"><input type="number" placeholder="Reps" class="input-90s exercise-reps-input">`;
     } else {
         newSetHtml += `<input type="text" placeholder="Notes" class="input-90s exercise-notes-input">`;
@@ -384,9 +398,19 @@ function addSet(event) {
     exerciseSetsContainer.insertAdjacentHTML('beforeend', newSetHtml);
     exerciseSetsContainer.lastElementChild.querySelector('.delete-set-btn').addEventListener('click', deleteSet);
 }
+
 function deleteSet(event) {
-    event.target.closest('.exercise-set-row').remove();
+    const setRow = event.target.closest('.exercise-set-row');
+    const setsContainer = setRow.parentElement;
+    setRow.remove();
+    
+    const remainingSets = setsContainer.querySelectorAll('.exercise-set-row');
+    remainingSets.forEach((set, index) => {
+        set.querySelector('.set-label').textContent = `Set ${index + 1}:`;
+        set.dataset.setIndex = index;
+    });
 }
+
 async function saveWorkoutSession() {
     const displayContainer = document.querySelector('.workout-active-display');
     if (!displayContainer) return;
@@ -431,6 +455,7 @@ async function saveWorkoutSession() {
     }
     loadWorkoutView();
 }
+
 function listenForWorkoutHistory(isGuest) {
     if (unsubscribeHistory) unsubscribeHistory();
     const historyList = uiElements.workoutHistoryList;
@@ -451,6 +476,7 @@ function listenForWorkoutHistory(isGuest) {
         }, (error) => console.error("Error fetching workout history:", error));
     }
 }
+
 function renderWorkoutHistoryItem(log, isGuest) {
     const historyList = uiElements.workoutHistoryList;
     if (!historyList) return;
@@ -502,6 +528,7 @@ function renderWorkoutHistoryItem(log, isGuest) {
     });
     historyList.appendChild(item);
 }
+
 function findExerciseInLibrary(exerciseId) {
     for (const category in EXERCISE_LIBRARY) {
         const found = EXERCISE_LIBRARY[category].find(ex => ex.id === exerciseId);
@@ -509,6 +536,7 @@ function findExerciseInLibrary(exerciseId) {
     }
     return null;
 }
+
 function clearWorkoutData() {
     _hasWorkoutLoaded = false;
     if (unsubscribeHistory) unsubscribeHistory();
